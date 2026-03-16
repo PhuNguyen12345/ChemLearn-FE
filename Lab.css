@@ -1,0 +1,52 @@
+/* Hiệu ứng nhún cho kim loại mềm (Natri) khi click chuột */
+.soft-metal:active {
+  transform: scale(0.85) translateY(5px);
+  border-radius: 50%;
+  transition: all 0.1s ease;
+}
+
+/* Kim loại cứng (Đồng) khi click không bị biến dạng */
+.hard-metal:active {
+  transform: translateY(2px);
+}
+
+/* Nước sủi bọt nhẹ */
+@keyframes bubbling {
+  0% { opacity: 0.8; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-5px); }
+  100% { opacity: 0.8; transform: translateY(0); }
+}
+
+.water-reacting {
+  animation: bubbling 0.5s infinite;
+  background-color: #85c1e9 !important; /* Đổi màu nước khi có phản ứng */
+}
+
+/* Lửa cháy trên mặt nước */
+@keyframes fireFlicker {
+  0% { opacity: 0.9; transform: scale(1) translateY(0); }
+  50% { opacity: 1; transform: scale(1.1) translateY(-2px); }
+  100% { opacity: 0.9; transform: scale(1) translateY(0); }
+}
+
+.fire-animation {
+  position: absolute;
+  top: -30px; /* Nổi trên mặt nước */
+  left: 30%;
+  font-size: 50px;
+  animation: fireFlicker 0.2s infinite alternate;
+}
+
+/* Khói bay lên và mờ dần */
+@keyframes smokeRise {
+  0% { opacity: 0.8; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-100px) scale(2); }
+}
+
+.smoke-animation {
+  position: absolute;
+  top: -20px;
+  left: 40%;
+  font-size: 40px;
+  animation: smokeRise 2s infinite ease-out;
+}
