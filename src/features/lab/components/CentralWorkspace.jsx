@@ -1,42 +1,232 @@
-import React from 'react';
+// import React, { useState, useRef } from 'react';
+// import { useDroppable } from '@dnd-kit/core';
+// import { ZoomIn, ZoomOut, Maximize } from 'lucide-react';
+// import CanvasItem from './CanvasItem';
+
+// export default function CentralWorkspace({ placedItems, simulationActive, scale, setScale }) {
+//   const { isOver, setNodeRef } = useDroppable({ id: 'canvas' });
+//   const [transformOrigin, setTransformOrigin] = useState('center center');
+//   const containerRef = useRef(null);
+
+//   // Combine dnd-kit's setNodeRef with our own local ref for measuring coordinates
+//   const setRefs = (element) => {
+//     containerRef.current = element;
+//     setNodeRef(element);
+//   };
+
+//   // const handleWheel = (e) => {
+//   //   // Prevent default scroll when hovering the canvas
+//   //   e.preventDefault();
+
+//   //   if (!containerRef.current) return;
+
+//   //   // Get the exact cursor position relative to the container element
+//   //   const rect = containerRef.current.getBoundingClientRect();
+//   //   const x = e.clientX - rect.left;
+//   //   const y = e.clientY - rect.top;
+
+//   //   // Update the transform origin to exactly where the mouse is
+//   //   setTransformOrigin(`${x}px ${y}px`);
+
+//   //   // Calculate new zoom mathematically based on wheel direction
+//   //   setScale((prevScale) => {
+//   //     const zoomFactor = 0.05;
+//   //     const newScale = e.deltaY < 0 
+//   //       ? prevScale + zoomFactor 
+//   //       : prevScale - zoomFactor;
+      
+//   //     // Clamp the scale between 0.5x and 3.0x
+//   //     return Math.min(Math.max(0.5, newScale), 3.0);
+//   //   });
+//   // };
+
+//   // const handleManualZoom = (type) => {
+//   //   setTransformOrigin('center center'); // Reset origin for generic controls
+//   //   if (type === 'in') setScale(s => Math.min(s + 0.2, 3.0));
+//   //   if (type === 'out') setScale(s => Math.max(s - 0.2, 0.5));
+//   //   if (type === 'reset') setScale(1);
+//   // };
+
+//   const handleWheel = (e) => {
+//     // 1. Prevent default để chặn trang web bị cuộn lên/xuống
+//     e.preventDefault();
+
+//     if (!containerRef.current) return;
+
+//     setScale((prevScale) => {
+//       // 2. Tính toán hệ số Zoom (Lăn nhẹ thì zoom ít, lăn mạnh thì zoom nhiều)
+//       // e.deltaY dương = lăn xuống (zoom out), âm = lăn lên (zoom in)
+//       const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+//       const newScale = prevScale * zoomFactor;
+
+//       // 3. Khóa cứng giới hạn Zoom (Min 0.5x, Max 3.0x)
+//       if (newScale < 0.5 || newScale > 3.0) {
+//         return prevScale; // Nếu chạm đáy/đỉnh thì KHÔNG LÀM GÌ CẢ (Chống trượt khung hình)
+//       }
+
+//       // 4. CHỈ cập nhật tâm điểm (transformOrigin) khi CHẮC CHẮN khung hình sẽ phóng to/thu nhỏ
+//       const rect = containerRef.current.getBoundingClientRect();
+//       const x = e.clientX - rect.left;
+//       const y = e.clientY - rect.top;
+//       setTransformOrigin(`${x}px ${y}px`);
+
+//       return newScale;
+//     });
+//   };
+
+//   const handleManualZoom = (type) => {
+//     setTransformOrigin('center center'); 
+//     // Thay vì cộng trừ 0.2, dùng nhân chia để cảm giác zoom đều hơn
+//     if (type === 'in') setScale(s => Math.min(s * 1.2, 3.0));
+//     if (type === 'out') setScale(s => Math.max(s * 0.8, 0.5));
+//     if (type === 'reset') setScale(1);
+//   };
+
+//   return (
+//     <div className="relative w-full h-[600px] border-4 rounded-[2rem] overflow-hidden transition-colors shadow-inner border-slate-200 bg-slate-50">
+      
+//       {/* Zoom Controls Overlay */}
+//       <div className="absolute top-6 right-6 flex flex-col gap-2 z-50">
+//         <button onClick={() => handleManualZoom('in')} className="p-2 bg-white rounded-full shadow-md text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors">
+//           <ZoomIn className="w-5 h-5" />
+//         </button>
+//         <button onClick={() => handleManualZoom('reset')} className="p-2 bg-white rounded-full shadow-md text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors">
+//           <Maximize className="w-5 h-5" />
+//         </button>
+//         <button onClick={() => handleManualZoom('out')} className="p-2 bg-white rounded-full shadow-md text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors">
+//           <ZoomOut className="w-5 h-5" />
+//         </button>
+//       </div>
+
+//       <div className="absolute top-6 left-6 font-bold text-slate-300/80 pointer-events-none text-2xl uppercase tracking-widest select-none z-10">
+//          Experiment Canvas
+//       </div>
+
+//       {/* The actual Zoomable Canvas area */}
+//       <div 
+//         ref={setRefs} 
+//         onWheel={handleWheel}
+//         // className={`w-full h-full relative transition-[transform,background-color] duration-75 ${isOver ? 'bg-blue-50/40' : ''}`}
+//         className={`w-full h-full relative ${isOver ? 'bg-blue-50/40' : ''}`}
+//         style={{
+//           backgroundImage: 'radial-gradient(#cbd5e1 2px, transparent 2px)',
+//           backgroundSize: '30px 30px',
+//           transform: `scale(${scale})`,
+//           transformOrigin: transformOrigin,
+//         }}
+//       >
+//         {placedItems.map(item => (
+//           <CanvasItem key={item.instanceId} item={item} simulationActive={simulationActive} />
+//         ))}
+//       </div>
+//     </div>
+//   );
+// }
+import React, { useState, useRef } from 'react';
 import { useDroppable } from '@dnd-kit/core';
+import { ZoomIn, ZoomOut, Maximize } from 'lucide-react';
+import CanvasItem from './CanvasItem';
 
-export default function CentralWorkspace({ deskItem, beakerContent, isReacting, bubbles }) {
-  const dropZoneId = deskItem === null ? 'empty-desk' : 'active-beaker';
-  const { isOver, setNodeRef } = useDroppable({ id: dropZoneId });
+export default function CentralWorkspace({ placedItems, simulationActive, scale, setScale }) {
+  const { isOver, setNodeRef } = useDroppable({ id: 'canvas' });
+  const containerRef = useRef(null);
+  
+  // STATE MỚI: Tọa độ dịch chuyển (Pan) của Canvas
+  const [pan, setPan] = useState({ x: 0, y: 0 });
 
-  if (deskItem === null) {
-    return (
-      <div ref={setNodeRef} style={{ width: '300px', height: '150px', border: isOver ? '3px dashed #3498db' : '3px dashed #bdc3c7', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7f8c8d', fontWeight: 'bold', backgroundColor: isOver ? '#ebf5fb' : 'transparent', transition: 'all 0.2s ease' }}>
-        {isOver ? 'Thả Dụng Cụ Vào Đây!' : 'Kéo Cốc Thủy Tinh ra bàn'}
-      </div>
-    );
-  }
+  const setRefs = (element) => {
+    containerRef.current = element;
+    setNodeRef(element);
+  };
+
+  // THUẬT TOÁN MIRO/FIGMA CAMERA
+  const handleWheel = (e) => {
+    e.preventDefault(); // Chặn cuộn trang web
+    if (!containerRef.current) return;
+
+    // 1. Tính toán Scale mượt mà
+    const zoomSensitivity = 0.05;
+    const delta = e.deltaY < 0 ? (1 + zoomSensitivity) : (1 - zoomSensitivity);
+    let newScale = scale * delta;
+
+    // 2. Chặn kịch kim (Tránh zoom quá to/nhỏ gây lỗi)
+    newScale = Math.min(Math.max(0.5, newScale), 3.0);
+    if (newScale === scale) return;
+
+    // 3. Lấy tọa độ chuột DỰA TRÊN KHUNG CỐ ĐỊNH BÊN NGOÀI
+    const rect = e.currentTarget.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    // 4. Công thức toán học: Tính toán độ dịch chuyển (Pan) để giữ cố định điểm dưới chuột
+    const newPanX = mouseX - ((mouseX - pan.x) * (newScale / scale));
+    const newPanY = mouseY - ((mouseY - pan.y) * (newScale / scale));
+
+    setScale(newScale);
+    setPan({ x: newPanX, y: newPanY });
+  };
+
+  // Nút bấm thủ công cũng phải dùng toán học tương tự (zoom vào giữa màn hình)
+  const handleManualZoom = (type) => {
+    if (type === 'reset') {
+      setScale(1);
+      setPan({ x: 0, y: 0 });
+      return;
+    }
+
+    const rect = containerRef.current.parentElement.getBoundingClientRect();
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+
+    const newScale = type === 'in' ? Math.min(scale * 1.2, 3.0) : Math.max(scale * 0.8, 0.5);
+    const newPanX = centerX - ((centerX - pan.x) * (newScale / scale));
+    const newPanY = centerY - ((centerY - pan.y) * (newScale / scale));
+
+    setScale(newScale);
+    setPan({ x: newPanX, y: newPanY });
+  };
 
   return (
-    <div ref={setNodeRef} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <div style={{ width: '180px', height: '220px', border: isOver ? '4px dashed #2ecc71' : '4px solid rgba(255,255,255,0.8)', backgroundColor: 'rgba(236, 240, 241, 0.4)', borderRadius: '5px 5px 30px 30px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', position: 'relative' }}>
-        
-        {beakerContent && (
-          <div className={`water-layer ${isReacting ? 'water-reacting' : ''}`} style={{ height: '100px', backgroundColor: beakerContent === 'H2O' ? 'rgba(52,152,219,0.7)' : 'rgba(155,89,182,0.7)', transition: 'all 0.5s ease', display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'white', fontWeight: 'bold', position: 'relative' }}>
-            {beakerContent}
-
-            {isReacting && (
-              <>
-                <div className="fire-animation">🔥</div>
-                
-                <div className="smoke-animation">💨</div>
-                <div className="smoke-animation" style={{ left: '25%', animationDelay: '0.5s', fontSize: '30px' }}>💨</div>
-
-                {bubbles.map(b => (
-                  <div key={b.id} className="particle-bubble-violent" style={{ width: b.size, height: b.size, left: b.left, animationDelay: b.delay, '--rnd': Math.random() }} />
-                ))}
-              </>
-            )}
-          </div>
-        )}
+    // {/* KHUNG OUTER: Nằm im cố định, dùng để hứng sự kiện lăn chuột */}
+    <div 
+      onWheel={handleWheel}
+      className="relative w-full h-[600px] border-4 rounded-[2rem] overflow-hidden shadow-inner border-slate-200 bg-slate-50"
+    >
+      
+      {/* Nút bấm điều khiển (Zoom Controls) */}
+      <div className="absolute top-6 right-6 flex flex-col gap-2 z-50">
+        <button onClick={() => handleManualZoom('in')} className="p-2 bg-white rounded-full shadow-md text-slate-600 hover:text-blue-600 hover:bg-slate-50">
+          <ZoomIn className="w-5 h-5" />
+        </button>
+        <button onClick={() => handleManualZoom('reset')} className="p-2 bg-white rounded-full shadow-md text-slate-600 hover:text-blue-600 hover:bg-slate-50">
+          <Maximize className="w-5 h-5" />
+        </button>
+        <button onClick={() => handleManualZoom('out')} className="p-2 bg-white rounded-full shadow-md text-slate-600 hover:text-blue-600 hover:bg-slate-50">
+          <ZoomOut className="w-5 h-5" />
+        </button>
       </div>
-      <div style={{ width: '250px', height: '20px', backgroundColor: '#7f8c8d', borderRadius: '10px', marginTop: '10px' }}></div>
+
+      <div className="absolute top-6 left-6 font-bold text-slate-300/80 pointer-events-none text-2xl uppercase tracking-widest select-none z-10">
+         Experiment Canvas
+      </div>
+
+      {/* KHUNG INNER: Cái này sẽ bay lượn và phóng to thu nhỏ */}
+      <div 
+        id="experiment-canvas" /* THÊM ID NÀY VÀO ĐÂY */
+        ref={setRefs} 
+        className={`w-full h-full relative ${isOver ? 'bg-blue-50/40' : ''}`}
+        style={{
+          backgroundImage: 'radial-gradient(#cbd5e1 2px, transparent 2px)',
+          backgroundSize: '30px 30px',
+          // ĐÂY LÀ CHÌA KHÓA: Dịch chuyển (Translate) + Tỷ lệ (Scale), Cố định tâm 0 0
+          transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`,
+          transformOrigin: '0 0',
+        }}
+      >
+        {placedItems.map(item => (
+          <CanvasItem key={item.instanceId} item={item} simulationActive={simulationActive} />
+        ))}
+      </div>
     </div>
   );
 }

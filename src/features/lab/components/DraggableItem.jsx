@@ -2,21 +2,23 @@ import React from 'react';
 import { useDraggable } from '@dnd-kit/core';
 
 export default function DraggableItem({ item, viewMode, onClick }) {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: item.id });
-  const opacity = isDragging ? 0.3 : 1; 
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ 
+    id: `sidebar-${item.id}`,
+    data: { source: 'sidebar', templateId: item.id, itemData: item }
+  });
   
-  const metalClass = item.metalType === 'soft' ? 'soft-metal' : (item.metalType === 'hard' ? 'hard-metal' : '');
+  const opacity = isDragging ? 0.4 : 1; 
 
   if (viewMode === 'grid') {
     return (
       <div 
         ref={setNodeRef} 
-        className={metalClass} 
-        style={{ border: '1px solid #e0e0e0', borderRadius: '8px', padding: '15px 5px', display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'grab', backgroundColor: '#fff', opacity }} 
+        style={{ opacity }}
+        className="flex flex-col items-center justify-center p-4 bg-white border-2 border-slate-100 rounded-2xl cursor-grab hover:border-blue-200 hover:shadow-md transition-all active:cursor-grabbing"
         {...listeners} {...attributes} onClick={onClick}
       >
-        <span style={{ fontSize: '30px' }}>{item.icon}</span>
-        <span style={{ fontSize: '12px', textAlign: 'center', marginTop: '8px', fontWeight: 'bold' }}>{item.name}</span>
+        <div className="text-slate-700 pointer-events-none mb-2">{item.icon}</div>
+        <span className="text-xs text-center font-bold text-slate-600 pointer-events-none">{item.name}</span>
       </div>
     );
   }
@@ -24,14 +26,14 @@ export default function DraggableItem({ item, viewMode, onClick }) {
   return (
     <div 
       ref={setNodeRef} 
-      className={metalClass} 
-      style={{ display: 'flex', alignItems: 'center', padding: '10px', border: '1px solid #e0e0e0', borderRadius: '8px', cursor: 'grab', backgroundColor: '#fff', marginBottom: '10px', opacity }} 
+      style={{ opacity }}
+      className="flex items-center p-3 bg-white border border-slate-200 rounded-xl cursor-grab hover:shadow-md transition-all mb-2 active:cursor-grabbing"
       {...listeners} {...attributes} onClick={onClick}
     >
-      <span style={{ fontSize: '24px', marginRight: '15px' }}>{item.icon}</span>
-      <div>
-        <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{item.name}</div>
-        <div style={{ fontSize: '12px', color: '#7f8c8d' }}>{item.desc.substring(0, 35)}...</div>
+      <div className="mr-4 text-slate-700 pointer-events-none p-2 bg-slate-50 rounded-lg">{item.icon}</div>
+      <div className="pointer-events-none">
+        <div className="font-bold text-sm text-slate-800">{item.name}</div>
+        <div className="text-xs text-slate-500 line-clamp-1">{item.desc}</div>
       </div>
     </div>
   );

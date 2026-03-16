@@ -1,7 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { DndContext, DragOverlay } from '@dnd-kit/core';
 import '/Lab2.css'; 
-
+import { Play, RotateCcw, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { snapCenterToCursor } from '@dnd-kit/modifiers';
 import { INITIAL_INVENTORY } from './data/constants';
 import DraggableItem from './components/DraggableItem';
 import DragPreview from './components/DragPreview';
@@ -11,58 +13,139 @@ export default function VirtualLabPage() {
   const [inventory, setInventory] = useState(INITIAL_INVENTORY);
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarView, setSidebarView] = useState('grid');
-  const [selectedItem, setSelectedItem] = useState(null);
   
   const [isLeftOpen, setIsLeftOpen] = useState(true);
   const [isRightOpen, setIsRightOpen] = useState(true);
 
-  const [activeDragId, setActiveDragId] = useState(null);
-  const activeDragItem = useMemo(() => inventory.find(i => i.id === activeDragId), [activeDragId, inventory]);
+  // New Free-form & Zoom State
+  const [placedItems, setPlacedItems] = useState([]);
+  const [simulationActive, setSimulationActive] = useState(false);
+  const [scale, setScale] = useState(1);
 
-  const [deskItem, setDeskItem] = useState(null);
-  const [beakerContent, setBeakerContent] = useState(null);
-  const [isReacting, setIsReacting] = useState(false);
-  const [reactionInfo, setReactionInfo] = useState({ equation: 'Chưa có', condition: 'N/A', description: 'Kéo dụng cụ và hóa chất từ kho đồ bên phải ra bàn để bắt đầu.' });
+  // Drag state
+  const [activeDragData, setActiveDragData] = useState(null);
+  
+  const activeDragItem = useMemo(() => {
+    if (!activeDragData) return null;
+    if (activeDragData.source === 'sidebar') return inventory.find(i => i.id === activeDragData.templateId);
+    if (activeDragData.source === 'canvas') return inventory.find(i => i.id === activeDragData.templateId);
+    return null;
+  }, [activeDragData, inventory]);
 
-  const bubbleConfig = useMemo(() => {
-    return [...Array(15)].map((_, i) => ({
-      id: i, size: `${Math.random() * 8 + 5}px`, left: `${Math.random() * 80 + 10}%`, delay: `${Math.random() * 0.5}s`
-    }));
-  }, []);
+  const [reactionInfo, setReactionInfo] = useState({ equation: '-', condition: '-', description: 'Kéo dụng cụ và hóa chất vào Workspace để bắt đầu.' });
+
+  const checkProximity = (items) => {
+    const burners = items.filter(i => i.templateId === 'bunsen_burner');
+    
+    return items.map(item => {
+      let isHeated = false;
+      if (item.templateId === 'beaker' || item.templateId === 'test_tube') {
+        isHeated = burners.some(burner => 
+          Math.abs(burner.x - item.x) < 50 &&
+          (burner.y - item.y) > 40 && (burner.y - item.y) < 160
+        );
+      } else if (item.templateId === 'bunsen_burner') {
+        isHeated = items.some(container => 
+          ['beaker', 'test_tube'].includes(container.templateId) &&
+          Math.abs(container.x - item.x) < 50 &&
+          (item.y - container.y) > 40 && (item.y - container.y) < 160
+        );
+      }
+      return { ...item, isHeated };
+    });
+  };
 
   const handleDragStart = (event) => {
-    setActiveDragId(event.active.id); 
+    setActiveDragData(event.active.data.current); 
   };
 
   const handleDragEnd = (event) => {
-    setActiveDragId(null); 
-    const { active, over } = event;
+    setActiveDragData(null); 
+    const { active, over, delta } = event;
     if (!over) return; 
 
-    const dropId = over.id;
-    const dragId = active.id;
+    const sourceData = active.data.current;
+    
+    // @dnd-kit provides screen-pixel deltas. Because our canvas is scaled, 
+    // we must divide the delta by the current scale so the visual drag 
+    // perfectly matches the cursor movement mathematically.
+    const adjustedDeltaX = delta.x / scale;
+    const adjustedDeltaY = delta.y / scale;
+    
+    // 1. Drop Sidebar Item onto Canvas
+    if (sourceData?.source === 'sidebar' && over.id === 'canvas') {
+      const newId = `item-${Date.now()}`;
+      
+      // // Calculate drop relative to canvas, adjusting for current zoom scale wrapper
+      // const x = Math.max(20, (event.active.rect.current.translated.left - over.rect.left) / scale - 20);
+      // const y = Math.max(20, (event.active.rect.current.translated.top - over.rect.top) / scale - 20);
 
-    if (dropId === 'empty-desk' && dragId === 'beaker') {
-      setDeskItem('beaker');
-      setReactionInfo({ equation: 'Chuẩn bị cốc thí nghiệm', condition: 'N/A', description: 'Cốc đã sẵn sàng. Hãy rót dung môi (Nước) vào cốc.' });
-    }
-    else if (dropId === 'active-beaker' && dragId === 'water') {
-      if (beakerContent !== null) return;
-      setBeakerContent('H2O');
-      setReactionInfo({ equation: 'Cốc chứa H₂O', condition: 'N/A', description: 'Dung môi đã sẵn sàng. Hãy thả hóa chất (Na) vào để xem hiện tượng.' });
-    }
-    else if (dropId === 'active-beaker' && dragId === 'sodium' && beakerContent === 'H2O') {
-      setIsReacting(true); 
-      setReactionInfo({ equation: '2Na + 2H₂O → 2NaOH + H₂↑', condition: 'Nhiệt độ phòng', description: 'Natri tác dụng mãnh liệt với nước, nóng chảy thành giọt tròn chạy trên mặt nước, tỏa nhiều nhiệt và sinh ra khí Hydro. Dung dịch chuyển sang tính bazơ.' });
+      // Bước A: Lấy chính xác tọa độ TÂM của vật thể đang lơ lửng trên màn hình (chính là đầu chuột của em)
+      const dropCenterX = event.active.rect.current.translated.left + (event.active.rect.current.translated.width / 2);
+      const dropCenterY = event.active.rect.current.translated.top + (event.active.rect.current.translated.height / 2);
+      
+      // Bước B: Hỏi Trình duyệt tọa độ LIVE của Canvas (Tuyệt chiêu bỏ qua cache của dnd-kit)
+      const canvasEl = document.getElementById('experiment-canvas');
+      if (!canvasEl) return;
+      const liveRect = canvasEl.getBoundingClientRect();
 
-      setTimeout(() => {
-        setIsReacting(false);
-        setBeakerContent('NaOH');
-        setInventory(prev => prev.find(i => i.id === 'naoh') ? prev : [...prev, { id: 'naoh', name: 'Natri Hydroxit (NaOH)', type: 'solvent', icon: '🧪', desc: 'Dung dịch bazơ kiềm mạnh, làm quỳ tím hóa xanh.' }]);
-      }, 3000);
+      // Bước C: Ánh xạ tọa độ tâm đó vào không gian của Canvas (đã bù trừ tỷ lệ Zoom)
+      const relativeCenterX = (dropCenterX - liveRect.left) / scale;
+      const relativeCenterY = (dropCenterY - liveRect.top) / scale;
+
+      // Bước D: Trừ đi một nửa kích thước của icon trên bàn để nó rớt ngay giữa tâm chuột.
+      // (Giả sử CanvasItem của em rộng khoảng 80x80px, mình trừ đi 40px)
+      const x = Math.max(0, relativeCenterX - 45);
+      const y = Math.max(0, relativeCenterY - 45);
+      
+      const newItem = {
+        instanceId: newId,
+        templateId: sourceData.templateId,
+        x: x,
+        y: y,
+        content: null,
+        isHeated: false
+      };
+      
+      setPlacedItems(prev => checkProximity([...prev, newItem]));
+      setReactionInfo({ equation: 'Adding ' + activeDragItem?.name, condition: 'Workspace setup', description: 'Vật phẩm đã được thêm vào bàn làm việc.' });
     }
-    else if (dropId === 'active-beaker' && dragId === 'copper' && beakerContent === 'H2O') {
-      setReactionInfo({ equation: 'Cu + H₂O → Không phản ứng', condition: 'N/A', description: 'Đồng (Cu) là kim loại hoạt động yếu, không tác dụng với nước ở nhiệt độ thường.' });
+    
+    // 2. Reposition Canvas Item
+    if (sourceData?.source === 'canvas') {
+      const instanceId = sourceData.instanceId;
+      setPlacedItems(prev => {
+        let updatedItems = prev.map(item => {
+          if (item.instanceId === instanceId) {
+             return { ...item, x: Math.max(0, item.x + adjustedDeltaX), y: Math.max(0, item.y + adjustedDeltaY) };
+          }
+          return item;
+        });
+
+        // 3. Chemical to Container Drop Logic
+        const draggedObj = updatedItems.find(i => i.instanceId === instanceId);
+        if (draggedObj && ['water', 'kmno4', 'sodium'].includes(draggedObj.templateId)) {
+           const targetContainer = updatedItems.find(i => 
+             i.instanceId !== instanceId && 
+             ['beaker', 'test_tube'].includes(i.templateId) && 
+             // Scale down the hitbox for chemistry drops tightly 
+             Math.abs(i.x - draggedObj.x) < 70 && 
+             Math.abs(i.y - draggedObj.y) < 70
+           );
+
+           if (targetContainer) {
+             const addedContent = draggedObj.templateId === 'water' ? 'H2O' 
+                                : draggedObj.templateId === 'kmno4' ? 'KMnO4' 
+                                : 'Reacting';
+             
+             targetContainer.content = addedContent;
+             setReactionInfo({ equation: `Added ${draggedObj.templateId} to ${targetContainer.templateId}`, condition: 'Mixing', description: `Dung dịch trong bình chứa đã được thay đổi.` });
+             
+             updatedItems = updatedItems.filter(i => i.instanceId !== instanceId);
+           }
+        }
+        return checkProximity(updatedItems);
+      });
     }
   };
 
@@ -70,99 +153,97 @@ export default function VirtualLabPage() {
 
   return (
     <div style={{ display: 'flex', height: '100vh', backgroundColor: '#ecf0f1', overflow: 'hidden', position: 'relative' }}>
-      
       <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        
-        {/* ================= CỘT TRÁI ================= */}
-        <div style={{ width: isLeftOpen ? '320px' : '0', transition: 'width 0.3s ease', backgroundColor: '#fff', borderRight: '2px solid #bdc3c7', position: 'relative', flexShrink: 0 }}>
-          
-          <div style={{ display: isLeftOpen ? 'block' : 'none', width: '320px', height: '100%', padding: '20px', boxSizing: 'border-box', overflowY: 'auto' }}>
-            <h3 style={{ borderBottom: '2px solid #3498db', paddingBottom: '10px' }}>📊 Phân tích</h3>
-            <div style={{ marginTop: '20px' }}>
-              <h4 style={{ color: '#7f8c8d', margin: '0 0 5px 0' }}>Phản ứng:</h4>
-              <div className="info-box" style={{ padding: '15px', backgroundColor: '#f9f9f9', fontWeight: 'bold', color: '#e74c3c', borderRadius: '5px' }}>{reactionInfo.equation}</div>
-            </div>
-            <div style={{ marginTop: '20px' }}>
-              <h4 style={{ color: '#7f8c8d', margin: '0 0 5px 0' }}>Điều kiện:</h4>
-              <div className="info-box" style={{ padding: '10px', backgroundColor: '#f9f9f9', borderRadius: '5px' }}>{reactionInfo.condition}</div>
-            </div>
-            <div style={{ marginTop: '20px' }}>
-              <h4 style={{ color: '#7f8c8d', margin: '0 0 5px 0' }}>Mô tả:</h4>
-              <div className="info-box" style={{ backgroundColor: '#f9f9f9', padding: '15px', borderRadius: '5px', lineHeight: '1.5', color: '#333' }}>{reactionInfo.description}</div>
+        {/* ================= LEFT COLUMN ================= */}
+        <div style={{ width: isLeftOpen ? '320px' : '0', transition: 'width 0.3s ease', backgroundColor: '#fff', borderRight: '2px solid #e2e8f0', position: 'relative', flexShrink: 0, zIndex: 50 }}>
+          <div style={{ display: isLeftOpen ? 'block' : 'none', width: '320px', height: '100%', padding: '24px', boxSizing: 'border-box', overflowY: 'auto' }}>
+            <h3 className="text-xl font-bold text-slate-800 border-b-2 border-blue-400 pb-3">📊 Phân tích Lab</h3>
+            <div className="mt-6 space-y-4">
+              <div>
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Trạng thái/Phản ứng:</h4>
+                <div className="p-4 bg-slate-50 border border-slate-100 font-mono text-sm text-red-500 rounded-xl shadow-inner">{reactionInfo.equation}</div>
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Điều kiện môi trường:</h4>
+                <div className="p-3 bg-slate-50 border border-slate-100 text-sm text-slate-700 rounded-xl">{reactionInfo.condition}</div>
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Mô tả chi tiết:</h4>
+                <div className="p-4 bg-blue-50/50 border border-blue-100 text-sm leading-relaxed text-slate-700 rounded-xl">{reactionInfo.description}</div>
+              </div>
             </div>
           </div>
-
-          <button onClick={() => setIsLeftOpen(!isLeftOpen)} style={{ position: 'absolute', right: '-30px', top: '20px', width: '30px', height: '40px', backgroundColor: '#fff', border: '1px solid #bdc3c7', borderLeft: 'none', borderRadius: '0 5px 5px 0', cursor: 'pointer', zIndex: 10 }}>
+          <button onClick={() => setIsLeftOpen(!isLeftOpen)} className="absolute -right-8 top-6 w-8 h-12 bg-white border border-slate-200 border-l-0 rounded-r-lg flex items-center justify-center cursor-pointer shadow-sm text-slate-500 hover:text-blue-500 z-50">
             {isLeftOpen ? '◀' : '▶'}
           </button>
         </div>
 
-        {/* ================= CỘT GIỮA ================= */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s ease' }}>
-          <CentralWorkspace deskItem={deskItem} beakerContent={beakerContent} isReacting={isReacting} bubbles={bubbleConfig} />
+        {/* ================= MIDDLE WORKSPACE ================= */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', transition: 'all 0.3s ease' }} className="p-8">
           
-          <button onClick={() => { setDeskItem(null); setBeakerContent(null); setIsReacting(false); }} style={{ marginTop: '40px', padding: '10px 20px', backgroundColor: '#95a5a6', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>
-            🔄 Dọn Bàn Lại Từ Đầu
-          </button>
+          <div className="flex gap-4 w-full mb-6 items-center justify-between bg-white p-4 px-6 rounded-2xl shadow-sm border border-slate-200">
+            <h2 className="text-xl font-extrabold text-slate-800 tracking-tight">Virtual Chemistry Lab</h2>
+            <div className="flex gap-3">
+              <Button variant="outline" className="text-destructive hover:bg-red-50 hover:text-red-600 border-slate-200" onClick={() => { setPlacedItems([]); setSimulationActive(false); setReactionInfo({ equation: '-', condition: '-', description: 'Bàn làm việc đã được dọn sạch.' }); }}>
+                 <Trash2 className="w-4 h-4 mr-2" /> Clear Desk
+              </Button>
+              <Button className={`${simulationActive ? 'bg-amber-500 hover:bg-amber-600' : 'bg-emerald-500 hover:bg-emerald-600'} text-white shadow-md`} onClick={() => setSimulationActive(!simulationActive)}>
+                 {simulationActive ? <RotateCcw className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />} 
+                 {simulationActive ? 'Stop Simulation' : 'Start Simulation'}
+              </Button>
+            </div>
+          </div>
+
+          <CentralWorkspace placedItems={placedItems} simulationActive={simulationActive} scale={scale} setScale={setScale} />
         </div>
 
-        {/* ================= CỘT PHẢI ================= */}
-        <div style={{ width: isRightOpen ? '340px' : '0', transition: 'width 0.3s ease', backgroundColor: '#fdfdfd', borderLeft: '2px solid #bdc3c7', position: 'relative', flexShrink: 0 }}>
-          
-          <button onClick={() => setIsRightOpen(!isRightOpen)} style={{ position: 'absolute', left: '-30px', top: '20px', width: '30px', height: '40px', backgroundColor: '#fff', border: '1px solid #bdc3c7', borderRight: 'none', borderRadius: '5px 0 0 5px', cursor: 'pointer', zIndex: 10 }}>
+        {/* ================= RIGHT COLUMN (INVENTORY) ================= */}
+        <div style={{ width: isRightOpen ? '360px' : '0', transition: 'width 0.3s ease', backgroundColor: '#f8fafc', borderLeft: '2px solid #e2e8f0', position: 'relative', flexShrink: 0, zIndex: 50 }}>
+          <button onClick={() => setIsRightOpen(!isRightOpen)} className="absolute -left-8 top-6 w-8 h-12 bg-white border border-slate-200 border-r-0 rounded-l-lg flex items-center justify-center cursor-pointer shadow-sm text-slate-500 hover:text-blue-500 z-50">
             {isRightOpen ? '▶' : '◀'}
           </button>
 
-          <div style={{ display: isRightOpen ? 'flex' : 'none', flexDirection: 'column', height: '100%', width: '340px', boxSizing: 'border-box' }}>
-            
-            <div style={{ padding: '15px', display: 'flex', gap: '10px', borderBottom: '1px solid #eee' }}>
-              <input type="text" placeholder="Tìm kiếm..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
-              <button onClick={() => setSidebarView(sidebarView === 'grid' ? 'list' : 'grid')} style={{ padding: '8px', cursor: 'pointer', backgroundColor: '#ecf0f1', border: '1px solid #bdc3c7', borderRadius: '4px' }}>
-                {sidebarView === 'grid' ? '☰' : '▦'}
-              </button>
+          <div style={{ display: isRightOpen ? 'flex' : 'none', flexDirection: 'column', height: '100%', width: '360px', boxSizing: 'border-box' }}>
+            <div className="p-5 border-b border-slate-200 bg-white shadow-sm z-10">
+              <div className="flex gap-2">
+                <input type="text" placeholder="Tìm kiếm dụng cụ..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm" />
+                <button onClick={() => setSidebarView(sidebarView === 'grid' ? 'list' : 'grid')} className="p-2 aspect-square bg-slate-50 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-100">
+                  {sidebarView === 'grid' ? '☰' : '▦'}
+                </button>
+              </div>
             </div>
 
-            <div style={{ flex: 1, overflowY: 'auto', padding: '15px', boxSizing: 'border-box' }}>
-              {selectedItem ? (
-                <div style={{ animation: 'fadeIn 0.2s ease' }}>
-                  <button onClick={() => setSelectedItem(null)} style={{ color: '#3498db', border: 'none', background: 'none', cursor: 'pointer', marginBottom: '15px', fontWeight: 'bold', fontSize: '14px' }}>
-                    ◀ Quay lại kho
-                  </button>
-                  <div style={{ textAlign: 'center', padding: '30px 20px', border: '1px solid #e0e0e0', borderRadius: '8px', backgroundColor: '#fff', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-                    <div style={{ fontSize: '80px', marginBottom: '10px' }}>{selectedItem.icon}</div>
-                    <h3 style={{ margin: '0 0 20px 0', color: '#2c3e50' }}>{selectedItem.name}</h3>
-                    <div style={{ textAlign: 'left', borderTop: '1px solid #eee', paddingTop: '15px' }}>
-                      <h4 style={{ color: '#7f8c8d', margin: '0 0 10px 0' }}>Mô tả chi tiết</h4>
-                      <p style={{ fontSize: '14px', lineHeight: '1.6', color: '#555', margin: 0 }}>{selectedItem.desc}</p>
-                    </div>
-                  </div>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '20px', boxSizing: 'border-box' }} className="space-y-6">
+              <div>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Dụng Cụ Lab</h4>
+                <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                  {filtered.filter(i => i.type === 'apparatus').map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
                 </div>
-              ) : (
-                <div style={{ paddingBottom: '20px' }}>
-                  <h4 style={{ color: '#7f8c8d', margin: '0 0 10px 0' }}>Dụng Cụ</h4>
-                  <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '20px' }}>
-                    {filtered.filter(i => i.type === 'apparatus').map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} onClick={() => setSelectedItem(item)} />)}
-                  </div>
+              </div>
 
-                  <h4 style={{ color: '#7f8c8d', margin: '0 0 10px 0' }}>Dung Môi</h4>
-                  <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '20px' }}>
-                    {filtered.filter(i => i.type === 'solvent').map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} onClick={() => setSelectedItem(item)} />)}
-                  </div>
-
-                  <h4 style={{ color: '#7f8c8d', margin: '0 0 10px 0' }}>Hóa Chất</h4>
-                  <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-                    {filtered.filter(i => i.type === 'chemical').map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} onClick={() => setSelectedItem(item)} />)}
-                  </div>
+              <div>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Dung Môi</h4>
+                <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                  {filtered.filter(i => i.type === 'solvent').map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
                 </div>
-              )}
+              </div>
+
+              <div>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Hóa Chất & Kim Loại</h4>
+                <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                  {filtered.filter(i => i.type === 'chemical').map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
+                </div>
+              </div>
             </div>
           </div>
         </div>
         
-        <DragOverlay>
+        {/* <DragOverlay dropAnimation={null}>
+          {activeDragItem ? <DragPreview item={activeDragItem} /> : null}
+        </DragOverlay> */}
+        <DragOverlay dropAnimation={null} modifiers={[snapCenterToCursor]}>
           {activeDragItem ? <DragPreview item={activeDragItem} /> : null}
         </DragOverlay>
-
       </DndContext>
     </div>
   );
