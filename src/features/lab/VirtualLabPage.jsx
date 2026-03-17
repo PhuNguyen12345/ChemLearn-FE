@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { DndContext, DragOverlay } from '@dnd-kit/core';
 import '/Lab2.css'; 
 import { Play, RotateCcw, Trash2 } from 'lucide-react';
@@ -21,6 +21,24 @@ export default function VirtualLabPage() {
   const [placedItems, setPlacedItems] = useState([]);
   const [simulationActive, setSimulationActive] = useState(false);
   const [scale, setScale] = useState(1);
+  const [selectedItemId, setSelectedItemId] = useState(null);
+
+  const handleDeleteItem = (id) => {
+    setPlacedItems(prev => prev.filter(item => item.instanceId !== id));
+    if (selectedItemId === id) setSelectedItemId(null);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Avoid deleting if user is typing in the search input
+      if (document.activeElement.tagName === 'INPUT') return;
+      if (selectedItemId && (e.key === 'Delete' || e.key === 'Backspace')) {
+        handleDeleteItem(selectedItemId);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedItemId]);
 
   // Drag state
   const [activeDragData, setActiveDragData] = useState(null);
@@ -134,13 +152,36 @@ export default function VirtualLabPage() {
            );
 
            if (targetContainer) {
-             const addedContent = draggedObj.templateId === 'water' ? 'H2O' 
-                                : draggedObj.templateId === 'kmno4' ? 'KMnO4' 
-                                : 'Reacting';
              
-             targetContainer.content = addedContent;
-             setReactionInfo({ equation: `Added ${draggedObj.templateId} to ${targetContainer.templateId}`, condition: 'Mixing', description: `Dung dịch trong bình chứa đã được thay đổi.` });
+             // Specific Reaction Chains
+             if (draggedObj.templateId === 'water') {
+                targetContainer.content = 'H2O';
+                setReactionInfo({ equation: `H₂O Added`, condition: 'Mixing', description: `Dung môi Nước cất (H2O) đã được thêm vào cốc.` });
+             } 
+             else if (draggedObj.templateId === 'kmno4' && targetContainer.content === 'H2O') {
+                targetContainer.content = 'KMnO4';
+                setReactionInfo({ equation: `KMnO₄ + H₂O → Purple Solution`, condition: 'Phân tán', description: `Thuốc tím (KMnO4) hòa tan trong nước tạo thành dung dịch màu tím đậm.` });
+             } 
+             else if (draggedObj.templateId === 'sodium' && targetContainer.content === 'H2O') {
+                targetContainer.content = 'NaOH';
+                targetContainer.reactionState = 'violent';
+                setReactionInfo({ equation: `2Na + 2H₂O → 2NaOH + H₂↑`, condition: 'Nhiệt độ phòng, Tỏa nhiệt', description: `Natri tác dụng mãnh liệt với nước, sinh ra khí Hydro và dung dịch Bazơ (NaOH). Tính chất tỏa nhiệt cao.` });
+                
+                // Remove violent state after 3 seconds
+                setTimeout(() => {
+                  setPlacedItems(currentItems => 
+                    currentItems.map(item => 
+                      item.instanceId === targetContainer.instanceId ? { ...item, reactionState: 'calm' } : item
+                    )
+                  );
+                }, 3000);
+             } 
+             else {
+                // Generic interaction
+                targetContainer.content = draggedObj.templateId === 'kmno4' ? 'KMnO4' : 'Reacting';
+             }
              
+             // Remove the dragged chemical solid/droplet from the canvas since it was deposited
              updatedItems = updatedItems.filter(i => i.instanceId !== instanceId);
            }
         }
@@ -194,7 +235,15 @@ export default function VirtualLabPage() {
             </div>
           </div>
 
-          <CentralWorkspace placedItems={placedItems} simulationActive={simulationActive} scale={scale} setScale={setScale} />
+          <CentralWorkspace 
+            placedItems={placedItems} 
+            simulationActive={simulationActive} 
+            scale={scale} 
+            setScale={setScale} 
+            selectedItemId={selectedItemId}
+            setSelectedItemId={setSelectedItemId}
+            onDeleteItem={handleDeleteItem}
+          />
         </div>
 
         {/* ================= RIGHT COLUMN (INVENTORY) ================= */}

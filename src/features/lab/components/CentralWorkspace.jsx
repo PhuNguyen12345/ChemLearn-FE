@@ -3,7 +3,7 @@
 // import { ZoomIn, ZoomOut, Maximize } from 'lucide-react';
 // import CanvasItem from './CanvasItem';
 
-// export default function CentralWorkspace({ placedItems, simulationActive, scale, setScale }) {
+// export default function CentralWorkspace({ placedItems, simulationActive, scale, setScale, selectedItemId, setSelectedItemId, onDeleteItem }) {
 //   const { isOver, setNodeRef } = useDroppable({ id: 'canvas' });
 //   const [transformOrigin, setTransformOrigin] = useState('center center');
 //   const containerRef = useRef(null);
@@ -127,19 +127,21 @@ import { useDroppable } from '@dnd-kit/core';
 import { ZoomIn, ZoomOut, Maximize } from 'lucide-react';
 import CanvasItem from './CanvasItem';
 
-export default function CentralWorkspace({ placedItems, simulationActive, scale, setScale }) {
+export default function CentralWorkspace({ placedItems, simulationActive, scale, setScale, selectedItemId, setSelectedItemId, onDeleteItem  }) {
   const { isOver, setNodeRef } = useDroppable({ id: 'canvas' });
   const containerRef = useRef(null);
   
-  // STATE MỚI: Tọa độ dịch chuyển (Pan) của Canvas
+  // MỚI: Tọa độ dịch chuyển (Pan) của Canvas và trạng thái Panning
   const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
 
   const setRefs = (element) => {
     containerRef.current = element;
     setNodeRef(element);
   };
 
-  // THUẬT TOÁN MIRO/FIGMA CAMERA
+  // THUẬT TOÁN MIRO/FIGMA CAMERA - ZOOM
   const handleWheel = (e) => {
     e.preventDefault(); // Chặn cuộn trang web
     if (!containerRef.current) return;
@@ -186,11 +188,48 @@ export default function CentralWorkspace({ placedItems, simulationActive, scale,
     setPan({ x: newPanX, y: newPanY });
   };
 
+  // ---------------- PANNING LOGIC ----------------
+  const handlePointerDown = (e) => {
+    // Check if clicked directly on canvas background (empty space)
+    if (e.target.id === 'experiment-canvas') {
+      setSelectedItemId(null);
+    }
+
+    // Only pan if Middle Click OR Left Click on the exact canvas background 
+    // (ignores clicks on draggable items so @dnd-kit still works)
+    if (e.button === 1 || (e.button === 0 && e.target.id === 'experiment-canvas')) {
+      e.preventDefault();
+      setIsPanning(true);
+      setPanStart({
+        x: e.clientX - pan.x,
+        y: e.clientY - pan.y
+      });
+    }
+  };
+
+  const handlePointerMove = (e) => {
+    if (!isPanning) return;
+    e.preventDefault(); // Prevent text selection while dragging
+    setPan({
+      x: e.clientX - panStart.x,
+      y: e.clientY - panStart.y
+    });
+  };
+
+  const handlePointerUp = () => {
+    setIsPanning(false);
+  };
+  // -----------------------------------------------
+
   return (
-    // {/* KHUNG OUTER: Nằm im cố định, dùng để hứng sự kiện lăn chuột */}
+    // {/* KHUNG OUTER: Nằm im cố định, dùng để hứng sự kiện lăn chuột và di chuột */}
     <div 
       onWheel={handleWheel}
-      className="relative w-full h-[600px] border-4 rounded-[2rem] overflow-hidden shadow-inner border-slate-200 bg-slate-50"
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerLeave={handlePointerUp}
+      className={`relative w-full h-[600px] border-4 rounded-[2rem] overflow-hidden shadow-inner border-slate-200 bg-slate-50 ${isPanning ? 'cursor-grabbing' : 'cursor-default'}`}
     >
       
       {/* Nút bấm điều khiển (Zoom Controls) */}
@@ -212,9 +251,9 @@ export default function CentralWorkspace({ placedItems, simulationActive, scale,
 
       {/* KHUNG INNER: Cái này sẽ bay lượn và phóng to thu nhỏ */}
       <div 
-        id="experiment-canvas" /* THÊM ID NÀY VÀO ĐÂY */
+        id="experiment-canvas" /* Cho phép xác định nhấp chuột vào nền, bỏ qua item */
         ref={setRefs} 
-        className={`w-full h-full relative ${isOver ? 'bg-blue-50/40' : ''}`}
+        className={`w-full h-full relative ${isOver ? 'bg-blue-50/40' : ''} ${!isPanning && 'cursor-grab'}`}
         style={{
           backgroundImage: 'radial-gradient(#cbd5e1 2px, transparent 2px)',
           backgroundSize: '30px 30px',
@@ -224,7 +263,14 @@ export default function CentralWorkspace({ placedItems, simulationActive, scale,
         }}
       >
         {placedItems.map(item => (
-          <CanvasItem key={item.instanceId} item={item} simulationActive={simulationActive} />
+          <CanvasItem 
+            key={item.instanceId} 
+            item={item} 
+            simulationActive={simulationActive} 
+            isSelected={selectedItemId === item.instanceId}
+            onSelect={() => setSelectedItemId(item.instanceId)}
+            onDelete={() => onDeleteItem(item.instanceId)}
+          />
         ))}
       </div>
     </div>
