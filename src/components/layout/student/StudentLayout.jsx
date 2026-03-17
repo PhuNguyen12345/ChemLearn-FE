@@ -4,13 +4,38 @@ import Sidebar from './Sidebar';
 import Header from './Header';
 import Footer from '../shared/Footer';
 import StudyZone from '../../../pages/student/StudyZone';
+import QuizDashboard from '../../../pages/student/QuizDashboard';
+import QuizPlayer from '../../../pages/student/QuizPlayer';
+import LabDashboard from '../../../features/lab/components/LabDashboard';
+import LabWorkspaceHeader from '../../../features/lab/components/LabWorkspaceHeader';
+import VirtualLabPage from '../../../features/lab/VirtualLabPage'; 
 
 const StudentLayout = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeLabId, setActiveLabId] = useState(null);
+  const [activeQuizId, setActiveQuizId] = useState(null);
   const location = useLocation();
 
   // If we're on the main student home route, we intercept to allow internal tabs
   const isHomeRoute = location.pathname === '/student/home';
+
+  // HIDE SIDEBAR & HEADER for Lab Workspace
+  if (isHomeRoute && activeTab === 'labWorkspace') {
+    return (
+      <div className="flex h-screen w-full bg-background text-foreground overflow-hidden">
+        <div className="absolute inset-0 z-50 flex flex-col bg-slate-50 h-full w-full">
+          <LabWorkspaceHeader 
+            onBack={() => { setActiveTab('labDashboard'); setActiveLabId(null); }} 
+            titleText={activeLabId === 'new' ? 'Untitled Experiment' : 'My Saved Lab'} 
+            labId={activeLabId}
+          />
+          <div className="flex-1 relative overflow-hidden">
+            <VirtualLabPage />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-full bg-background text-foreground overflow-hidden">
@@ -32,11 +57,33 @@ const StudentLayout = () => {
           <div className="p-4 md:p-6 lg:p-8 mx-auto max-w-7xl w-full h-full min-h-[calc(100vh-8rem)]">
             {isHomeRoute ? (
               <>
-                {activeTab === 'dashboard' && <Outlet />}
+                {activeTab === 'dashboard' && <Outlet context={{ setActiveTab }} />}
                 {activeTab === 'studyZone' && <StudyZone />}
+                {activeTab === 'quizzes' && (
+                  <QuizDashboard 
+                    onPlayQuiz={(id) => { 
+                      setActiveQuizId(id); 
+                      setActiveTab('quizPlayer'); 
+                    }} 
+                  />
+                )}
+                {activeTab === 'quizPlayer' && (
+                  <QuizPlayer 
+                    quizId={activeQuizId} 
+                    onBack={() => setActiveTab('quizzes')} 
+                  />
+                )}
+                {activeTab === 'labDashboard' && (
+                  <LabDashboard 
+                    onOpenLab={(id) => { 
+                      setActiveLabId(id); 
+                      setActiveTab('labWorkspace'); 
+                    }} 
+                  />
+                )}
               </>
             ) : (
-              <Outlet />
+              <Outlet context={{ setActiveTab }} />
             )}
           </div>
         </main>

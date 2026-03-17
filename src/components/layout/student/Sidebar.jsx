@@ -5,8 +5,8 @@ import { Microscope, BookOpen, ClipboardList, Target, Trophy, FlaskConical, Layo
 const navItems = [
   { name: 'Dashboard', icon: LayoutDashboard, path: '/student/home', id: 'dashboard' },
   { name: 'Study Zone', icon: BookOpen, path: '/student/home', id: 'studyZone' },
-  { name: 'Virtual Lab', icon: Microscope, path: '/student/lab', id: 'lab' },
-  { name: 'Quizzes', icon: ClipboardList, path: '/student/quizzes', id: 'quizzes' },
+  { name: 'Virtual Lab', icon: Microscope, path: '/student/home', id: 'labDashboard' },
+  { name: 'Quizzes', icon: ClipboardList, path: '/student/home', id: 'quizzes' },
   { name: 'Missions', icon: Target, path: '/student/missions', id: 'missions' },
   { name: 'Leaderboard', icon: Trophy, path: '/student/leaderboard', id: 'leaderboard' },
 ];
@@ -16,8 +16,8 @@ const Sidebar = ({ className = '', activeTab, setActiveTab }) => {
   const location = useLocation();
 
   const handleNavClick = (e, item) => {
-    // If it's a tab-based item (dashboard or studyZone)
-    if (item.id === 'dashboard' || item.id === 'studyZone') {
+    // If it's a tab-based item
+    if (['dashboard', 'studyZone', 'labDashboard', 'quizzes'].includes(item.id)) {
       e.preventDefault();
       // Navigate to the main home route if we aren't there yet
       if (location.pathname !== '/student/home') {
@@ -55,7 +55,7 @@ const Sidebar = ({ className = '', activeTab, setActiveTab }) => {
         {navItems.map((item) => {
           // Determine if visually active
           const isTabActive = location.pathname === '/student/home' && activeTab === item.id;
-          const isRouteActive = location.pathname === item.path && item.id !== 'dashboard' && item.id !== 'studyZone';
+          const isRouteActive = location.pathname === item.path && !['dashboard', 'studyZone', 'labDashboard', 'quizzes'].includes(item.id);
           const isActive = isTabActive || isRouteActive;
 
           return (

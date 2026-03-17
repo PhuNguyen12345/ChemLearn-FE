@@ -1,9 +1,12 @@
 import React from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlayCircle, Award, Clock, Flame, Zap, Shield, Beaker, HelpCircle, BookOpen } from 'lucide-react';
 
 const StudentHome = () => {
+  const context = useOutletContext();
+  const setActiveTab = context?.setActiveTab;
   return (
     <div className="space-y-8 pb-10">
       
@@ -72,14 +75,20 @@ const StudentHome = () => {
         <h2 className="text-xl font-bold text-slate-800 mb-4 px-1">Quick Explore</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           
-          <button className="flex flex-col items-center justify-center gap-3 p-6 rounded-3xl bg-purple-50 hover:bg-purple-100 border border-purple-100 text-purple-700 transition-colors shadow-sm cursor-pointer group">
+          <button 
+            onClick={() => setActiveTab && setActiveTab('labDashboard')}
+            className="flex flex-col items-center justify-center gap-3 p-6 rounded-3xl bg-purple-50 hover:bg-purple-100 border border-purple-100 text-purple-700 transition-colors shadow-sm cursor-pointer group"
+          >
             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
               <Beaker className="w-6 h-6 text-purple-600" />
             </div>
             <span className="font-bold">Virtual Lab</span>
           </button>
 
-          <button className="flex flex-col items-center justify-center gap-3 p-6 rounded-3xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 text-emerald-700 transition-colors shadow-sm cursor-pointer group">
+          <button 
+            onClick={() => setActiveTab && setActiveTab('quizzes')}
+            className="flex flex-col items-center justify-center gap-3 p-6 rounded-3xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 text-emerald-700 transition-colors shadow-sm cursor-pointer group"
+          >
             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
               <HelpCircle className="w-6 h-6 text-emerald-600" />
             </div>

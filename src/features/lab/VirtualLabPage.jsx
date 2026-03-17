@@ -214,7 +214,7 @@ export default function VirtualLabPage() {
   const filtered = inventory.filter(i => i.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
-    <div style={{ display: 'flex', height: '100vh', backgroundColor: '#ecf0f1', overflow: 'hidden', position: 'relative' }}>
+    <div style={{ display: 'flex', height: '100%', backgroundColor: '#ecf0f1', overflow: 'hidden', position: 'relative' }} className="w-full">
       <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         {/* ================= LEFT COLUMN ================= */}
         <div style={{ width: isLeftOpen ? '320px' : '0', transition: 'width 0.3s ease', backgroundColor: '#fff', borderRight: '2px solid #e2e8f0', position: 'relative', flexShrink: 0, zIndex: 50 }}>
