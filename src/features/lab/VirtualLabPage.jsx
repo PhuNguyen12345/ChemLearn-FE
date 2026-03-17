@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { DndContext, DragOverlay } from '@dnd-kit/core';
 import '/Lab2.css'; 
-import { Play, RotateCcw, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { snapCenterToCursor } from '@dnd-kit/modifiers';
 import { INITIAL_INVENTORY } from './data/constants';
@@ -19,7 +19,6 @@ export default function VirtualLabPage() {
 
   // New Free-form & Zoom State
   const [placedItems, setPlacedItems] = useState([]);
-  const [simulationActive, setSimulationActive] = useState(false);
   const [scale, setScale] = useState(1);
   const [selectedItemId, setSelectedItemId] = useState(null);
 
@@ -152,33 +151,55 @@ export default function VirtualLabPage() {
            );
 
            if (targetContainer) {
-             
-             // Specific Reaction Chains
+             const currentContent = targetContainer.content;
+             const instanceToUpdate = targetContainer.instanceId;
+
+             // 1. DROPPING WATER
              if (draggedObj.templateId === 'water') {
-                targetContainer.content = 'H2O';
-                setReactionInfo({ equation: `H₂O Added`, condition: 'Mixing', description: `Dung môi Nước cất (H2O) đã được thêm vào cốc.` });
+                if (currentContent === 'Na (Rắn)') {
+                  targetContainer.content = 'NaOH';
+                  targetContainer.reactionState = 'violent';
+                  setReactionInfo({ equation: `2Na + 2H₂O → 2NaOH + H₂↑`, condition: 'Tỏa nhiệt', description: `Phản ứng cháy nổ sinh khí Hydro.` });
+                  setTimeout(() => {
+                    setPlacedItems(currentItems => 
+                      currentItems.map(item => 
+                        item.instanceId === instanceToUpdate ? { ...item, reactionState: null } : item
+                      )
+                    );
+                  }, 3000);
+                } else if (currentContent === 'KMnO4 (Rắn)') {
+                  targetContainer.content = 'KMnO4';
+                  setReactionInfo({ equation: `KMnO₄ + H₂O → Purple Solution`, condition: 'Phân tán', description: `Thuốc tím (KMnO4) hòa tan tạo thành dung dịch màu tím đậm.` });
+                } else if (!currentContent) {
+                  targetContainer.content = 'H2O';
+                  setReactionInfo({ equation: `H₂O Added`, condition: 'Mixing', description: `Dung môi Nước cất (H2O) đã được thêm vào cốc.` });
+                }
              } 
-             else if (draggedObj.templateId === 'kmno4' && targetContainer.content === 'H2O') {
-                targetContainer.content = 'KMnO4';
-                setReactionInfo({ equation: `KMnO₄ + H₂O → Purple Solution`, condition: 'Phân tán', description: `Thuốc tím (KMnO4) hòa tan trong nước tạo thành dung dịch màu tím đậm.` });
-             } 
-             else if (draggedObj.templateId === 'sodium' && targetContainer.content === 'H2O') {
-                targetContainer.content = 'NaOH';
-                targetContainer.reactionState = 'violent';
-                setReactionInfo({ equation: `2Na + 2H₂O → 2NaOH + H₂↑`, condition: 'Nhiệt độ phòng, Tỏa nhiệt', description: `Natri tác dụng mãnh liệt với nước, sinh ra khí Hydro và dung dịch Bazơ (NaOH). Tính chất tỏa nhiệt cao.` });
-                
-                // Remove violent state after 3 seconds
-                setTimeout(() => {
-                  setPlacedItems(currentItems => 
-                    currentItems.map(item => 
-                      item.instanceId === targetContainer.instanceId ? { ...item, reactionState: 'calm' } : item
-                    )
-                  );
-                }, 3000);
-             } 
-             else {
-                // Generic interaction
-                targetContainer.content = draggedObj.templateId === 'kmno4' ? 'KMnO4' : 'Reacting';
+             // 2. DROPPING KMNO4
+             else if (draggedObj.templateId === 'kmno4') {
+                if (currentContent === 'H2O') {
+                  targetContainer.content = 'KMnO4';
+                  setReactionInfo({ equation: `KMnO₄ + H₂O → Purple Solution`, condition: 'Phân tán', description: `Thuốc tím (KMnO4) hòa tan tạo thành dung dịch màu tím đậm.` });
+                } else if (!currentContent || currentContent.includes('(Rắn)')) {
+                  targetContainer.content = 'KMnO4 (Rắn)';
+                }
+             }
+             // 3. DROPPING SODIUM
+             else if (draggedObj.templateId === 'sodium') {
+                if (currentContent === 'H2O') {
+                  targetContainer.content = 'NaOH';
+                  targetContainer.reactionState = 'violent';
+                  setReactionInfo({ equation: `2Na + 2H₂O → 2NaOH + H₂↑`, condition: 'Tỏa nhiệt', description: `Phản ứng cháy nổ sinh khí Hydro.` });
+                  setTimeout(() => {
+                    setPlacedItems(currentItems => 
+                      currentItems.map(item => 
+                        item.instanceId === instanceToUpdate ? { ...item, reactionState: null } : item
+                      )
+                    );
+                  }, 3000);
+                } else if (!currentContent || currentContent.includes('(Rắn)')) {
+                  targetContainer.content = 'Na (Rắn)';
+                }
              }
              
              // Remove the dragged chemical solid/droplet from the canvas since it was deposited
@@ -225,19 +246,14 @@ export default function VirtualLabPage() {
           <div className="flex gap-4 w-full mb-6 items-center justify-between bg-white p-4 px-6 rounded-2xl shadow-sm border border-slate-200">
             <h2 className="text-xl font-extrabold text-slate-800 tracking-tight">Virtual Chemistry Lab</h2>
             <div className="flex gap-3">
-              <Button variant="outline" className="text-destructive hover:bg-red-50 hover:text-red-600 border-slate-200" onClick={() => { setPlacedItems([]); setSimulationActive(false); setReactionInfo({ equation: '-', condition: '-', description: 'Bàn làm việc đã được dọn sạch.' }); }}>
+              <Button variant="outline" className="text-destructive hover:bg-red-50 hover:text-red-600 border-slate-200" onClick={() => { setPlacedItems([]); setReactionInfo({ equation: '-', condition: '-', description: 'Bàn làm việc đã được dọn sạch.' }); }}>
                  <Trash2 className="w-4 h-4 mr-2" /> Clear Desk
-              </Button>
-              <Button className={`${simulationActive ? 'bg-amber-500 hover:bg-amber-600' : 'bg-emerald-500 hover:bg-emerald-600'} text-white shadow-md`} onClick={() => setSimulationActive(!simulationActive)}>
-                 {simulationActive ? <RotateCcw className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />} 
-                 {simulationActive ? 'Stop Simulation' : 'Start Simulation'}
               </Button>
             </div>
           </div>
 
           <CentralWorkspace 
             placedItems={placedItems} 
-            simulationActive={simulationActive} 
             scale={scale} 
             setScale={setScale} 
             selectedItemId={selectedItemId}

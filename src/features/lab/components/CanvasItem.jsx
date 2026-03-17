@@ -2,7 +2,7 @@ import React from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { Trash2 } from 'lucide-react';
 
-export default function CanvasItem({ item, simulationActive, isSelected, onSelect, onDelete }) {
+export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: item.instanceId,
     data: { source: 'canvas', instanceId: item.instanceId, templateId: item.templateId }
@@ -26,17 +26,23 @@ export default function CanvasItem({ item, simulationActive, isSelected, onSelec
             {/* Dynamic Liquid Layer Behind SVG */}
             {item.content && (
               <div 
-                className={`absolute bottom-[5px] left-[12px] right-[12px] rounded-br-lg rounded-bl-lg transition-colors duration-500 ease-in-out ${
-                  item.content === 'H2O' ? 'bg-blue-300/60' : 
-                  item.content === 'KMnO4' ? 'bg-purple-600/80 text-white' : 
-                  item.content === 'NaOH' ? 'bg-slate-300/50 text-slate-700' : 'bg-green-500/70'
-                }`}
-                style={{ height: '55%', zIndex: 0 }}
+                className="absolute bottom-[5px] left-[12px] right-[12px] rounded-br-[4px] rounded-bl-[4px] transition-all duration-1000 ease-in-out"
+                style={{ 
+                  height: item.content.includes('(Rắn)') ? '10%' : '55%',
+                  backgroundColor: 
+                    item.content === 'H2O' ? 'rgba(96, 165, 250, 0.5)' : 
+                    item.content === 'KMnO4' ? 'rgba(147, 51, 234, 0.8)' : 
+                    item.content === 'NaOH' ? 'rgba(236, 72, 153, 0.7)' : 
+                    item.content === 'KMnO4 (Rắn)' ? 'rgba(88, 28, 135, 0.9)' :
+                    item.content === 'Na (Rắn)' ? 'rgba(148, 163, 184, 0.9)' : 'transparent',
+                  color: item.content.includes('H2O') || item.content.includes('NaOH') ? '#334155' : '#ffffff',
+                  zIndex: 0 
+                }}
               >
                 <div className="flex items-center justify-center w-full h-full text-[10px] font-bold opacity-30 select-none pointer-events-none uppercase">{item.content}</div>
 
                 {/* Bubbles if heated or violent */}
-                {(item.isHeated || item.reactionState === 'violent') && simulationActive && (
+                {(item.isHeated || item.reactionState === 'violent') && (
                   <>
                     <div className="bubble-animation w-1.5 h-1.5 bottom-1 left-2" style={{ animationDelay: '0ms' }}></div>
                     <div className="bubble-animation w-2 h-2 bottom-2 left-6" style={{ animationDelay: '300ms' }}></div>
@@ -53,7 +59,7 @@ export default function CanvasItem({ item, simulationActive, isSelected, onSelec
             </svg>
 
             {/* Violent Reaction Visuals Overflowing */}
-            {item.reactionState === 'violent' && simulationActive && (
+            {item.reactionState === 'violent' && (
               <div className="absolute -top-16 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex flex-col items-center">
                  <div className="text-4xl animate-bounce opacity-80 mb-1">💨</div>
                  <div className="violent-fire text-3xl">🔥</div>
@@ -67,15 +73,21 @@ export default function CanvasItem({ item, simulationActive, isSelected, onSelec
             {/* Dynamic Liquid Layer Behind SVG */}
             {item.content && (
               <div 
-                className={`absolute bottom-[10px] left-[11px] right-[11px] rounded-b-full transition-colors duration-500 ease-in-out ${
-                  item.content === 'H2O' ? 'bg-blue-300/60' : 
-                  item.content === 'KMnO4' ? 'bg-purple-600/80 text-white' : 
-                  item.content === 'NaOH' ? 'bg-slate-300/50 text-slate-700' : 'bg-emerald-500/70'
-                }`}
-                style={{ height: '45%', zIndex: 0 }}
+                className="absolute bottom-[10px] left-[11px] right-[11px] rounded-b-full transition-all duration-1000 ease-in-out"
+                style={{ 
+                  height: item.content.includes('(Rắn)') ? '10%' : '45%',
+                  backgroundColor: 
+                    item.content === 'H2O' ? 'rgba(96, 165, 250, 0.5)' : 
+                    item.content === 'KMnO4' ? 'rgba(147, 51, 234, 0.8)' : 
+                    item.content === 'NaOH' ? 'rgba(236, 72, 153, 0.7)' : 
+                    item.content === 'KMnO4 (Rắn)' ? 'rgba(88, 28, 135, 0.9)' :
+                    item.content === 'Na (Rắn)' ? 'rgba(148, 163, 184, 0.9)' : 'transparent',
+                  color: item.content.includes('H2O') || item.content.includes('NaOH') ? '#334155' : '#ffffff',
+                  zIndex: 0 
+                }}
               >
                  {/* Bubbles if heated or violent */}
-                 {(item.isHeated || item.reactionState === 'violent') && simulationActive && (
+                 {(item.isHeated || item.reactionState === 'violent') && (
                   <>
                     <div className="bubble-animation w-1 h-1 bottom-1 left-2.5" style={{ animationDelay: '0ms' }}></div>
                     <div className="bubble-animation w-1.5 h-1.5 bottom-2 right-2.5" style={{ animationDelay: '400ms' }}></div>
@@ -89,7 +101,7 @@ export default function CanvasItem({ item, simulationActive, isSelected, onSelec
             </svg>
             
             {/* Violent Reaction Overflow */}
-            {item.reactionState === 'violent' && simulationActive && (
+            {item.reactionState === 'violent' && (
               <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
                  <div className="violent-fire text-2xl">🔥</div>
               </div>
@@ -99,14 +111,12 @@ export default function CanvasItem({ item, simulationActive, isSelected, onSelec
       case 'bunsen_burner':
         return (
           <div className="relative">
-            {item.isHeated && simulationActive && (
-               <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-8 h-16 origin-bottom animate-pulse pointer-events-none">
-                  <svg viewBox="0 0 30 60" className="w-full h-full drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]">
-                    <path d="M 15 0 Q 5 20 5 40 A 10 10 0 0 0 25 40 Q 25 20 15 0 Z" fill="#ef4444" />
-                    <path d="M 15 20 Q 10 35 10 45 A 5 5 0 0 0 20 45 Q 20 35 15 20 Z" fill="#facc15" />
-                  </svg>
-               </div>
-            )}
+             <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-8 h-12 origin-bottom animate-pulse pointer-events-none z-20">
+                <svg viewBox="0 0 30 60" className="w-full h-full drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]">
+                  <path d="M 15 0 Q 5 20 5 40 A 10 10 0 0 0 25 40 Q 25 20 15 0 Z" fill="#ef4444" />
+                  <path d="M 15 20 Q 10 35 10 45 A 5 5 0 0 0 20 45 Q 20 35 15 20 Z" fill="#facc15" />
+                </svg>
+             </div>
             <svg width="60" height="80" viewBox="0 0 60 80" className="drop-shadow-lg relative z-10">
                <rect x="22" y="30" width="16" height="40" fill="#94a3b8" />
                <rect x="10" y="70" width="40" height="10" fill="#334155" rx="2" />
