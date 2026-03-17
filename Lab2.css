@@ -78,3 +78,28 @@
   word-wrap: break-word;  
   white-space: normal;
 }
+
+/* MULTI-DIRECTIONAL SMOKE ANIMATIONS */
+@keyframes smoke-rise-up {
+  0% { transform: translateY(0) scale(0.5); opacity: 0.8; }
+  100% { transform: translateY(-80px) scale(1.5); opacity: 0; }
+}
+@keyframes smoke-float-left {
+  0% { transform: translate(0, 0) scale(0.5); opacity: 0.8; }
+  100% { transform: translate(-40px, -80px) scale(1.5); opacity: 0; }
+}
+@keyframes smoke-float-right {
+  0% { transform: translate(0, 0) scale(0.5); opacity: 0.8; }
+  100% { transform: translate(40px, -80px) scale(1.5); opacity: 0; }
+}
+@keyframes smoke-spiral {
+  0% { transform: translate(0, 0) scale(0.5); opacity: 0.8; }
+  50% { transform: translate(-20px, -40px) scale(1); opacity: 0.6; }
+  100% { transform: translate(30px, -90px) scale(1.5); opacity: 0; }
+}
+
+.smoke-particle {
+  pointer-events: none;
+  left: 50%;
+  transform: translateX(-50%);
+}

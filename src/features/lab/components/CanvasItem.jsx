@@ -26,7 +26,7 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
             {/* Dynamic Liquid Layer Behind SVG */}
             {item.content && (
               <div 
-                className="absolute bottom-[5px] left-[12px] right-[12px] rounded-br-[4px] rounded-bl-[4px] transition-all duration-1000 ease-in-out"
+                className="absolute bottom-[6px] left-[15px] right-[15px] rounded-br-[5px] rounded-bl-[5px] transition-all duration-1000 ease-in-out"
                 style={{ 
                   height: item.content.includes('(Rắn)') ? '10%' : '55%',
                   backgroundColor: 
@@ -53,16 +53,32 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
               </div>
             )}
             
-            <svg width="80" height="100" viewBox="0 0 80 100" className="drop-shadow-md relative z-10 w-full h-full">
-               <path d="M 10 10 L 10 90 Q 10 95 15 95 L 65 95 Q 70 95 70 90 L 70 10 M 5 10 L 15 10 M 65 10 L 75 10" fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="4" />
-               <path d="M 10 10 L 10 90 Q 10 95 15 95 L 65 95 Q 70 95 70 90 L 70 10 M 5 10 L 15 10 M 65 10 L 75 10" fill="none" stroke="#94a3b8" strokeWidth="2" />
+            <svg width="100" height="125" viewBox="0 0 100 125" className="drop-shadow-md relative z-10 w-full h-full">
+               <g transform="scale(1.25)">
+                 <path d="M 10 10 L 10 90 Q 10 95 15 95 L 65 95 Q 70 95 70 90 L 70 10 M 5 10 L 15 10 M 65 10 L 75 10" fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="4" />
+                 <path d="M 10 10 L 10 90 Q 10 95 15 95 L 65 95 Q 70 95 70 90 L 70 10 M 5 10 L 15 10 M 65 10 L 75 10" fill="none" stroke="#94a3b8" strokeWidth="2" />
+               </g>
             </svg>
 
             {/* Violent Reaction Visuals Overflowing */}
             {item.reactionState === 'violent' && (
-              <div className="absolute -top-16 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex flex-col items-center">
-                 <div className="text-4xl animate-bounce opacity-80 mb-1">💨</div>
-                 <div className="violent-fire text-3xl">🔥</div>
+              <div className="absolute bottom-[55%] left-1/2 -translate-x-1/2 translate-y-[30%] z-20 pointer-events-none flex flex-col items-center w-full">
+                 {/* Khung chứa khói: Trải rộng 80% bề mặt nước */}
+                 <div className="absolute bottom-6 w-[80%] h-10 z-10">
+                   {/* Cánh TRÁI */}
+                   <div className="smoke-particle text-3xl absolute bottom-0 left-0" style={{ animation: 'smoke-float-left 2s ease-in infinite', opacity: 0 }}>💨</div>
+                   <div className="smoke-particle text-xl absolute bottom-0 left-[20%]" style={{ animation: 'smoke-rise-up 2.5s ease-in infinite 0.4s', opacity: 0 }}>💨</div>
+                   
+                   {/* TÂM */}
+                   <div className="smoke-particle text-4xl absolute bottom-0 left-1/2 -translate-x-1/2" style={{ animation: 'smoke-spiral 3s ease-in infinite 0.2s', opacity: 0 }}>💨</div>
+                   
+                   {/* Cánh PHẢI */}
+                   <div className="smoke-particle text-2xl absolute bottom-0 right-[20%]" style={{ animation: 'smoke-rise-up 2.2s ease-in infinite 0.7s', opacity: 0 }}>💨</div>
+                   <div className="smoke-particle text-3xl absolute bottom-0 right-0" style={{ animation: 'smoke-float-right 2.8s ease-in infinite 1.1s', opacity: 0 }}>💨</div>
+                 </div>
+                 
+                 {/* Ngọn lửa */}
+                 <div className="violent-fire text-3xl relative z-20 mt-2">🔥</div>
               </div>
             )}
           </div>
@@ -73,7 +89,7 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
             {/* Dynamic Liquid Layer Behind SVG */}
             {item.content && (
               <div 
-                className="absolute bottom-[10px] left-[11px] right-[11px] rounded-b-full transition-all duration-1000 ease-in-out"
+                className="absolute bottom-[12px] left-[14px] right-[14px] rounded-b-full transition-all duration-1000 ease-in-out"
                 style={{ 
                   height: item.content.includes('(Rắn)') ? '10%' : '45%',
                   backgroundColor: 
@@ -96,18 +112,28 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
               </div>
             )}
 
-            <svg width="40" height="120" viewBox="0 0 40 120" className="drop-shadow-md relative z-10 w-full h-full">
-              <path d="M 10 10 L 10 110 A 10 10 0 0 0 30 110 L 30 10 M 5 10 L 15 10 M 25 10 L 35 10" fill="none" stroke="#94a3b8" strokeWidth="2" />
+            <svg width="50" height="150" viewBox="0 0 50 150" className="drop-shadow-md relative z-10 w-full h-full">
+              <g transform="scale(1.25)">
+                <path d="M 10 10 L 10 110 A 10 10 0 0 0 30 110 L 30 10 M 5 10 L 15 10 M 25 10 L 35 10" fill="none" stroke="#94a3b8" strokeWidth="2" />
+              </g>
             </svg>
             
             {/* Violent Reaction Overflow */}
             {item.reactionState === 'violent' && (
-              <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
-                 <div className="violent-fire text-2xl">🔥</div>
+              <div className="absolute bottom-[45%] left-1/2 -translate-x-1/2 translate-y-[20%] z-20 pointer-events-none flex flex-col items-center w-full">
+                 {/* Khung chứa khói: Trải rộng 90% miệng ống */}
+                 <div className="absolute bottom-4 w-[90%] h-10 z-10">
+                   {/* Trái - Giữa - Phải */}
+                   <div className="smoke-particle text-xl absolute bottom-0 left-0" style={{ animation: 'smoke-float-left 2.2s ease-in infinite 0.2s', opacity: 0 }}>💨</div>
+                   <div className="smoke-particle text-3xl absolute bottom-0 left-1/2 -translate-x-1/2" style={{ animation: 'smoke-rise-up 2.5s ease-in infinite', opacity: 0 }}>💨</div>
+                   <div className="smoke-particle text-xl absolute bottom-0 right-0" style={{ animation: 'smoke-float-right 2s ease-in infinite 0.5s', opacity: 0 }}>💨</div>
+                 </div>
+                 
+                 <div className="violent-fire text-2xl relative z-20 mt-1">🔥</div>
               </div>
             )}
           </div>
-        )
+        );
       case 'bunsen_burner':
         return (
           <div className="relative">

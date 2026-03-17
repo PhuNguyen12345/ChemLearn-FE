@@ -166,7 +166,7 @@ export default function VirtualLabPage() {
                         item.instanceId === instanceToUpdate ? { ...item, reactionState: null } : item
                       )
                     );
-                  }, 3000);
+                  }, 4000);
                 } else if (currentContent === 'KMnO4 (Rắn)') {
                   targetContainer.content = 'KMnO4';
                   setReactionInfo({ equation: `KMnO₄ + H₂O → Purple Solution`, condition: 'Phân tán', description: `Thuốc tím (KMnO4) hòa tan tạo thành dung dịch màu tím đậm.` });
@@ -196,7 +196,7 @@ export default function VirtualLabPage() {
                         item.instanceId === instanceToUpdate ? { ...item, reactionState: null } : item
                       )
                     );
-                  }, 3000);
+                  }, 4000);
                 } else if (!currentContent || currentContent.includes('(Rắn)')) {
                   targetContainer.content = 'Na (Rắn)';
                 }
