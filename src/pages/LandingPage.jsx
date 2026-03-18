@@ -9,6 +9,9 @@ import {
   TrendingUp,
   ArrowRightCircle,
   Globe,
+  Hexagon,
+  Beaker,
+  Atom,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -23,19 +26,28 @@ const LandingPage = () => {
   const { language, setLanguage } = useLanguageStore();
   const t = translations[language];
 
+  const scatteredIcons = [
+    { Icon: FlaskConical, size: 'w-48 h-48', pos: '-top-10 -left-10', rotate: 'rotate-12', delay: '0s' },
+    { Icon: Beaker, size: 'w-64 h-64', pos: 'top-20 -right-20', rotate: '-rotate-12', delay: '2s' },
+    { Icon: Atom, size: 'w-40 h-40', pos: 'bottom-20 left-1/4', rotate: 'rotate-45', delay: '4s' },
+    { Icon: Hexagon, size: 'w-56 h-56', pos: 'top-1/2 -right-10', rotate: '-rotate-45', delay: '1s' },
+    { Icon: FlaskConical, size: 'w-32 h-32', pos: 'bottom-10 right-1/3', rotate: 'rotate-[30deg]', delay: '3s' },
+    { Icon: Beaker, size: 'w-24 h-24', pos: 'top-1/4 left-1/3', rotate: 'rotate-[-20deg]', delay: '5s' },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cyan-50 to-white font-sans text-slate-800 selection:bg-sky-100 overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-indigo-950 via-purple-900 to-slate-900 font-sans text-white selection:bg-purple-500/30 overflow-x-hidden">
 
       {/* 1. Top Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md shadow-sm shadow-cyan-100/50">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-indigo-950/50 backdrop-blur-md border-b border-white/10 shadow-lg">
         <div className="container mx-auto px-6 h-20 flex items-center justify-between max-w-7xl">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="p-2 bg-cyan-400 rounded-2xl text-white group-hover:bg-cyan-500 transition-colors shadow-md shadow-cyan-200">
+            <div className="p-2 bg-cyan-400 rounded-2xl text-white group-hover:bg-cyan-500 transition-colors shadow-md shadow-cyan-500/50">
               <FlaskConical className="w-6 h-6" />
             </div>
-            <span className="text-2xl font-extrabold text-slate-800 tracking-tight">
-              Chem<span className="text-cyan-500">Learn</span>
+            <span className="text-2xl font-extrabold text-white tracking-tight">
+              Chem<span className="text-cyan-400">Learn</span>
             </span>
           </Link>
 
@@ -90,11 +102,22 @@ const LandingPage = () => {
       <main className="pt-20">
 
         {/* 2. Hero Section */}
-        <section className="relative overflow-hidden bg-gradient-to-b from-cyan-50 to-white pt-24 pb-32">
+        <section className="relative overflow-hidden pt-24 pb-32">
+          {/* 🪄 Magic Background Icons */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {scatteredIcons.map(({ Icon, size, pos, rotate, delay }, idx) => (
+              <Icon
+                key={idx}
+                className={`absolute ${size} ${pos} ${rotate} text-white/5 animate-[pulse_8s_ease-in-out_infinite]`}
+                style={{ animationDelay: delay }}
+                strokeWidth={1}
+              />
+            ))}
+          </div>
+
           {/* Big colourful blobs */}
-          <div className="absolute top-0 right-0 -translate-y-12 translate-x-1/3 w-[600px] h-[600px] bg-cyan-200/30 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/3 w-[500px] h-[500px] bg-purple-100/40 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-yellow-100/30 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute top-0 right-0 -translate-y-12 translate-x-1/3 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/3 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="container mx-auto px-6 relative z-10 max-w-7xl">
             <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -107,25 +130,25 @@ const LandingPage = () => {
                 <div className="absolute -bottom-6 left-12 text-3xl animate-bounce" style={{ animationDuration: '2.2s', animationDelay: '1s' }}>🔬</div>
                 <div className="absolute bottom-8 right-0 text-2xl animate-bounce" style={{ animationDuration: '4s', animationDelay: '0.2s' }}>💡</div>
 
-                <div className="inline-block px-5 py-2 bg-cyan-100 text-cyan-700 text-sm font-bold rounded-full shadow-sm border border-cyan-200/60">
+                <div className="inline-block px-5 py-2 bg-purple-500/20 text-purple-200 text-sm font-black rounded-full shadow-sm border border-purple-400/30 backdrop-blur-md">
                   {t.hero.badge}
                 </div>
 
-                <h1 className="text-5xl md:text-6xl font-extrabold leading-tight tracking-tight">
+                <h1 className="text-5xl md:text-6xl font-extrabold leading-tight tracking-tight text-white">
                   {t.hero.titleLine1} <br />
-                  <span className="text-teal-500">
+                  <span className="text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.4)]">
                     {t.hero.titleLine2}
                   </span>
                 </h1>
 
-                <p className="text-xl text-slate-600 leading-relaxed md:max-w-lg">
+                <p className="text-xl text-purple-100 leading-relaxed md:max-w-lg font-medium">
                   {t.hero.subtitle}
                 </p>
 
                 <div className="pt-4 flex flex-col sm:flex-row gap-4">
                   <Button
                     size="lg"
-                    className="rounded-3xl bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white font-extrabold shadow-lg shadow-orange-200 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-orange-300 px-8 h-14 text-base group"
+                    className="rounded-3xl bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white font-extrabold shadow-lg shadow-orange-500/50 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-orange-500/60 px-8 h-14 text-base group"
                   >
                     {t.hero.btnGetStarted}
                     <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -133,9 +156,9 @@ const LandingPage = () => {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="rounded-3xl border-2 border-cyan-200 hover:bg-cyan-50 text-cyan-700 hover:text-cyan-800 px-8 h-14 text-base group shadow-sm bg-white/70 backdrop-blur-sm font-bold"
+                    className="rounded-3xl border-2 border-purple-400/30 hover:bg-white/5 text-black px-8 h-14 text-base group shadow-sm backdrop-blur-sm font-bold"
                   >
-                    <MonitorPlay className="mr-2 w-5 h-5 text-cyan-500 group-hover:scale-110 transition-transform" />
+                    <MonitorPlay className="mr-2 w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" />
                     {t.hero.btnWatchDemo}
                   </Button>
                 </div>
@@ -174,13 +197,13 @@ const LandingPage = () => {
         </section>
 
         {/* 3. Features Grid */}
-        <section className="py-24 bg-white relative z-20" id="features">
+        <section className="py-24 bg-transparent relative z-20" id="features">
           <div className="container mx-auto px-6 max-w-7xl">
             <div className="text-center mb-16 max-w-2xl mx-auto space-y-4">
-              <h2 className="text-3xl md:text-4xl font-extrabold text-slate-800">
+              <h2 className="text-3xl md:text-4xl font-extrabold text-white">
                 {t.features.sectionTitle}
               </h2>
-              <p className="text-lg text-slate-500">
+              <p className="text-lg text-purple-200">
                 {t.features.sectionSubtitle}
               </p>
             </div>
@@ -223,19 +246,19 @@ const LandingPage = () => {
         </section>
 
         {/* 4. How It Works — Abstract Concepts Visual Section */}
-        <section className="py-24 bg-cyan-50/50 relative overflow-hidden" id="how-it-works">
+        <section className="py-24 bg-indigo-950/30 relative overflow-hidden" id="how-it-works">
           <div className="container mx-auto px-6 max-w-7xl">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-extrabold text-slate-800 mb-4 max-w-2xl mx-auto">
+              <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4 max-w-2xl mx-auto">
                 {t.howItWorks.sectionTitle}
               </h2>
-              <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+              <p className="text-lg text-purple-200 max-w-2xl mx-auto">
                 {t.howItWorks.sectionSubtitle}
               </p>
             </div>
 
             {/* Visual Reaction Flow */}
-            <div className="max-w-4xl mx-auto bg-white rounded-[3rem] p-8 md:p-16 shadow-xl shadow-cyan-100/50 border border-cyan-50 relative">
+            <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-xl rounded-[3rem] p-8 md:p-16 shadow-2xl shadow-indigo-500/10 border border-white/10 relative">
               <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
 
                 {/* Reactants */}
@@ -279,67 +302,10 @@ const LandingPage = () => {
           </div>
         </section>
 
-        {/* 5. Join Our Community — Audience Section */}
-        <section className="py-24 bg-white" id="community">
-          <div className="container mx-auto px-6 max-w-7xl">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-extrabold text-slate-800 mb-4">
-                {t.community.sectionTitle}
-              </h2>
-              <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                {t.community.sectionSubtitle}
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-8">
-              {/* For Students */}
-              <div className="bg-blue-500 text-white rounded-3xl p-10 flex flex-col items-center text-center hover:shadow-2xl hover:shadow-blue-300/50 hover:-translate-y-2 transition-all duration-300">
-                <div className="w-24 h-24 rounded-full bg-blue-400 flex items-center justify-center mb-6 shadow-lg shadow-blue-600/30">
-                  <span className="text-4xl">👨‍🎓</span>
-                </div>
-                <h3 className="text-2xl font-extrabold mb-4">{t.community.studentTitle}</h3>
-                <p className="mb-8 flex-grow leading-relaxed text-blue-100">
-                  {t.community.studentDesc}
-                </p>
-                <button className="w-full bg-white text-blue-500 font-extrabold rounded-full py-3 text-[15px] hover:bg-blue-50 transition-colors shadow-md">
-                  {t.community.learnMore}
-                </button>
-              </div>
-
-              {/* For Teachers */}
-              <div className="bg-green-500 text-white rounded-3xl p-10 flex flex-col items-center text-center hover:shadow-2xl hover:shadow-green-300/50 hover:-translate-y-2 transition-all duration-300">
-                <div className="w-24 h-24 rounded-full bg-green-400 flex items-center justify-center mb-6 shadow-lg shadow-green-600/30">
-                  <span className="text-4xl">👩‍🏫</span>
-                </div>
-                <h3 className="text-2xl font-extrabold mb-4">{t.community.teacherTitle}</h3>
-                <p className="mb-8 flex-grow leading-relaxed text-green-100">
-                  {t.community.teacherDesc}
-                </p>
-                <button className="w-full bg-white text-green-500 font-extrabold rounded-full py-3 text-[15px] hover:bg-green-50 transition-colors shadow-md">
-                  {t.community.learnMore}
-                </button>
-              </div>
-
-              {/* For Parents */}
-              <div className="bg-orange-500 text-white rounded-3xl p-10 flex flex-col items-center text-center hover:shadow-2xl hover:shadow-orange-300/50 hover:-translate-y-2 transition-all duration-300">
-                <div className="w-24 h-24 rounded-full bg-orange-400 flex items-center justify-center mb-6 shadow-lg shadow-orange-600/30">
-                  <span className="text-4xl">👨‍👩‍👧</span>
-                </div>
-                <h3 className="text-2xl font-extrabold mb-4">{t.community.parentTitle}</h3>
-                <p className="mb-8 flex-grow leading-relaxed text-orange-100">
-                  {t.community.parentDesc}
-                </p>
-                <button className="w-full bg-white text-orange-500 font-extrabold rounded-full py-3 text-[15px] hover:bg-orange-50 transition-colors shadow-md">
-                  {t.community.learnMore}
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
       </main>
 
       {/* 6. Footer */}
-      <footer className="bg-purple-500 pt-20 pb-8 text-white">
+      <footer className="bg-slate-950/40 border-t border-white/5 pt-20 pb-8 text-white backdrop-blur-md">
         <div className="container mx-auto px-6 max-w-7xl">
           <div className="grid md:grid-cols-4 gap-12 mb-16">
             <div className="col-span-2">

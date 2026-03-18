@@ -25,10 +25,10 @@ export const translations = {
 
     hero: {
       badge: "✨ The Future of EdTech",
-      titleLine1: "Easy & Effective",
-      titleLine2: "Chemistry Learning",
+      titleLine1: "Level Up Your",
+      titleLine2: "Chemistry Skills! 🧪",
       subtitle:
-        "Master Chemistry concepts with interactive lessons, virtual labs, and quizzes designed specifically for Grades 6–9.",
+        "The ultimate periodic adventure. Master atoms, molecules, and reactions through fun quests and interactive labs.",
       btnGetStarted: "Get Started Free",
       btnWatchDemo: "Watch Demo",
     },
@@ -37,15 +37,15 @@ export const translations = {
       sectionTitle: "Everything you need to master Chemistry 🚀",
       sectionSubtitle:
         "Tools designed to make learning engaging, visual, and highly effective for secondary school students.",
-      curriculumTitle: "Curriculum-Based Lessons",
+      curriculumTitle: "Epic Quest Paths",
       curriculumDesc:
-        "Structured modules aligned perfectly with secondary school chemistry standards. Clear, step-by-step learning paths.",
-      simulationsTitle: "Interactive Simulations",
+        "Journey through levels from Atomic Basics to Master Alchemist. Clear, step-by-step learning paths.",
+      simulationsTitle: "Virtual Lab Portal",
       simulationsDesc:
-        "Visualize abstract concepts through hands-on virtual experiments safely via our realistic browser-based labs.",
-      progressTitle: "Progress Tracking",
+        "Mix, heat, and explode! Run safe and realistic experiments anywhere via our browser-based labs.",
+      progressTitle: "Earn Rare Badges",
       progressDesc:
-        "Monitor your learning journey, earn badges, and easily identify areas where you need a little more practice.",
+        "Collect unique achievements as you conquer each chemistry challenge and level up your profile.",
     },
 
     howItWorks: {
@@ -120,10 +120,10 @@ export const translations = {
 
     hero: {
       badge: "✨ Tương lai của EdTech",
-      titleLine1: "Học Hóa Học Dễ Dàng",
-      titleLine2: "& Hiệu Quả",
+      titleLine1: "Nâng Tầm Kỹ Năng",
+      titleLine2: "Hóa Học Của Bạn! 🧪",
       subtitle:
-        "Nắm vững các khái niệm Hóa học qua bài học tương tác, phòng thí nghiệm ảo và bài kiểm tra được thiết kế riêng cho học sinh lớp 6–9.",
+        "Cuộc phiêu lưu định kỳ tối thượng. Làm chủ nguyên tử, phân tử và phản ứng thông qua các nhiệm vụ vui nhộn và phòng thí nghiệm ảo.",
       btnGetStarted: "Bắt đầu ngay",
       btnWatchDemo: "Xem Demo",
     },
@@ -132,15 +132,15 @@ export const translations = {
       sectionTitle: "Mọi thứ bạn cần để chinh phục Hóa học 🚀",
       sectionSubtitle:
         "Các công cụ được thiết kế để giúp việc học trở nên hấp dẫn, trực quan và hiệu quả cho học sinh THCS.",
-      curriculumTitle: "Bài học theo khung chương trình",
+      curriculumTitle: "Hành Trình Nhiệm Vụ Sử Thi",
       curriculumDesc:
-        "Các module được cấu trúc chuẩn theo chương trình Hóa học THCS. Lộ trình học tập rõ ràng, từng bước một.",
-      simulationsTitle: "Thí nghiệm tương tác",
+        "Khám phá các cấp độ từ Kiến thức Nguyên tử Cơ bản đến Bậc thầy Giả kim. Lộ trình học tập rõ ràng.",
+      simulationsTitle: "Cổng Thí Nghiệm Ảo",
       simulationsDesc:
-        "Trực quan hóa các khái niệm trừu tượng qua các thí nghiệm ảo an toàn, sống động ngay trên trình duyệt.",
-      progressTitle: "Theo dõi tiến trình",
+        "Pha trộn, đun nóng và bùng nổ! Thực hiện các thí nghiệm an toàn và thực tế ở bất cứ đâu.",
+      progressTitle: "Sưu Tầm Huy Hiệu Hiếm",
       progressDesc:
-        "Theo dõi hành trình học tập, nhận huy hiệu và dễ dàng xác định các lĩnh vực cần luyện tập thêm.",
+        "Thu thập các thành tựu độc đáo khi bạn chinh phục từng thử thách hóa học và nâng cấp hồ sơ của mình.",
     },
 
     howItWorks: {
