@@ -125,10 +125,10 @@ const LandingPage = () => {
               {/* Text Left — with floating science emojis */}
               <div className="relative max-w-2xl space-y-8">
                 {/* Floating decorative science icons */}
-                <div className="absolute -top-8 -left-4 text-4xl animate-bounce" style={{ animationDuration: '2.8s' }}>⚛️</div>
-                <div className="absolute top-10 -right-6 text-3xl animate-bounce" style={{ animationDuration: '3.5s', animationDelay: '0.5s' }}>🧪</div>
-                <div className="absolute -bottom-6 left-12 text-3xl animate-bounce" style={{ animationDuration: '2.2s', animationDelay: '1s' }}>🔬</div>
-                <div className="absolute bottom-8 right-0 text-2xl animate-bounce" style={{ animationDuration: '4s', animationDelay: '0.2s' }}>💡</div>
+                <div className="absolute -top-8 -left-4 text-5xl animate-bounce" style={{ animationDuration: '2.8s' }}>⚛️</div>
+                <div className="absolute top-10 -right-6 text-5xl animate-bounce" style={{ animationDuration: '3.5s', animationDelay: '0.5s' }}>🧪</div>
+                <div className="absolute -bottom-30 left-12 text-5xl animate-bounce" style={{ animationDuration: '2.2s', animationDelay: '1s' }}>🔬</div>
+                <div className="absolute bottom-8 right-0 text-5xl animate-bounce" style={{ animationDuration: '4s', animationDelay: '0.2s' }}>💡</div>
 
                 <div className="inline-block px-5 py-2 bg-purple-500/20 text-purple-200 text-sm font-black rounded-full shadow-sm border border-purple-400/30 backdrop-blur-md">
                   {t.hero.badge}
