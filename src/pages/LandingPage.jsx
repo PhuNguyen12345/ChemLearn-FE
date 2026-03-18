@@ -22,6 +22,22 @@ import {
 import useLanguageStore from '../stores/useLanguageStore';
 import { translations } from '../lib/translations';
 
+const featureStyles = `
+@keyframes bubble-rise {
+  0% { transform: translateY(0) scale(0.5); opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translateY(-40px) scale(1.2); opacity: 0; }
+}
+@keyframes bar-grow {
+  from { height: 20%; }
+  to { height: var(--target-height); }
+}
+.perspective-1000 { perspective: 1000px; }
+.preserve-3d { transform-style: preserve-3d; }
+.backface-hidden { backface-visibility: hidden; }
+`;
+
 const LandingPage = () => {
   const { language, setLanguage } = useLanguageStore();
   const t = translations[language];
@@ -37,6 +53,7 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-950 via-purple-900 to-slate-900 font-sans text-white selection:bg-purple-500/30 overflow-x-hidden">
+      <style>{featureStyles}</style>
 
       {/* 1. Top Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-indigo-950/50 backdrop-blur-md border-b border-white/10 shadow-lg">
@@ -209,37 +226,69 @@ const LandingPage = () => {
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">
-              {/* Feature 1 — Curriculum */}
-              <div className="bg-sky-100 text-sky-900 rounded-3xl p-10 hover:shadow-xl hover:shadow-sky-200/60 hover:-translate-y-2 transition-all duration-300">
-                <div className="w-20 h-20 rounded-full bg-sky-300 flex items-center justify-center mb-6 shadow-md shadow-sky-200">
-                  <BookOpen className="w-10 h-10 text-white" />
+              {/* Feature 1 — Curriculum (Flipping Pages) */}
+              <div className="group relative bg-sky-500/10 border border-sky-400/20 text-white rounded-[2.5rem] p-10 hover:shadow-2xl hover:shadow-sky-500/20 hover:-translate-y-2 transition-all duration-500 overflow-hidden">
+                <div className="w-20 h-20 rounded-2xl bg-sky-500/20 flex items-center justify-center mb-8 shadow-inner perspective-1000">
+                  <div className="relative w-10 h-12 preserve-3d transition-transform duration-700 group-hover:rotate-y-[-30deg]">
+                    {/* Spine */}
+                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-sky-400 rounded-l-sm z-30 shadow-sm" />
+                    {/* Pages */}
+                    <div className="absolute inset-0 bg-white rounded-r-sm origin-left transition-transform duration-500 group-hover:rotate-y-[-140deg] z-20 shadow-sm" />
+                    <div className="absolute inset-0 bg-sky-100 rounded-r-sm origin-left transition-transform duration-700 group-hover:rotate-y-[-110deg] z-10 shadow-sm" />
+                    <div className="absolute inset-0 bg-sky-200 rounded-r-sm origin-left transition-transform duration-300 group-hover:rotate-y-[-80deg] z-0 shadow-sm" />
+                    {/* Back cover */}
+                    <div className="absolute inset-0 bg-sky-600 rounded-r-sm" />
+                  </div>
                 </div>
-                <h3 className="text-xl font-extrabold mb-3">{t.features.curriculumTitle}</h3>
-                <p className="leading-relaxed text-sky-800">
+                <h3 className="text-2xl font-black mb-4 text-sky-300 drop-shadow-sm">{t.features.curriculumTitle}</h3>
+                <p className="leading-relaxed text-purple-100 font-medium">
                   {t.features.curriculumDesc}
                 </p>
+                {/* Decorative blob */}
+                <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-sky-500/10 rounded-full blur-2xl group-hover:bg-sky-500/20 transition-colors" />
               </div>
 
-              {/* Feature 2 — Simulations */}
-              <div className="bg-emerald-100 text-emerald-900 rounded-3xl p-10 hover:shadow-xl hover:shadow-emerald-200/60 hover:-translate-y-2 transition-all duration-300">
-                <div className="w-20 h-20 rounded-full bg-emerald-400 flex items-center justify-center mb-6 shadow-md shadow-emerald-200">
-                  <MonitorPlay className="w-10 h-10 text-white" />
+              {/* Feature 2 — Simulations (Tipping Beaker & Bubbles) */}
+              <div className="group relative bg-emerald-500/10 border border-emerald-400/20 text-white rounded-[2.5rem] p-10 hover:shadow-2xl hover:shadow-emerald-500/20 hover:-translate-y-2 transition-all duration-500 overflow-hidden">
+                <div className="w-20 h-20 rounded-2xl bg-emerald-500/20 flex items-center justify-center mb-8 shadow-inner relative">
+                  <div className="relative z-10 transition-transform duration-500 group-hover:-rotate-[25deg] group-hover:-translate-x-1 group-hover:scale-110">
+                    <Beaker className="w-10 h-10 text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
+                  </div>
+                  {/* Bubbles */}
+                  {[...Array(5)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute bottom-6 left-1/2 w-2 h-2 bg-emerald-400 rounded-full opacity-0 pointer-events-none group-hover:opacity-100"
+                      style={{
+                        animation: `bubble-rise ${1 + i * 0.4}s ease-in infinite`,
+                        animationDelay: `${i * 0.3}s`,
+                        left: `${45 + (i % 3) * 10}%`
+                      }}
+                    />
+                  ))}
                 </div>
-                <h3 className="text-xl font-extrabold mb-3">{t.features.simulationsTitle}</h3>
-                <p className="leading-relaxed text-emerald-800">
+                <h3 className="text-2xl font-black mb-4 text-emerald-300 drop-shadow-sm">{t.features.simulationsTitle}</h3>
+                <p className="leading-relaxed text-purple-100 font-medium">
                   {t.features.simulationsDesc}
                 </p>
+                <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-colors" />
               </div>
 
-              {/* Feature 3 — Progress */}
-              <div className="bg-amber-100 text-amber-900 rounded-3xl p-10 hover:shadow-xl hover:shadow-amber-200/60 hover:-translate-y-2 transition-all duration-300">
-                <div className="w-20 h-20 rounded-full bg-amber-400 flex items-center justify-center mb-6 shadow-md shadow-amber-200">
-                  <TrendingUp className="w-10 h-10 text-white" />
+              {/* Feature 3 — Progress (Growing Bars & Arrow) */}
+              <div className="group relative bg-amber-500/10 border border-amber-400/20 text-white rounded-[2.5rem] p-10 hover:shadow-2xl hover:shadow-amber-500/20 hover:-translate-y-2 transition-all duration-500 overflow-hidden">
+                <div className="w-20 h-20 rounded-2xl bg-amber-500/20 flex items-center justify-center mb-8 shadow-inner relative overflow-hidden">
+                  <div className="flex items-end gap-1.5 h-10 mb-1 z-10 transition-transform group-hover:scale-110">
+                    <div className="w-3 bg-white/20 rounded-t-sm transition-all duration-500 group-hover:h-8 group-hover:bg-amber-300" style={{ height: '30%' }} />
+                    <div className="w-3 bg-white/40 rounded-t-sm transition-all duration-700 group-hover:h-12 group-hover:bg-amber-400" style={{ height: '50%' }} />
+                    <div className="w-3 bg-white/60 rounded-t-sm transition-all duration-300 group-hover:h-6 group-hover:bg-amber-200" style={{ height: '40%' }} />
+                  </div>
+                  <TrendingUp className="absolute top-4 right-4 w-5 h-5 text-amber-300 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all duration-500 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]" />
                 </div>
-                <h3 className="text-xl font-extrabold mb-3">{t.features.progressTitle}</h3>
-                <p className="leading-relaxed text-amber-800">
+                <h3 className="text-2xl font-black mb-4 text-amber-300 drop-shadow-sm">{t.features.progressTitle}</h3>
+                <p className="leading-relaxed text-purple-100 font-medium">
                   {t.features.progressDesc}
                 </p>
+                <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-colors" />
               </div>
             </div>
           </div>
