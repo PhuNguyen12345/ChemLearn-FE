@@ -4,6 +4,8 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import VirtualLab from "./pages/VirtualLab";
 import AdvancedVirtualLab from "./pages/AdvancedVirtualLab";
 import StudentHome from "./pages/student/StudentHome";
+import Missions from "./pages/student/Missions";
+import Leaderboard from "./pages/student/Leaderboard";
 import StudentLayout from "./components/layout/student/StudentLayout";
 import ParentLayout from "./components/layout/parent/ParentLayout";
 import ParentDashboard from "./pages/parent/ParentDashboard";
@@ -34,6 +36,8 @@ function App() {
           ></Route>
           <Route element={<StudentLayout />}>
             <Route path="/student/home" element={<StudentHome />} />
+            <Route path="/student/missions" element={<Missions />} />
+            <Route path="/student/leaderboard" element={<Leaderboard />} />
             {/* Các trang khác của student ném hết vào đây */}
           </Route>
           <Route element={<ParentLayout />}>
