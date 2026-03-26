@@ -26,20 +26,36 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
             {/* Dynamic Liquid Layer Behind SVG */}
             {item.content && (
               <div 
-                className="absolute bottom-[6px] left-[15px] right-[15px] rounded-br-[5px] rounded-bl-[5px] transition-all duration-1000 ease-in-out"
+                className={`absolute bottom-[6px] left-[15px] right-[15px] rounded-br-[5px] rounded-bl-[5px] transition-all duration-1000 ease-in-out ${item.reactionState === 'exothermic' ? 'exothermic-glow' : ''} ${item.reactionState === 'endothermic' ? 'endothermic-glow' : ''}`}
                 style={{ 
-                  height: item.content.includes('(Rắn)') ? '10%' : '55%',
+                  height: item.content.includes('(Rắn)') ? '15%' : '55%',
                   backgroundColor: 
-                    item.content === 'H2O' ? 'rgba(96, 165, 250, 0.5)' : 
+                    item.liquidColor ? item.liquidColor :
+                    item.content === 'H2O' ? 'rgba(96, 165, 250, 0.6)' : 
                     item.content === 'KMnO4' ? 'rgba(147, 51, 234, 0.8)' : 
-                    item.content === 'NaOH' ? 'rgba(236, 72, 153, 0.7)' : 
+                    item.content === 'NaOH' ? 'rgba(200, 230, 255, 0.6)' : 
                     item.content === 'KMnO4 (Rắn)' ? 'rgba(88, 28, 135, 0.9)' :
                     item.content === 'Na (Rắn)' ? 'rgba(148, 163, 184, 0.9)' : 'transparent',
-                  color: item.content.includes('H2O') || item.content.includes('NaOH') ? '#334155' : '#ffffff',
                   zIndex: 0 
                 }}
               >
-                <div className="flex items-center justify-center w-full h-full text-[10px] font-bold opacity-30 select-none pointer-events-none uppercase">{item.content}</div>
+                <div 
+                  className="flex items-center justify-center w-full h-full text-[11px] font-extrabold select-none pointer-events-none uppercase px-2 text-center drop-shadow-sm transition-opacity duration-300"
+                  style={{ 
+                    opacity: 0.9,
+                    color: (item.content || '').includes('KMnO4') || (item.content || '').includes('Na (Rắn)') ? '#ffffff' : '#1e293b' 
+                  }}
+                >
+                  {item.content}
+                </div>
+
+                {/* Precipitation/Solid Layer Effect */}
+                {(item.reactionState === 'precipitation' || item.precipitateColor) && (
+                  <div 
+                    className="absolute bottom-0 left-0 right-0 h-1/3 rounded-b-[4px] border-t border-white/20 shadow-inner" 
+                    style={{ backgroundColor: item.precipitateColor || 'rgba(255, 255, 255, 0.95)', zIndex: 1 }}
+                  ></div>
+                )}
 
                 {/* Bubbles if heated or violent */}
                 {(item.isHeated || item.reactionState === 'violent') && (
@@ -89,19 +105,36 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
             {/* Dynamic Liquid Layer Behind SVG */}
             {item.content && (
               <div 
-                className="absolute bottom-[12px] left-[14px] right-[14px] rounded-b-full transition-all duration-1000 ease-in-out"
+                className={`absolute bottom-[12px] left-[14px] right-[14px] rounded-b-full transition-all duration-1000 ease-in-out ${item.reactionState === 'exothermic' ? 'exothermic-glow' : ''} ${item.reactionState === 'endothermic' ? 'endothermic-glow' : ''}`}
                 style={{ 
-                  height: item.content.includes('(Rắn)') ? '10%' : '45%',
+                  height: item.content.includes('(Rắn)') ? '15%' : '45%',
                   backgroundColor: 
-                    item.content === 'H2O' ? 'rgba(96, 165, 250, 0.5)' : 
+                    item.liquidColor ? item.liquidColor :
+                    item.content === 'H2O' ? 'rgba(96, 165, 250, 0.6)' : 
                     item.content === 'KMnO4' ? 'rgba(147, 51, 234, 0.8)' : 
-                    item.content === 'NaOH' ? 'rgba(236, 72, 153, 0.7)' : 
+                    item.content === 'NaOH' ? 'rgba(200, 230, 255, 0.6)' : 
                     item.content === 'KMnO4 (Rắn)' ? 'rgba(88, 28, 135, 0.9)' :
                     item.content === 'Na (Rắn)' ? 'rgba(148, 163, 184, 0.9)' : 'transparent',
-                  color: item.content.includes('H2O') || item.content.includes('NaOH') ? '#334155' : '#ffffff',
                   zIndex: 0 
                 }}
               >
+                <div 
+                  className="flex items-center justify-center w-full h-full text-[10px] font-extrabold select-none pointer-events-none uppercase px-1 text-center drop-shadow-sm"
+                  style={{ 
+                    opacity: 0.9,
+                    color: (item.content || '').includes('KMnO4') || (item.content || '').includes('Na (Rắn)') ? '#ffffff' : '#1e293b' 
+                  }}
+                >
+                  {item.content}
+                </div>
+
+                {/* Precipitation/Solid Layer Effect */}
+                {(item.reactionState === 'precipitation' || item.precipitateColor) && (
+                  <div 
+                    className="absolute bottom-0 left-0 right-0 h-1/3 rounded-b-full px-1 border-t border-white/20 shadow-inner" 
+                    style={{ backgroundColor: item.precipitateColor || 'rgba(255, 255, 255, 0.95)', zIndex: 1 }}
+                  ></div>
+                )}
                  {/* Bubbles if heated or violent */}
                  {(item.isHeated || item.reactionState === 'violent') && (
                   <>

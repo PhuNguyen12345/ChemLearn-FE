@@ -141,7 +141,7 @@ export default function VirtualLabPage() {
 
         // 3. Chemical to Container Drop Logic
         const draggedObj = updatedItems.find(i => i.instanceId === instanceId);
-        if (draggedObj && ['water', 'kmno4', 'sodium'].includes(draggedObj.templateId)) {
+        if (draggedObj && ['water', 'kmno4', 'sodium', 'agno3', 'nacl', 'bacl2', 'na2so4', 'fe_powder', 'cuso4', 'h2c2o4', 'na2co3', 'hcl', 'zn_grain', 'cao', 'naoh_sol'].includes(draggedObj.templateId)) {
            const targetContainer = updatedItems.find(i => 
              i.instanceId !== instanceId && 
              ['beaker', 'test_tube'].includes(i.templateId) && 
@@ -172,6 +172,7 @@ export default function VirtualLabPage() {
                   setReactionInfo({ equation: `KMnO₄ + H₂O → Purple Solution`, condition: 'Phân tán', description: `Thuốc tím (KMnO4) hòa tan tạo thành dung dịch màu tím đậm.` });
                 } else if (!currentContent) {
                   targetContainer.content = 'H2O';
+                  targetContainer.liquidColor = 'rgba(96, 165, 250, 0.6)';
                   setReactionInfo({ equation: `H₂O Added`, condition: 'Mixing', description: `Dung môi Nước cất (H2O) đã được thêm vào cốc.` });
                 }
              } 
@@ -199,6 +200,157 @@ export default function VirtualLabPage() {
                   }, 4000);
                 } else if (!currentContent || currentContent.includes('(Rắn)')) {
                   targetContainer.content = 'Na (Rắn)';
+                }
+             }
+             // 4. DROPPING AgNO3
+             else if (draggedObj.templateId === 'agno3') {
+                if (currentContent === 'NaCl' || currentContent === 'HCl') {
+                  targetContainer.content = currentContent === 'HCl' ? 'AgCl↓ + HNO₃' : 'AgCl↓ + NaNO₃';
+                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
+                  targetContainer.precipitateColor = 'rgba(255, 255, 255, 0.9)';
+                  targetContainer.reactionState = 'precipitation';
+                  setReactionInfo({ equation: `AgNO₃ + ${currentContent} → AgCl↓ + ...`, condition: 'Kết tủa trắng', description: 'Bạc Clorua kết tủa ngay lập tức.' });
+                } else if (!currentContent) {
+                  targetContainer.content = 'AgNO3';
+                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
+                }
+             }
+             // 5. DROPPING NaCl
+             else if (draggedObj.templateId === 'nacl') {
+                if (currentContent === 'AgNO3') {
+                  targetContainer.content = 'AgCl↓ + NaNO₃';
+                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
+                  targetContainer.precipitateColor = 'rgba(255, 255, 255, 0.9)';
+                  targetContainer.reactionState = 'precipitation';
+                  setReactionInfo({ equation: `AgNO₃ + NaCl → AgCl↓ + NaNO₃`, condition: 'Kết tủa trắng', description: 'Tạo thành kết tủa trắng Bạc Clorua.' });
+                } else if (currentContent === 'BaCl2' || currentContent === 'Na2SO4') {
+                  // No reaction, just add? For now ignore or label
+                } else if (!currentContent) {
+                  targetContainer.content = 'NaCl';
+                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
+                }
+             }
+             // 6. DROPPING HCl
+             else if (draggedObj.templateId === 'hcl') {
+                if (currentContent === 'AgNO3') {
+                  targetContainer.content = 'AgCl↓ + HNO₃';
+                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
+                  targetContainer.precipitateColor = 'rgba(255, 255, 255, 0.9)';
+                  targetContainer.reactionState = 'precipitation';
+                } else if (currentContent === 'Na2CO3') {
+                  targetContainer.content = 'NaCl + CO₂↑ + H₂O';
+                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
+                  targetContainer.reactionState = 'violent';
+                  setTimeout(() => setPlacedItems(prev => prev.map(it => it.instanceId === instanceToUpdate ? { ...it, reactionState: null } : it)), 3000);
+                } else if (currentContent === 'Zn (Rắn)' || currentContent === 'Zn') {
+                  targetContainer.content = 'ZnCl₂ + H₂↑';
+                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
+                  targetContainer.reactionState = 'violent';
+                  setTimeout(() => setPlacedItems(prev => prev.map(it => it.instanceId === instanceToUpdate ? { ...it, reactionState: null } : it)), 3000);
+                } else if (currentContent === 'NaOH') {
+                  targetContainer.content = 'NaCl + H₂O';
+                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
+                } else if (!currentContent) {
+                  targetContainer.content = 'HCl';
+                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
+                }
+             }
+             // 7. DROPPING BaCl2
+             else if (draggedObj.templateId === 'bacl2') {
+                if (currentContent === 'Na2SO4') {
+                  targetContainer.content = 'BaSO₄↓ + 2NaCl';
+                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
+                  targetContainer.precipitateColor = 'rgba(255, 255, 255, 0.9)';
+                  targetContainer.reactionState = 'precipitation';
+                } else if (!currentContent) {
+                  targetContainer.content = 'BaCl2';
+                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
+                }
+             }
+             // 8. DROPPING Na2SO4
+             else if (draggedObj.templateId === 'na2so4') {
+                if (currentContent === 'BaCl2') {
+                  targetContainer.content = 'BaSO₄↓ + 2NaCl';
+                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
+                  targetContainer.precipitateColor = 'rgba(255, 255, 255, 0.9)';
+                  targetContainer.reactionState = 'precipitation';
+                } else if (!currentContent) {
+                  targetContainer.content = 'Na2SO4';
+                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
+                }
+             }
+             // 9. DROPPING Fe (Powder)
+             else if (draggedObj.templateId === 'fe_powder') {
+                if (currentContent === 'CuSO4') {
+                  targetContainer.content = 'FeSO₄ + Cu';
+                  targetContainer.liquidColor = 'rgba(187, 247, 208, 0.7)';
+                  targetContainer.precipitateColor = 'rgba(180, 83, 9, 0.8)'; // Copper deposit
+                } else if (!currentContent) {
+                  targetContainer.content = 'Fe (Rắn)';
+                }
+             }
+             // 10. DROPPING CuSO4
+             else if (draggedObj.templateId === 'cuso4') {
+                if (currentContent === 'Fe (Rắn)' || currentContent === 'Fe') {
+                  targetContainer.content = 'FeSO₄ + Cu';
+                  targetContainer.liquidColor = 'rgba(187, 247, 208, 0.7)';
+                  targetContainer.precipitateColor = 'rgba(180, 83, 9, 0.8)'; // Copper deposit
+                } else if (!currentContent) {
+                  targetContainer.content = 'CuSO4';
+                  targetContainer.liquidColor = 'rgba(37, 99, 235, 0.6)';
+                }
+             }
+             // 11. DROPPING H2C2O4
+             else if (draggedObj.templateId === 'h2c2o4') {
+                if (currentContent === 'KMnO4') {
+                  targetContainer.content = 'Mn²⁺ (Colorless)';
+                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.2)';
+                } else if (!currentContent) {
+                  targetContainer.content = 'H2C2O4';
+                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
+                }
+             }
+             // 12. DROPPING Na2CO3
+             else if (draggedObj.templateId === 'na2co3') {
+                if (currentContent === 'HCl') {
+                  targetContainer.content = 'NaCl + CO₂↑ + H₂O';
+                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
+                  targetContainer.reactionState = 'violent';
+                  setTimeout(() => setPlacedItems(prev => prev.map(it => it.instanceId === instanceToUpdate ? { ...it, reactionState: null } : it)), 3000);
+                } else if (!currentContent) {
+                  targetContainer.content = 'Na2CO3';
+                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
+                }
+             }
+             // 13. DROPPING Zn
+             else if (draggedObj.templateId === 'zn_grain') {
+                if (currentContent === 'HCl') {
+                  targetContainer.content = 'ZnCl₂ + H₂↑';
+                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
+                  targetContainer.reactionState = 'violent';
+                  setTimeout(() => setPlacedItems(prev => prev.map(it => it.instanceId === instanceToUpdate ? { ...it, reactionState: null } : it)), 3000);
+                } else if (!currentContent) {
+                  targetContainer.content = 'Zn (Rắn)';
+                }
+             }
+             // 14. DROPPING CaO
+             else if (draggedObj.templateId === 'cao') {
+                if (currentContent === 'H2O') {
+                  targetContainer.content = 'Ca(OH)₂ (Hot)';
+                  targetContainer.liquidColor = 'rgba(255, 255, 255, 0.8)';
+                  targetContainer.reactionState = 'exothermic';
+                } else if (!currentContent) {
+                  targetContainer.content = 'CaO (Rắn)';
+                }
+             }
+             // 15. DROPPING NaOH
+             else if (draggedObj.templateId === 'naoh_sol') {
+                if (currentContent === 'HCl') {
+                  targetContainer.content = 'NaCl + H₂O';
+                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
+                } else if (!currentContent) {
+                  targetContainer.content = 'NaOH';
+                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
                 }
              }
              
