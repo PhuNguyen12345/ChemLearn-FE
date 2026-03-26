@@ -27,11 +27,7 @@ function App() {
             element={<LandingPage />}
           />
           <Route
-            path="/lab1"
-            element={<VirtualLab></VirtualLab>}
-          ></Route>
-          <Route
-            path="/lab2"
+            path="/lab"
             element={<VirtualLabPage></VirtualLabPage>}
           ></Route>
           <Route element={<StudentLayout />}>
