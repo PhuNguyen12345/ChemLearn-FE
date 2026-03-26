@@ -12,6 +12,7 @@ import {
   Hexagon,
   Beaker,
   Atom,
+  MousePointer2,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -32,6 +33,62 @@ const featureStyles = `
 @keyframes bar-grow {
   from { height: 20%; }
   to { height: var(--target-height); }
+}
+@keyframes atom-h2-move {
+  0% { transform: translate(-220px, 15px) scale(0.8); opacity: 0; }
+  10% { opacity: 1; }
+  40% { transform: translate(-30px, 0) scale(1); opacity: 1; filter: brightness(1); }
+  45% { transform: translate(-10px, 0) scale(1.1); opacity: 1; filter: brightness(1.5); }
+  50% { transform: translate(-10px, 0) scale(1.2); opacity: 0; }
+  100% { opacity: 0; transform: translate(0, 0); }
+}
+@keyframes atom-o2-move {
+  0% { transform: translate(-220px, -15px) scale(0.8); opacity: 0; }
+  10% { opacity: 1; }
+  40% { transform: translate(30px, 0) scale(1); opacity: 1; filter: brightness(1); }
+  45% { transform: translate(10px, 0) scale(1.1); opacity: 1; filter: brightness(1.5); }
+  50% { transform: translate(10px, 0) scale(1.2); opacity: 0; }
+  100% { opacity: 0; transform: translate(0, 0); }
+}
+@keyframes flash-glow {
+  0%, 40% { opacity: 0; transform: scale(0.5); }
+  45% { opacity: 1; transform: scale(1.2); box-shadow: 0 0 60px 30px rgba(34, 211, 238, 0.6); }
+  55% { opacity: 0; transform: scale(1.8); box-shadow: 0 0 100px 50px rgba(34, 211, 238, 0); }
+  100% { opacity: 0; }
+}
+@keyframes molecule-h2o-move {
+  0%, 45% { opacity: 0; transform: translateX(0) scale(0.5); filter: drop-shadow(0 0 0px rgba(168, 85, 247, 0)); }
+  50% { opacity: 1; transform: translateX(0) scale(1); filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.8)); }
+  85% { transform: translateX(200px) scale(1); opacity: 1; filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.8)); }
+  95%, 100% { transform: translateX(230px) scale(0.8); opacity: 0; filter: drop-shadow(0 0 0px rgba(168, 85, 247, 0)); }
+}
+@keyframes cursor-click {
+  0% { transform: translate(60px, 60px); }
+  25% { transform: translate(5px, 5px); }
+  30% { transform: translate(5px, 5px) scale(0.9); }
+  35% { transform: translate(5px, 5px) scale(1); }
+  50% { transform: translate(40px, 40px); opacity: 1; }
+  100% { transform: translate(40px, 40px); opacity: 0; }
+}
+@keyframes quiz-success {
+  0%, 30% { background-color: rgb(255 255 255); border-color: rgb(226 232 240); }
+  35%, 80% { background-color: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.5); box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
+  100% { background-color: rgb(255 255 255); border-color: rgb(226 232 240); }
+}
+@keyframes xp-float {
+  0%, 30% { opacity: 0; transform: translateY(0); pointer-events: none; }
+  45% { opacity: 1; transform: translateY(-20px); pointer-events: none; }
+  70% { opacity: 1; transform: translateY(-40px); pointer-events: none; }
+  100% { opacity: 0; transform: translateY(-50px); pointer-events: none; }
+}
+@keyframes bar-grow-y {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+@keyframes bar-grow-y-loop {
+  0% { transform: scaleY(0); }
+  15%, 85% { transform: scaleY(1); }
+  100% { transform: scaleY(0); }
 }
 .perspective-1000 { perspective: 1000px; }
 .preserve-3d { transform-style: preserve-3d; }
@@ -307,50 +364,231 @@ const LandingPage = () => {
             </div>
 
             {/* Visual Reaction Flow */}
-            <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-xl rounded-[3rem] p-8 md:p-16 shadow-2xl shadow-indigo-500/10 border border-white/10 relative">
-              <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
+            <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-xl rounded-[3rem] p-8 md:p-12 shadow-2xl shadow-indigo-500/10 border border-white/10 relative">
+              <div className="relative h-64 w-full flex items-center justify-center overflow-hidden rounded-3xl bg-indigo-950/40 border border-white/5 shadow-inner">
+                {/* Stage */}
+                <div className="absolute inset-0 flex items-center justify-center scale-[1.5]">
+                  {/* Reactant H2 */}
+                  <div className="absolute w-12 h-12 rounded-full bg-teal-400 shadow-[inset_-2px_-2px_6px_rgba(0,0,0,0.2)] animate-[atom-h2-move_4s_ease-in-out_infinite] z-20 flex items-center justify-center text-teal-900 font-bold text-sm">H₂</div>
+                  
+                  {/* Reactant O2 */}
+                  <div className="absolute w-16 h-16 rounded-full bg-purple-400 shadow-[inset_-2px_-2px_6px_rgba(0,0,0,0.2)] animate-[atom-o2-move_4s_ease-in-out_infinite] z-20 flex items-center justify-center text-purple-900 font-bold text-sm">O₂</div>
 
-                {/* Reactants */}
-                <div className="flex flex-col items-center gap-4 group cursor-pointer z-10">
-                  <div className="w-36 h-36 md:w-48 md:h-48 bg-teal-50 rounded-[2.5rem] border-2 border-teal-200 flex items-center justify-center shadow-md group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-teal-200 transition-all duration-300 relative overflow-hidden">
-                    <div className="flex gap-3 z-10 relative">
-                      <div className="w-10 h-10 rounded-full bg-teal-400 shadow-[inset_-2px_-2px_6px_rgba(0,0,0,0.1)]" />
-                      <div className="w-10 h-10 rounded-full bg-teal-300 shadow-[inset_-2px_-2px_6px_rgba(0,0,0,0.1)]" />
+                  {/* Flash at Collision */}
+                  <div className="absolute w-20 h-20 bg-cyan-300 rounded-full blur-xl animate-[flash-glow_4s_ease-in-out_infinite] z-30 pointer-events-none" />
+
+                  {/* Product H2O */}
+                  <div className="absolute flex items-center justify-center animate-[molecule-h2o-move_4s_ease-in-out_infinite] z-20">
+                    <div className="relative w-24 h-24 rounded-full bg-purple-500 shadow-[inset_-4px_-4px_10px_rgba(0,0,0,0.3)] flex items-center justify-center text-white font-bold text-lg border-2 border-purple-400/50">
+                      H₂O
+                      {/* Attached H atoms */}
+                      <div className="absolute -top-1 -left-2 w-8 h-8 bg-teal-400 rounded-full shadow-[inset_-2px_-2px_5px_rgba(0,0,0,0.2)]" />
+                      <div className="absolute -bottom-1 -left-2 w-8 h-8 bg-teal-400 rounded-full shadow-[inset_-2px_-2px_5px_rgba(0,0,0,0.2)]" />
                     </div>
                   </div>
-                  <span className="text-xl font-extrabold text-teal-700">{t.howItWorks.reactantsLabel}</span>
-                  <span className="text-sm font-medium text-slate-500 -mt-2">{t.howItWorks.reactantsDesc}</span>
-                </div>
-
-                {/* Arrow */}
-                <div className="flex flex-col items-center text-cyan-400 animate-[pulse_2s_ease-in-out_infinite] z-10">
-                  <ArrowRightCircle className="w-12 h-12 md:w-16 md:h-16 hidden md:block drop-shadow-sm" strokeWidth={1.5} />
-                  <ArrowRightCircle className="w-12 h-12 rotate-90 md:hidden drop-shadow-sm" strokeWidth={1.5} />
-                  <span className="text-xs font-extrabold uppercase tracking-wider text-cyan-600 mt-3 bg-cyan-100 px-3 py-1 rounded-full">
-                    {t.howItWorks.reactionLabel}
-                  </span>
-                </div>
-
-                {/* Products */}
-                <div className="flex flex-col items-center gap-4 group cursor-pointer z-10">
-                  <div className="w-36 h-36 md:w-48 md:h-48 bg-purple-50 rounded-full border-2 border-purple-200 flex items-center justify-center shadow-md group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-purple-200 transition-all duration-300 relative overflow-hidden">
-                    <div className="relative w-24 h-24 z-10 flex items-center justify-center">
-                      <div className="absolute inset-0 m-auto w-14 h-14 rounded-full bg-purple-400 shadow-[inset_-2px_-2px_6px_rgba(0,0,0,0.1)] z-20" />
-                      <div className="absolute top-1 right-1 w-8 h-8 rounded-full bg-teal-400 shadow-[inset_-2px_-2px_6px_rgba(0,0,0,0.1)] z-10" />
-                      <div className="absolute bottom-1 left-1 w-8 h-8 rounded-full bg-teal-400 shadow-[inset_-2px_-2px_6px_rgba(0,0,0,0.1)] z-10" />
-                    </div>
-                  </div>
-                  <span className="text-xl font-extrabold text-purple-700">{t.howItWorks.productsLabel}</span>
-                  <span className="text-sm font-medium text-slate-500 -mt-2">{t.howItWorks.productsDesc}</span>
                 </div>
               </div>
 
-              {/* Dashed connector */}
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 border-t-2 border-dashed border-cyan-200 -z-0 hidden md:block" />
+              {/* Labels placed below the animated stage */}
+              <div className="grid grid-cols-3 text-center mt-10 relative z-10">
+                <div className="flex flex-col items-center">
+                  <span className="text-xl font-extrabold text-teal-400 drop-shadow-md">{t.howItWorks.reactantsLabel}</span>
+                  <span className="text-sm font-medium text-purple-200 mt-2 max-w-[150px]">{t.howItWorks.reactantsDesc}</span>
+                </div>
+                <div className="flex flex-col items-center justify-start text-cyan-400 mt-2">
+                  <span className="text-xs font-extrabold uppercase tracking-wider text-cyan-200 bg-cyan-950/50 px-4 py-2 rounded-full border border-cyan-500/30 shadow-[0_0_15px_rgba(34,211,238,0.2)]">
+                    {t.howItWorks.reactionLabel}
+                  </span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className="text-xl font-extrabold text-purple-400 drop-shadow-md">{t.howItWorks.productsLabel}</span>
+                  <span className="text-sm font-medium text-purple-200 mt-2 max-w-[150px]">{t.howItWorks.productsDesc}</span>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
+        {/* 5. Platform Showcase */}
+        <section className="py-24 bg-transparent relative z-20" id="showcase">
+          <div className="container mx-auto px-6 max-w-7xl">
+            <div className="text-center mb-16 max-w-2xl mx-auto space-y-4">
+              <h2 className="text-3xl md:text-4xl font-extrabold text-white">
+                Platform Showcase
+              </h2>
+              <p className="text-lg text-purple-200">
+                Experience the magic from both sides of the screen.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Card 1: Interactive Quizzes */}
+              <div className="group relative bg-indigo-950/40 backdrop-blur-xl border border-white/10 rounded-[3rem] p-10 overflow-hidden shadow-2xl hover:shadow-cyan-500/20 transition-all duration-500">
+                <div className="mb-6 relative z-10">
+                  <span className="inline-block px-4 py-1.5 bg-cyan-500/20 text-cyan-300 text-xs font-black rounded-full border border-cyan-400/30 uppercase tracking-widest">
+                    For Students
+                  </span>
+                  <h3 className="text-2xl font-black mt-4 text-white">Interactive Quizzes</h3>
+                  <p className="text-purple-200 mt-2 font-medium">Gamified learning paths that turn homework into an epic quest.</p>
+                </div>
+                
+                {/* High-Fidelity Mock UI Container (Quiz) */}
+                <div className="relative bg-[#f8fafc] border border-slate-200 rounded-2xl p-4 shadow-inner h-80 overflow-hidden mt-8 z-10 font-sans">
+                  
+                  {/* Top Header */}
+                  <div className="flex items-center justify-between bg-white rounded-xl p-2 shadow-sm border border-slate-100 mb-3">
+                    <div className="flex items-center gap-2">
+                       <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-[10px]">?</div>
+                       <span className="text-slate-800 font-bold text-[11px]">Chemical Reactions Quiz</span>
+                    </div>
+                    <div className="flex items-center gap-1 bg-yellow-100/60 px-2 py-0.5 rounded-md">
+                       <span className="text-yellow-500 text-[10px]">⭐</span>
+                       <span className="text-yellow-700 font-extrabold text-[10px]">850</span>
+                    </div>
+                  </div>
+
+                  {/* Question Box */}
+                  <div className="bg-gradient-to-br from-cyan-400 to-purple-500 rounded-xl p-4 mb-3 text-center shadow-md relative group-hover:scale-[1.02] transition-transform duration-500">
+                     <p className="text-white font-bold text-[12px] leading-snug drop-shadow-sm">
+                       What is the primary indicator that a chemical reaction has occurred when two clear liquids are mixed and a white solid forms?
+                     </p>
+                  </div>
+
+                  {/* Answers Grid */}
+                  <div className="grid grid-cols-2 gap-2 relative">
+                    {/* A */}
+                    <div className="bg-white border border-slate-200 rounded-xl p-2 flex items-center gap-2 shadow-sm">
+                      <div className="w-5 h-5 shrink-0 rounded bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-[10px]">A</div>
+                      <span className="text-slate-600 font-semibold text-[10px] truncate">Change in temp...</span>
+                    </div>
+                    {/* B (The animated correct answer) */}
+                    <div className="bg-white border border-slate-200 rounded-xl p-2 flex items-center gap-2 shadow-sm relative animate-[quiz-success_6s_ease-in-out_infinite]">
+                      <div className="w-5 h-5 shrink-0 rounded bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-[10px]">B</div>
+                      <span className="text-slate-600 font-semibold text-[10px] truncate">Formation of a...</span>
+                      
+                      {/* Animated Cursor */}
+                      <div className="absolute top-2 right-[-10px] text-white animate-[cursor-click_6s_ease-in-out_infinite] z-30 drop-shadow-md">
+                        <MousePointer2 className="w-6 h-6 fill-slate-800 text-white" strokeWidth={1.5} />
+                      </div>
+
+                      {/* Floating XP */}
+                      <div className="absolute -top-5 right-2 animate-[xp-float_6s_ease-in-out_infinite] z-20">
+                        <span className="text-emerald-500 font-black text-xs drop-shadow-[0_0_2px_rgba(255,255,255,1)]">+50 XP</span>
+                      </div>
+                    </div>
+                    {/* C */}
+                    <div className="bg-white border border-slate-200 rounded-xl p-2 flex items-center gap-2 shadow-sm">
+                      <div className="w-5 h-5 shrink-0 rounded bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-[10px]">C</div>
+                      <span className="text-slate-600 font-semibold text-[10px] truncate">Release of gas</span>
+                    </div>
+                    {/* D */}
+                    <div className="bg-white border border-slate-200 rounded-xl p-2 flex items-center gap-2 shadow-sm">
+                      <div className="w-5 h-5 shrink-0 rounded bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-[10px]">D</div>
+                      <span className="text-slate-600 font-semibold text-[10px] truncate">Color change</span>
+                    </div>
+                  </div>
+
+                  {/* Progress Bar corner overlay */}
+                  <div className="absolute bottom-3 left-3 bg-[#9b51e0] rounded-xl p-3 w-40 shadow-xl border border-purple-400">
+                    <div className="flex justify-between items-center mb-1 text-white">
+                      <span className="text-[9px] font-black uppercase tracking-widest opacity-90 drop-shadow-sm">Your Progress</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-purple-900/40 rounded-full overflow-hidden mb-1">
+                      <div className="h-full bg-yellow-400 w-[80%] rounded-full shadow-[0_0_5px_rgba(250,204,21,0.8)]" />
+                    </div>
+                    <div className="flex justify-between items-center text-white">
+                      <span className="text-[10px] font-bold">2,450 XP</span>
+                      <span className="text-[9px] opacity-80 font-bold">Lv.8 → 10</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Decorative blob */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+              </div>
+
+              {/* Card 2: Parent Dashboard */}
+              <div className="group relative bg-indigo-950/40 backdrop-blur-xl border border-white/10 rounded-[3rem] p-10 overflow-hidden shadow-2xl hover:shadow-purple-500/20 transition-all duration-500">
+                <div className="mb-6 relative z-10">
+                  <span className="inline-block px-4 py-1.5 bg-purple-500/20 text-purple-300 text-xs font-black rounded-full border border-purple-400/30 uppercase tracking-widest">
+                    For Parents
+                  </span>
+                  <h3 className="text-2xl font-black mt-4 text-white">Progress Dashboard</h3>
+                  <p className="text-purple-200 mt-2 font-medium">Monitor real-time learning hours and milestones achieved easily.</p>
+                </div>
+
+                {/* High-Fidelity Mock UI Container (Chart) */}
+                <div className="relative bg-[#f8fafc] border border-slate-200 rounded-2xl p-5 shadow-inner h-80 overflow-hidden mt-8 flex flex-col justify-between z-10 font-sans">
+                  {/* Stats header */}
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <h4 className="text-slate-800 font-extrabold text-sm mb-0.5 uppercase tracking-widest opacity-80">Total Study Time</h4>
+                      <div className="flex items-baseline gap-1.5 mt-1">
+                        <span className="font-black text-4xl text-indigo-600 tracking-tight drop-shadow-sm">14.7</span>
+                        <span className="text-slate-500 font-bold text-[11px] uppercase">hrs this week</span>
+                      </div>
+                    </div>
+                    {/* Badge */}
+                    <div className="bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-black flex items-center gap-1 shadow-sm">
+                      <TrendingUp className="w-4 h-4" />
+                      +12%
+                    </div>
+                  </div>
+
+                  <p className="text-slate-500 text-[12px] font-semibold mb-2 leading-relaxed">Your child studied an average of <strong className="text-indigo-600 text-[13px] font-extrabold">2.1 hours</strong> over the last 7 days.</p>
+
+                  {/* Bar Chart Area */}
+                  <div className="relative h-44 w-full mt-auto flex items-end justify-between px-1 group-hover:scale-[1.02] transition-transform duration-500 pb-6">
+                    {/* Grid lines (Y-axis) */}
+                    <div className="absolute inset-x-0 bottom-6 top-0 flex flex-col justify-between pointer-events-none z-0">
+                      {[5, 4, 3, 2, 1].map((val, i) => (
+                        <div key={i} className="flex items-center gap-3 -mt-[7px]">
+                          <span className="text-[11px] font-extrabold text-slate-400 w-4 text-right flex-shrink-0">{val}</span>
+                          <div className="border-t border-slate-200 border-dashed w-full h-0" />
+                        </div>
+                      ))}
+                      {/* Zero line */}
+                      <div className="flex items-center gap-3 -mt-[7px]">
+                          <span className="text-[11px] font-extrabold text-slate-400 w-4 text-right flex-shrink-0">0</span>
+                          <div className="border-t border-slate-300 w-full h-0" />
+                      </div>
+                    </div>
+
+                    {/* Animated Bars (X-axis) */}
+                    <div className="absolute inset-x-10 bottom-6 top-0 grid grid-cols-7 gap-1 z-10">
+                      {[
+                        { day: 'Mon', h: '30%', color: 'from-blue-400 to-indigo-500' },
+                        { day: 'Tue', h: '50%', color: 'from-purple-400 to-fuchsia-500' },
+                        { day: 'Wed', h: '100%', color: 'from-emerald-400 to-teal-500' },
+                        { day: 'Thu', h: '70%', color: 'from-blue-400 to-indigo-500' },
+                        { day: 'Fri', h: '85%', color: 'from-orange-400 to-amber-500' },
+                        { day: 'Sat', h: '0%', color: 'from-slate-200 to-slate-200' },
+                        { day: 'Sun', h: '15%', color: 'from-blue-400 to-indigo-500' },
+                      ].map((item, i) => (
+                        <div key={i} className="flex flex-col items-center gap-2 group/bar h-full justify-end relative">
+                          <div className="w-full h-[calc(100%-8px)] flex items-end justify-center rounded-t border-b border-transparent px-0.5">
+                            <div 
+                              className={`w-full bg-gradient-to-t ${item.color} rounded-t-lg shadow-sm origin-bottom animate-[bar-grow-y-loop_6s_ease-in-out_infinite] hover:brightness-110 transition-all cursor-pointer`} 
+                              style={{ 
+                                height: item.h,
+                                animationDelay: `${i * 0.05}s`,
+                                transform: 'scaleY(0)',
+                              }} 
+                            />
+                          </div>
+                          <span className="text-[11px] font-extrabold text-slate-500 absolute -bottom-6 tracking-tight">{item.day}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Decorative blob */}
+                <div className="absolute top-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
 
       {/* 6. Footer */}

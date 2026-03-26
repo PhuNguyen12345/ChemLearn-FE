@@ -1,0 +1,124 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "name": "Học sinh A",
+      "email": "student@kemlearn.com",
+      "password": "password123",
+      "role": "STUDENT",
+      "createdAt": "2026-03-26T00:00:00.000Z"
+    },
+    {
+      "id": "2",
+      "name": "Giáo viên B",
+      "email": "teacher@kemlearn.com",
+      "password": "password123",
+      "role": "TEACHER",
+      "createdAt": "2026-03-26T00:00:00.000Z"
+    },
+    {
+      "id": "3",
+      "name": "Phụ huynh C",
+      "email": "parent@kemlearn.com",
+      "password": "password123",
+      "role": "PARENT",
+      "createdAt": "2026-03-26T00:00:00.000Z"
+    },
+    {
+      "id": "4",
+      "name": "Admin",
+      "email": "admin@kemlearn.com",
+      "password": "admin",
+      "role": "ADMIN",
+      "createdAt": "2026-03-26T00:00:00.000Z"
+    }
+  ],
+  "labs": [
+    {
+      "id": "1",
+      "title": "Phản ứng Axit - Bazơ",
+      "description": "Thực hành phản ứng trung hòa giữa HCl và NaOH",
+      "difficulty": "Dễ",
+      "thumbnailUrl": "https://picsum.photos/200",
+      "completed": false
+    },
+    {
+      "id": "2",
+      "title": "Nhiệt nhôm",
+      "description": "Quan sát phản ứng nhiệt nhôm tạo ra sắt và nhôm oxit",
+      "difficulty": "Khó",
+      "thumbnailUrl": "https://picsum.photos/201",
+      "completed": true
+    },
+    {
+      "id": "3",
+      "title": "Tính chất của Oxi",
+      "description": "Quan sát các phản ứng cháy trong Oxi",
+      "difficulty": "Trung bình",
+      "thumbnailUrl": "https://picsum.photos/202",
+      "completed": false
+    }
+  ],
+  "missions": [
+    {
+      "id": "1",
+      "title": "Hoàn thành 3 bài thí nghiệm",
+      "description": "Thực hiện và hoàn thành 3 bài thí nghiệm bất kỳ",
+      "type": "DAILY",
+      "progress": 1,
+      "total": 3,
+      "reward": 50,
+      "status": "IN_PROGRESS"
+    },
+    {
+      "id": "2",
+      "title": "Đạt điểm tuyệt đối bài kiểm tra",
+      "description": "Hoàn thành bài kiểm tra chương 1 với 100 điểm",
+      "type": "WEEKLY",
+      "progress": 0,
+      "total": 1,
+      "reward": 200,
+      "status": "TODO"
+    },
+    {
+      "id": "3",
+      "title": "Đăng nhập 7 ngày liên tiếp",
+      "description": "Đăng nhập học tập mỗi ngày",
+      "type": "WEEKLY",
+      "progress": 7,
+      "total": 7,
+      "reward": 100,
+      "status": "COMPLETED"
+    }
+  ],
+  "quizzes": [
+    {
+      "id": "1",
+      "title": "Kiểm tra chương 1: Chất",
+      "questionsCount": 10,
+      "duration": 15,
+      "score": null
+    },
+    {
+      "id": "2",
+      "title": "Bài tập tự luyện: Oxi - Không khí",
+      "questionsCount": 20,
+      "duration": 30,
+      "score": 85
+    }
+  ],
+  "studyZones": [
+    {
+      "id": "1",
+      "title": "Khu vực lớp 8",
+      "description": "Các bài giảng và kiến thức Hóa học lớp 8",
+      "progress": 30
+    },
+    {
+      "id": "2",
+      "title": "Khu vực lớp 9",
+      "description": "Các bài giảng và kiến thức Hóa học lớp 9",
+      "progress": 0
+    }
+  ]
+}
