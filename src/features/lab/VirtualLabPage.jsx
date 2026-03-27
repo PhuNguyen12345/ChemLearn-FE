@@ -9,6 +9,221 @@ import DraggableItem from './components/DraggableItem';
 import DragPreview from './components/DragPreview';
 import CentralWorkspace from './components/CentralWorkspace';
 
+// ---------------------------------------------------------------------------
+// REACTION_MAP  –  Strategy Pattern / Data-Driven Lookup Dictionary
+//
+// Key: alphabetically sorted reactant names joined by '_'
+//      e.g. dropping Na into H2O  →  key = 'H2O_Na (Rắn)'
+//
+// Schema (multi-layer rendering):
+//   • liquidContent    – text label shown inside the liquid layer
+//   • solidContent     – text label shown inside the solid/precipitate bottom layer (optional)
+//   • gasContent       – text label attached to smoke particles (optional)
+//   • liquidColor      – updated beaker liquid tint (optional)
+//   • precipitateColor – precipitate/solid layer tint (optional)
+//   • reactionState    – CSS animation state: 'violent'|'precipitation'|'exothermic' (optional)
+//   • clearStateAfter  – ms after which reactionState is auto-reset to null (optional)
+//   • reactionInfo     – { equation, condition, description } shown in the left panel
+// ---------------------------------------------------------------------------
+const REACTION_MAP = {
+  // 1. Na (solid) + H2O  →  NaOH  (violent, H₂ gas label, clears after 4 s)
+  'H2O_Na (Rắn)': {
+    liquidContent: 'NaOH',
+    gasContent: 'H₂',
+    liquidColor: '#ec4899',
+    reactionState: 'violent',
+    clearStateAfter: 4000,
+    reactionInfo: {
+      equation: '2Na + 2H₂O → 2NaOH + H₂↑',
+      condition: 'Tỏa nhiệt',
+      description: 'Phản ứng cháy nổ sinh khí Hydro.',
+    },
+  },
+
+  // 2. KMnO4 (solid) + H2O  →  Purple Solution
+  'H2O_KMnO4 (Rắn)': {
+    liquidContent: 'KMnO4',
+    liquidColor: '#AC26EF',
+    reactionInfo: {
+      equation: 'KMnO₄ + H₂O → Purple Solution',
+      condition: 'Phân tán',
+      description: 'Thuốc tím (KMnO4) hòa tan tạo thành dung dịch màu tím đậm.',
+    },
+  },
+
+  // 3. KMnO4 (templateId) dissolving into H2O
+  'H2O_kmno4_template': {
+    liquidContent: 'KMnO4',
+    liquidColor: '#AC26EF',
+    reactionInfo: {
+      equation: 'KMnO₄ + H₂O → Purple Solution',
+      condition: 'Phân tán',
+      description: 'Thuốc tím (KMnO4) hòa tan tạo thành dung dịch màu tím đậm.',
+    },
+  },
+
+  // 4. AgNO3 + NaCl  →  AgCl↓ + NaNO₃
+  'AgNO3_NaCl': {
+    liquidContent: 'NaNO₃',
+    solidContent: 'AgCl↓',
+    liquidColor: 'rgba(200, 230, 255, 0.7)',
+    precipitateColor: 'rgba(255, 255, 255, 0.9)',
+    reactionState: 'precipitation',
+    reactionInfo: {
+      equation: 'AgNO₃ + NaCl → AgCl↓ + NaNO₃',
+      condition: 'Kết tủa trắng',
+      description: 'Tạo thành kết tủa trắng Bạc Clorua.',
+    },
+  },
+
+  // 5. AgNO3 + HCl  →  AgCl↓ + HNO₃
+  'AgNO3_HCl': {
+    liquidContent: 'HNO₃',
+    solidContent: 'AgCl↓',
+    liquidColor: 'rgba(200, 230, 255, 0.7)',
+    precipitateColor: 'rgba(255, 255, 255, 0.9)',
+    reactionState: 'precipitation',
+    reactionInfo: {
+      equation: 'AgNO₃ + HCl → AgCl↓ + HNO₃',
+      condition: 'Kết tủa trắng',
+      description: 'Bạc Clorua kết tủa ngay lập tức.',
+    },
+  },
+
+  // 6. BaCl2 + Na2SO4  →  BaSO₄↓ + 2NaCl
+  'BaCl2_Na2SO4': {
+    liquidContent: '2NaCl',
+    solidContent: 'BaSO₄↓',
+    liquidColor: 'rgba(200, 230, 255, 0.7)',
+    precipitateColor: 'rgba(255, 255, 255, 0.9)',
+    reactionState: 'precipitation',
+    reactionInfo: {
+      equation: 'BaCl₂ + Na₂SO₄ → BaSO₄↓ + 2NaCl',
+      condition: 'Kết tủa trắng',
+      description: 'Bari Sunfat kết tủa trắng không tan trong axit.',
+    },
+  },
+
+  // 7. Fe (Rắn) + CuSO4  →  FeSO₄ (liquid) + Cu (copper precipitate deposit)
+  'CuSO4_Fe (Rắn)': {
+    liquidContent: 'FeSO₄',
+    solidContent: 'Cu',
+    liquidColor: 'rgba(187, 247, 208, 0.7)',
+    precipitateColor: 'rgba(180, 83, 9, 0.8)',
+    reactionInfo: {
+      equation: 'Fe + CuSO₄ → FeSO₄ + Cu↓',
+      condition: 'Nhiệt độ thường',
+      description: 'Sắt đẩy đồng ra khỏi dung dịch, đồng bám vào thanh sắt.',
+    },
+  },
+
+  // 8. H2C2O4 + KMnO4  →  Mn²⁺ (Colorless) — color fades to near-transparent
+  'H2C2O4_KMnO4': {
+    liquidContent: 'Mn²⁺',
+    liquidColor: 'rgba(200, 230, 255, 0.15)',
+    reactionInfo: {
+      equation: '2KMnO₄ + 5H₂C₂O₄ + 3H₂SO₄ → 2MnSO₄ + 10CO₂↑ + 8H₂O',
+      condition: 'Mất màu tím',
+      description: 'Axit oxalic khử KMnO4 tím thành Mn²⁺ không màu.',
+    },
+  },
+
+  // 9. Na2CO3 + HCl  →  NaCl + CO₂↑ + H₂O  (violent, CO₂ gas label, clears after 3 s)
+  'HCl_Na2CO3': {
+    liquidContent: 'NaCl + H₂O',
+    gasContent: 'CO₂',
+    liquidColor: 'rgba(200, 230, 255, 0.7)',
+    reactionState: 'violent',
+    clearStateAfter: 3000,
+    reactionInfo: {
+      equation: 'Na₂CO₃ + 2HCl → 2NaCl + CO₂↑ + H₂O',
+      condition: 'Sủi bọt mạnh',
+      description: 'Natri Cacbonat phản ứng với axit clohidric giải phóng CO₂.',
+    },
+  },
+
+  // 10. Zn (solid/grain) + HCl  →  ZnCl₂ (liquid) + H₂↑ (gas label, clears after 3 s)
+  'HCl_Zn (Rắn)': {
+    liquidContent: 'ZnCl₂',
+    gasContent: 'H₂',
+    liquidColor: 'rgba(200, 230, 255, 0.7)',
+    reactionState: 'violent',
+    clearStateAfter: 3000,
+    reactionInfo: {
+      equation: 'Zn + 2HCl → ZnCl₂ + H₂↑',
+      condition: 'Sủi bọt',
+      description: 'Kẽm hòa tan trong axit clohidric tạo khí Hydro.',
+    },
+  },
+
+  // 11. NaOH + HCl  →  NaCl + H₂O
+  'HCl_NaOH': {
+    liquidContent: 'NaCl + H₂O',
+    liquidColor: 'rgba(200, 230, 255, 0.7)',
+    reactionInfo: {
+      equation: 'NaOH + HCl → NaCl + H₂O',
+      condition: 'Trung hòa',
+      description: 'Phản ứng trung hòa giữa bazơ và axit tạo muối và nước.',
+    },
+  },
+
+  // 12. CaO + H2O  →  Ca(OH)₂ (exothermic)
+  'CaO (Rắn)_H2O': {
+    liquidContent: 'Ca(OH)₂',
+    liquidColor: 'rgba(255, 255, 255, 0.8)',
+    reactionState: 'exothermic',
+    reactionInfo: {
+      equation: 'CaO + H₂O → Ca(OH)₂',
+      condition: 'Tỏa nhiệt mạnh',
+      description: 'Canxi oxit phản ứng mãnh liệt với nước tạo Canxi hidroxit.',
+    },
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Helper: build a bi-directional lookup key from two reactant labels.
+// Sorting alphabetically means 'H2O + Na' and 'Na + H2O' map to the same key.
+// ---------------------------------------------------------------------------
+const getReactionKey = (a, b) => [a, b].sort().join('_');
+
+// ---------------------------------------------------------------------------
+// templateId → the string that is placed as the initial container content
+// when dropping a solid/chemical with no reaction target.
+// Also used to map the templateId to the canonical content name before
+// looking up reactions.
+// ---------------------------------------------------------------------------
+const TEMPLATE_TO_CONTENT = {
+  water:     'H2O',
+  kmno4:     'KMnO4 (Rắn)',
+  sodium:    'Na (Rắn)',
+  agno3:     'AgNO3',
+  nacl:      'NaCl',
+  bacl2:     'BaCl2',
+  na2so4:    'Na2SO4',
+  fe_powder: 'Fe (Rắn)',
+  cuso4:     'CuSO4',
+  h2c2o4:   'H2C2O4',
+  na2co3:    'Na2CO3',
+  hcl:       'HCl',
+  zn_grain:  'Zn (Rắn)',
+  cao:       'CaO (Rắn)',
+  naoh_sol:  'NaOH',
+};
+
+// Liquid colors shown when a chemical is deposited into an EMPTY container.
+const EMPTY_DROP_LIQUID_COLOR = {
+  water:     'rgba(96, 165, 250, 0.6)',
+  agno3:     'rgba(200, 230, 255, 0.7)',
+  nacl:      'rgba(200, 230, 255, 0.7)',
+  bacl2:     'rgba(200, 230, 255, 0.7)',
+  na2so4:    'rgba(200, 230, 255, 0.7)',
+  cuso4:     'rgba(37, 99, 235, 0.6)',
+  h2c2o4:   'rgba(200, 230, 255, 0.7)',
+  na2co3:    'rgba(200, 230, 255, 0.7)',
+  hcl:       'rgba(200, 230, 255, 0.7)',
+  naoh_sol:  'rgba(200, 230, 255, 0.7)',
+};
+
 export default function VirtualLabPage() {
   const [inventory, setInventory] = useState(INITIAL_INVENTORY);
   const [searchQuery, setSearchQuery] = useState('');
@@ -139,224 +354,85 @@ export default function VirtualLabPage() {
           return item;
         });
 
-        // 3. Chemical to Container Drop Logic
+        // 3. Chemical-to-Container Drop Logic (Data-Driven Strategy Pattern)
         const draggedObj = updatedItems.find(i => i.instanceId === instanceId);
-        if (draggedObj && ['water', 'kmno4', 'sodium', 'agno3', 'nacl', 'bacl2', 'na2so4', 'fe_powder', 'cuso4', 'h2c2o4', 'na2co3', 'hcl', 'zn_grain', 'cao', 'naoh_sol'].includes(draggedObj.templateId)) {
-           const targetContainer = updatedItems.find(i => 
-             i.instanceId !== instanceId && 
-             ['beaker', 'test_tube'].includes(i.templateId) && 
-             // Scale down the hitbox for chemistry drops tightly 
-             Math.abs(i.x - draggedObj.x) < 70 && 
-             Math.abs(i.y - draggedObj.y) < 70
-           );
+        if (
+          draggedObj &&
+          Object.prototype.hasOwnProperty.call(TEMPLATE_TO_CONTENT, draggedObj.templateId)
+        ) {
+          const targetContainer = updatedItems.find(
+            i =>
+              i.instanceId !== instanceId &&
+              ['beaker', 'test_tube'].includes(i.templateId) &&
+              Math.abs(i.x - draggedObj.x) < 70 &&
+              Math.abs(i.y - draggedObj.y) < 70
+          );
 
-           if (targetContainer) {
-             const currentContent = targetContainer.content;
-             const instanceToUpdate = targetContainer.instanceId;
+          if (targetContainer) {
+            const currentContent  = targetContainer.content;
+            const instanceToUpdate = targetContainer.instanceId;
 
-             // 1. DROPPING WATER
-             if (draggedObj.templateId === 'water') {
-                if (currentContent === 'Na (Rắn)') {
-                  targetContainer.content = 'NaOH';
-                  targetContainer.reactionState = 'violent';
-                  setReactionInfo({ equation: `2Na + 2H₂O → 2NaOH + H₂↑`, condition: 'Tỏa nhiệt', description: `Phản ứng cháy nổ sinh khí Hydro.` });
-                  setTimeout(() => {
-                    setPlacedItems(currentItems => 
-                      currentItems.map(item => 
-                        item.instanceId === instanceToUpdate ? { ...item, reactionState: null } : item
-                      )
-                    );
-                  }, 4000);
-                } else if (currentContent === 'KMnO4 (Rắn)') {
-                  targetContainer.content = 'KMnO4';
-                  setReactionInfo({ equation: `KMnO₄ + H₂O → Purple Solution`, condition: 'Phân tán', description: `Thuốc tím (KMnO4) hòa tan tạo thành dung dịch màu tím đậm.` });
-                } else if (!currentContent) {
-                  targetContainer.content = 'H2O';
-                  targetContainer.liquidColor = 'rgba(96, 165, 250, 0.6)';
-                  setReactionInfo({ equation: `H₂O Added`, condition: 'Mixing', description: `Dung môi Nước cất (H2O) đã được thêm vào cốc.` });
-                }
-             } 
-             // 2. DROPPING KMNO4
-             else if (draggedObj.templateId === 'kmno4') {
-                if (currentContent === 'H2O') {
-                  targetContainer.content = 'KMnO4';
-                  setReactionInfo({ equation: `KMnO₄ + H₂O → Purple Solution`, condition: 'Phân tán', description: `Thuốc tím (KMnO4) hòa tan tạo thành dung dịch màu tím đậm.` });
-                } else if (!currentContent || currentContent.includes('(Rắn)')) {
-                  targetContainer.content = 'KMnO4 (Rắn)';
-                }
-             }
-             // 3. DROPPING SODIUM
-             else if (draggedObj.templateId === 'sodium') {
-                if (currentContent === 'H2O') {
-                  targetContainer.content = 'NaOH';
-                  targetContainer.reactionState = 'violent';
-                  setReactionInfo({ equation: `2Na + 2H₂O → 2NaOH + H₂↑`, condition: 'Tỏa nhiệt', description: `Phản ứng cháy nổ sinh khí Hydro.` });
-                  setTimeout(() => {
-                    setPlacedItems(currentItems => 
-                      currentItems.map(item => 
-                        item.instanceId === instanceToUpdate ? { ...item, reactionState: null } : item
-                      )
-                    );
-                  }, 4000);
-                } else if (!currentContent || currentContent.includes('(Rắn)')) {
-                  targetContainer.content = 'Na (Rắn)';
-                }
-             }
-             // 4. DROPPING AgNO3
-             else if (draggedObj.templateId === 'agno3') {
-                if (currentContent === 'NaCl' || currentContent === 'HCl') {
-                  targetContainer.content = currentContent === 'HCl' ? 'AgCl↓ + HNO₃' : 'AgCl↓ + NaNO₃';
-                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
-                  targetContainer.precipitateColor = 'rgba(255, 255, 255, 0.9)';
-                  targetContainer.reactionState = 'precipitation';
-                  setReactionInfo({ equation: `AgNO₃ + ${currentContent} → AgCl↓ + ...`, condition: 'Kết tủa trắng', description: 'Bạc Clorua kết tủa ngay lập tức.' });
-                } else if (!currentContent) {
-                  targetContainer.content = 'AgNO3';
-                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
-                }
-             }
-             // 5. DROPPING NaCl
-             else if (draggedObj.templateId === 'nacl') {
-                if (currentContent === 'AgNO3') {
-                  targetContainer.content = 'AgCl↓ + NaNO₃';
-                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
-                  targetContainer.precipitateColor = 'rgba(255, 255, 255, 0.9)';
-                  targetContainer.reactionState = 'precipitation';
-                  setReactionInfo({ equation: `AgNO₃ + NaCl → AgCl↓ + NaNO₃`, condition: 'Kết tủa trắng', description: 'Tạo thành kết tủa trắng Bạc Clorua.' });
-                } else if (currentContent === 'BaCl2' || currentContent === 'Na2SO4') {
-                  // No reaction, just add? For now ignore or label
-                } else if (!currentContent) {
-                  targetContainer.content = 'NaCl';
-                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
-                }
-             }
-             // 6. DROPPING HCl
-             else if (draggedObj.templateId === 'hcl') {
-                if (currentContent === 'AgNO3') {
-                  targetContainer.content = 'AgCl↓ + HNO₃';
-                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
-                  targetContainer.precipitateColor = 'rgba(255, 255, 255, 0.9)';
-                  targetContainer.reactionState = 'precipitation';
-                } else if (currentContent === 'Na2CO3') {
-                  targetContainer.content = 'NaCl + CO₂↑ + H₂O';
-                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
-                  targetContainer.reactionState = 'violent';
-                  setTimeout(() => setPlacedItems(prev => prev.map(it => it.instanceId === instanceToUpdate ? { ...it, reactionState: null } : it)), 3000);
-                } else if (currentContent === 'Zn (Rắn)' || currentContent === 'Zn') {
-                  targetContainer.content = 'ZnCl₂ + H₂↑';
-                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
-                  targetContainer.reactionState = 'violent';
-                  setTimeout(() => setPlacedItems(prev => prev.map(it => it.instanceId === instanceToUpdate ? { ...it, reactionState: null } : it)), 3000);
-                } else if (currentContent === 'NaOH') {
-                  targetContainer.content = 'NaCl + H₂O';
-                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
-                } else if (!currentContent) {
-                  targetContainer.content = 'HCl';
-                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
-                }
-             }
-             // 7. DROPPING BaCl2
-             else if (draggedObj.templateId === 'bacl2') {
-                if (currentContent === 'Na2SO4') {
-                  targetContainer.content = 'BaSO₄↓ + 2NaCl';
-                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
-                  targetContainer.precipitateColor = 'rgba(255, 255, 255, 0.9)';
-                  targetContainer.reactionState = 'precipitation';
-                } else if (!currentContent) {
-                  targetContainer.content = 'BaCl2';
-                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
-                }
-             }
-             // 8. DROPPING Na2SO4
-             else if (draggedObj.templateId === 'na2so4') {
-                if (currentContent === 'BaCl2') {
-                  targetContainer.content = 'BaSO₄↓ + 2NaCl';
-                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
-                  targetContainer.precipitateColor = 'rgba(255, 255, 255, 0.9)';
-                  targetContainer.reactionState = 'precipitation';
-                } else if (!currentContent) {
-                  targetContainer.content = 'Na2SO4';
-                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
-                }
-             }
-             // 9. DROPPING Fe (Powder)
-             else if (draggedObj.templateId === 'fe_powder') {
-                if (currentContent === 'CuSO4') {
-                  targetContainer.content = 'FeSO₄ + Cu';
-                  targetContainer.liquidColor = 'rgba(187, 247, 208, 0.7)';
-                  targetContainer.precipitateColor = 'rgba(180, 83, 9, 0.8)'; // Copper deposit
-                } else if (!currentContent) {
-                  targetContainer.content = 'Fe (Rắn)';
-                }
-             }
-             // 10. DROPPING CuSO4
-             else if (draggedObj.templateId === 'cuso4') {
-                if (currentContent === 'Fe (Rắn)' || currentContent === 'Fe') {
-                  targetContainer.content = 'FeSO₄ + Cu';
-                  targetContainer.liquidColor = 'rgba(187, 247, 208, 0.7)';
-                  targetContainer.precipitateColor = 'rgba(180, 83, 9, 0.8)'; // Copper deposit
-                } else if (!currentContent) {
-                  targetContainer.content = 'CuSO4';
-                  targetContainer.liquidColor = 'rgba(37, 99, 235, 0.6)';
-                }
-             }
-             // 11. DROPPING H2C2O4
-             else if (draggedObj.templateId === 'h2c2o4') {
-                if (currentContent === 'KMnO4') {
-                  targetContainer.content = 'Mn²⁺ (Colorless)';
-                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.2)';
-                } else if (!currentContent) {
-                  targetContainer.content = 'H2C2O4';
-                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
-                }
-             }
-             // 12. DROPPING Na2CO3
-             else if (draggedObj.templateId === 'na2co3') {
-                if (currentContent === 'HCl') {
-                  targetContainer.content = 'NaCl + CO₂↑ + H₂O';
-                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
-                  targetContainer.reactionState = 'violent';
-                  setTimeout(() => setPlacedItems(prev => prev.map(it => it.instanceId === instanceToUpdate ? { ...it, reactionState: null } : it)), 3000);
-                } else if (!currentContent) {
-                  targetContainer.content = 'Na2CO3';
-                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
-                }
-             }
-             // 13. DROPPING Zn
-             else if (draggedObj.templateId === 'zn_grain') {
-                if (currentContent === 'HCl') {
-                  targetContainer.content = 'ZnCl₂ + H₂↑';
-                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
-                  targetContainer.reactionState = 'violent';
-                  setTimeout(() => setPlacedItems(prev => prev.map(it => it.instanceId === instanceToUpdate ? { ...it, reactionState: null } : it)), 3000);
-                } else if (!currentContent) {
-                  targetContainer.content = 'Zn (Rắn)';
-                }
-             }
-             // 14. DROPPING CaO
-             else if (draggedObj.templateId === 'cao') {
-                if (currentContent === 'H2O') {
-                  targetContainer.content = 'Ca(OH)₂ (Hot)';
-                  targetContainer.liquidColor = 'rgba(255, 255, 255, 0.8)';
-                  targetContainer.reactionState = 'exothermic';
-                } else if (!currentContent) {
-                  targetContainer.content = 'CaO (Rắn)';
-                }
-             }
-             // 15. DROPPING NaOH
-             else if (draggedObj.templateId === 'naoh_sol') {
-                if (currentContent === 'HCl') {
-                  targetContainer.content = 'NaCl + H₂O';
-                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
-                } else if (!currentContent) {
-                  targetContainer.content = 'NaOH';
-                  targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
-                }
-             }
-             
-             // Remove the dragged chemical solid/droplet from the canvas since it was deposited
-             updatedItems = updatedItems.filter(i => i.instanceId !== instanceId);
-           }
+            // Translate the dragged item's templateId to its canonical content name.
+            // For kmno4 we use the canonical 'KMnO4 (Rắn)' in the key lookup.
+            const draggedContentName = TEMPLATE_TO_CONTENT[draggedObj.templateId];
+
+            // Build the bi-directional lookup key.
+            const key = getReactionKey(currentContent, draggedContentName);
+            const reaction = REACTION_MAP[key];
+
+            if (reaction && currentContent) {
+              // ── REACTION FOUND ──────────────────────────────────────────
+              // Apply multi-layer content fields
+              targetContainer.liquidContent    = reaction.liquidContent ?? null;
+              targetContainer.solidContent     = reaction.solidContent  ?? null;
+              targetContainer.gasContent       = reaction.gasContent    ?? null;
+              // Keep legacy `content` in sync for any backward-compat code paths
+              targetContainer.content =
+                reaction.liquidContent ?? reaction.solidContent ?? null;
+
+              if (reaction.liquidColor)      targetContainer.liquidColor      = reaction.liquidColor;
+              if (reaction.precipitateColor) targetContainer.precipitateColor = reaction.precipitateColor;
+              if (reaction.reactionState)    targetContainer.reactionState    = reaction.reactionState;
+              if (reaction.reactionInfo)     setReactionInfo(reaction.reactionInfo);
+
+              if (reaction.clearStateAfter) {
+                setTimeout(() => {
+                  setPlacedItems(curr =>
+                    curr.map(it =>
+                      it.instanceId === instanceToUpdate ? { ...it, reactionState: null, gasContent: null } : it
+                    )
+                  );
+                }, reaction.clearStateAfter);
+              }
+            } else if (!currentContent) {
+              // ── EMPTY CONTAINER: deposit chemical ────────────────────────
+              const isSolid = draggedContentName.includes('(Rắn)');
+
+              if (isSolid) {
+                // Solids render as a bottom solid layer with no liquid above
+                targetContainer.solidContent  = draggedContentName;
+                targetContainer.liquidContent = null;
+                targetContainer.content       = draggedContentName; // compat
+              } else {
+                // Liquids/solutions fill the liquid layer
+                targetContainer.liquidContent = draggedContentName;
+                targetContainer.solidContent  = null;
+                targetContainer.content       = draggedContentName; // compat
+                const liquidColor = EMPTY_DROP_LIQUID_COLOR[draggedObj.templateId];
+                if (liquidColor) targetContainer.liquidColor = liquidColor;
+              }
+
+              setReactionInfo({
+                equation:    `${draggedContentName} Added`,
+                condition:   'Mixing',
+                description: `${draggedContentName} đã được thêm vào dụng cụ.`,
+              });
+            }
+            // else: container already has content and no matching reaction → ignore drop
+
+            // Remove the dragged chemical from the canvas once deposited
+            updatedItems = updatedItems.filter(i => i.instanceId !== instanceId);
+          }
         }
         return checkProximity(updatedItems);
       });
