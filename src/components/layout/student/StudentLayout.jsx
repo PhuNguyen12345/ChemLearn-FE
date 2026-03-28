@@ -9,6 +9,9 @@ import QuizPlayer from '../../../pages/student/QuizPlayer';
 import LabDashboard from '../../../features/lab/components/LabDashboard';
 import LabWorkspaceHeader from '../../../features/lab/components/LabWorkspaceHeader';
 import VirtualLabPage from '../../../features/lab/VirtualLabPage'; 
+import FireQuizGame from '../../FireQuizGame';
+import StudentShop from '../../../pages/student/StudentShop';
+import StudentIsland from '../../../pages/student/StudentIsland';
 
 const StudentLayout = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -80,6 +83,24 @@ const StudentLayout = () => {
                       setActiveTab('labWorkspace'); 
                     }} 
                   />
+                )}
+                {activeTab === 'fireQuiz' && (
+                  <div className="absolute inset-0 z-50">
+                    <FireQuizGame 
+                      onBack={() => setActiveTab('dashboard')} 
+                      onGoShop={() => setActiveTab('shop')}
+                    />
+                  </div>
+                )}
+                {activeTab === 'shop' && (
+                  <div className="absolute inset-0 z-50 bg-[#1a1c29] flex flex-col">
+                    <StudentShop onBack={() => setActiveTab('dashboard')} />
+                  </div>
+                )}
+                {activeTab === 'island' && (
+                  <div className="absolute inset-0 z-50 bg-black flex flex-col">
+                    <StudentIsland onBack={() => setActiveTab('dashboard')} />
+                  </div>
                 )}
               </>
             ) : (

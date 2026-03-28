@@ -16,6 +16,7 @@ import LandingPage from "./pages/LandingPage";
 import AdminLayout from "./components/layout/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import VirtualLabPage from "./features/lab/VirtualLabPage";
+import FireQuizGame from "./components/FireQuizGame";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
             path="/"
             element={<LandingPage />}
           />
+          <Route path="/fire-quiz" element={<FireQuizGame />} />
           <Route
             path="/lab"
             element={<VirtualLabPage></VirtualLabPage>}
