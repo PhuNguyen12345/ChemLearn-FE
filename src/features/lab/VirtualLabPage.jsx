@@ -257,6 +257,15 @@ export default function VirtualLabPage() {
   // Drag state
   const [activeDragData, setActiveDragData] = useState(null);
   
+  useEffect(() => {
+    const handleClearDesk = () => {
+      setPlacedItems([]);
+      setReactionInfo({ equation: '-', condition: '-', description: 'Bàn làm việc đã được dọn sạch.' });
+    };
+    window.addEventListener('clear-lab-desk', handleClearDesk);
+    return () => window.removeEventListener('clear-lab-desk', handleClearDesk);
+  }, []);
+
   const activeDragItem = useMemo(() => {
     if (!activeDragData) return null;
     if (activeDragData.source === 'sidebar') return inventory.find(i => i.id === activeDragData.templateId);
@@ -470,15 +479,7 @@ export default function VirtualLabPage() {
 
         {/* ================= MIDDLE WORKSPACE ================= */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', transition: 'all 0.3s ease' }} className="p-8">
-          
-          <div className="flex gap-4 w-full mb-6 items-center justify-between bg-white p-4 px-6 rounded-2xl shadow-sm border border-slate-200">
-            <h2 className="text-xl font-extrabold text-slate-800 tracking-tight">Virtual Chemistry Lab</h2>
-            <div className="flex gap-3">
-              <Button variant="outline" className="text-destructive hover:bg-red-50 hover:text-red-600 border-slate-200" onClick={() => { setPlacedItems([]); setReactionInfo({ equation: '-', condition: '-', description: 'Bàn làm việc đã được dọn sạch.' }); }}>
-                 <Trash2 className="w-4 h-4 mr-2" /> Clear Desk
-              </Button>
-            </div>
-          </div>
+
 
           <CentralWorkspace 
             placedItems={placedItems} 

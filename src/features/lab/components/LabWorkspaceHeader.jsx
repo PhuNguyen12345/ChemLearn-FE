@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ArrowLeft, CheckCircle2, User, Edit3 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, User, Edit3, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const LabWorkspaceHeader = ({ onBack, titleText = "Untitled Experiment" }) => {
   const [title, setTitle] = useState(titleText);
@@ -49,9 +50,17 @@ const LabWorkspaceHeader = ({ onBack, titleText = "Untitled Experiment" }) => {
         )}
       </div>
 
-      {/* Right: Cloud Save & Avatar */}
-      <div className="flex items-center justify-end gap-6 w-1/3">
-        <div className="hidden sm:flex items-center gap-2 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
+      {/* Right: Actions, Cloud Save & Avatar */}
+      <div className="flex items-center justify-end gap-3 w-1/3">
+        <Button 
+          variant="outline" 
+          className="text-destructive hover:bg-red-50 hover:text-red-600 border-slate-200 h-9 px-3" 
+          onClick={() => window.dispatchEvent(new Event('clear-lab-desk'))}
+        >
+          <Trash2 className="w-4 h-4 mr-2" /> Clear Desk
+        </Button>
+
+        <div className="hidden sm:flex items-center gap-2 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 h-9">
           <CheckCircle2 className="w-4 h-4" />
           <span className="text-xs font-bold uppercase tracking-wide">Saved</span>
         </div>
