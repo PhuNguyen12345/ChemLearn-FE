@@ -106,7 +106,7 @@ export default function CentralWorkspace({ placedItems, scale, setScale, selecte
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerLeave={handlePointerUp}
-      className={`relative w-full h-[600px] border-4 rounded-[2rem] overflow-hidden shadow-inner border-slate-200 bg-slate-50 ${isPanning ? 'cursor-grabbing' : 'cursor-default'}`}
+      className={`relative w-full flex-1 border-4 rounded-[2rem] overflow-hidden shadow-inner border-slate-200 bg-slate-50 ${isPanning ? 'cursor-grabbing' : 'cursor-default'}`}
     >
       
       {/* Nút bấm điều khiển (Zoom Controls) */}
