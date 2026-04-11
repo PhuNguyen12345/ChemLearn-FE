@@ -1,13 +1,14 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { DndContext, DragOverlay } from '@dnd-kit/core';
-import '/Lab2.css'; 
-import { Trash2 } from 'lucide-react';
+import '/Lab2.css';
+import { Beaker, Box, Cloud, Droplet, Flame, Globe, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { snapCenterToCursor } from '@dnd-kit/modifiers';
-import { INITIAL_INVENTORY } from './data/constants';
+import { INITIAL_INVENTORY, ITEM_TYPE, PHYSICAL_STATE } from './data/constants';
 import DraggableItem from './components/DraggableItem';
 import DragPreview from './components/DragPreview';
 import CentralWorkspace from './components/CentralWorkspace';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 // ---------------------------------------------------------------------------
 // REACTION_MAP  –  Strategy Pattern / Data-Driven Lookup Dictionary
@@ -193,44 +194,59 @@ const getReactionKey = (a, b) => [a, b].sort().join('_');
 // looking up reactions.
 // ---------------------------------------------------------------------------
 const TEMPLATE_TO_CONTENT = {
-  water:     'H2O',
-  kmno4:     'KMnO4 (Rắn)',
-  sodium:    'Na (Rắn)',
-  agno3:     'AgNO3',
-  nacl:      'NaCl',
-  bacl2:     'BaCl2',
-  na2so4:    'Na2SO4',
+  water: 'H2O',
+  kmno4: 'KMnO4 (Rắn)',
+  sodium: 'Na (Rắn)',
+  agno3: 'AgNO3',
+  nacl: 'NaCl',
+  bacl2: 'BaCl2',
+  na2so4: 'Na2SO4',
   fe_powder: 'Fe (Rắn)',
-  cuso4:     'CuSO4',
-  h2c2o4:   'H2C2O4',
-  na2co3:    'Na2CO3',
-  hcl:       'HCl',
-  zn_grain:  'Zn (Rắn)',
-  cao:       'CaO (Rắn)',
-  naoh_sol:  'NaOH',
+  cuso4: 'CuSO4',
+  h2c2o4: 'H2C2O4',
+  na2co3: 'Na2CO3',
+  hcl: 'HCl',
+  zn_grain: 'Zn (Rắn)',
+  cao: 'CaO (Rắn)',
+  naoh_sol: 'NaOH',
 };
 
 // Liquid colors shown when a chemical is deposited into an EMPTY container.
 const EMPTY_DROP_LIQUID_COLOR = {
-  water:     'rgba(96, 165, 250, 0.6)',
-  agno3:     'rgba(200, 230, 255, 0.7)',
-  nacl:      'rgba(200, 230, 255, 0.7)',
-  bacl2:     'rgba(200, 230, 255, 0.7)',
-  na2so4:    'rgba(200, 230, 255, 0.7)',
-  cuso4:     'rgba(37, 99, 235, 0.6)',
-  h2c2o4:   'rgba(200, 230, 255, 0.7)',
-  na2co3:    'rgba(200, 230, 255, 0.7)',
-  hcl:       'rgba(200, 230, 255, 0.7)',
-  naoh_sol:  'rgba(200, 230, 255, 0.7)',
+  water: 'rgba(96, 165, 250, 0.6)',
+  agno3: 'rgba(200, 230, 255, 0.7)',
+  nacl: 'rgba(200, 230, 255, 0.7)',
+  bacl2: 'rgba(200, 230, 255, 0.7)',
+  na2so4: 'rgba(200, 230, 255, 0.7)',
+  cuso4: 'rgba(37, 99, 235, 0.6)',
+  h2c2o4: 'rgba(200, 230, 255, 0.7)',
+  na2co3: 'rgba(200, 230, 255, 0.7)',
+  hcl: 'rgba(200, 230, 255, 0.7)',
+  naoh_sol: 'rgba(200, 230, 255, 0.7)',
 };
+
+const FILTER_TABS = [
+  { id: 'ALL', label: 'Tất cả', icon: <Globe className="w-7 h-7" /> },
+  { id: 'CONTAINER', label: 'Bình phản ứng', icon: <Beaker className="w-7 h-7" /> },
+  { id: 'EQUIPMENT', label: 'Thiết bị', icon: <Flame className="w-7 h-7" /> },
+  { id: 'LIQUID', label: 'Chất lỏng', icon: <Droplet className="w-7 h-7" /> },
+  { id: 'SOLID', label: 'Chất rắn', icon: <Box className="w-7 h-7" /> },
+  { id: 'GAS', label: 'Chất khí', icon: <Cloud className="w-7 h-7" /> },
+];
+
 
 export default function VirtualLabPage() {
   const [inventory, setInventory] = useState(INITIAL_INVENTORY);
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarView, setSidebarView] = useState('grid');
-  
+
   const [isLeftOpen, setIsLeftOpen] = useState(true);
   const [isRightOpen, setIsRightOpen] = useState(true);
+
+  //for closing both filter and inventory 
+  const [isInventoryOpen, setIsInventoryOpen] = useState(true);
+  //saving current filter status 
+  const [activeFilter, setActiveFilter] = useState('ALL');
 
   // New Free-form & Zoom State
   const [placedItems, setPlacedItems] = useState([]);
@@ -256,7 +272,7 @@ export default function VirtualLabPage() {
 
   // Drag state
   const [activeDragData, setActiveDragData] = useState(null);
-  
+
   useEffect(() => {
     const handleClearDesk = () => {
       setPlacedItems([]);
@@ -277,16 +293,16 @@ export default function VirtualLabPage() {
 
   const checkProximity = (items) => {
     const burners = items.filter(i => i.templateId === 'bunsen_burner');
-    
+
     return items.map(item => {
       let isHeated = false;
       if (item.templateId === 'beaker' || item.templateId === 'test_tube') {
-        isHeated = burners.some(burner => 
+        isHeated = burners.some(burner =>
           Math.abs(burner.x - item.x) < 50 &&
           (burner.y - item.y) > 40 && (burner.y - item.y) < 160
         );
       } else if (item.templateId === 'bunsen_burner') {
-        isHeated = items.some(container => 
+        isHeated = items.some(container =>
           ['beaker', 'test_tube'].includes(container.templateId) &&
           Math.abs(container.x - item.x) < 50 &&
           (item.y - container.y) > 40 && (item.y - container.y) < 160
@@ -297,26 +313,26 @@ export default function VirtualLabPage() {
   };
 
   const handleDragStart = (event) => {
-    setActiveDragData(event.active.data.current); 
+    setActiveDragData(event.active.data.current);
   };
 
   const handleDragEnd = (event) => {
-    setActiveDragData(null); 
+    setActiveDragData(null);
     const { active, over, delta } = event;
-    if (!over) return; 
+    if (!over) return;
 
     const sourceData = active.data.current;
-    
+
     // @dnd-kit provides screen-pixel deltas. Because our canvas is scaled, 
     // we must divide the delta by the current scale so the visual drag 
     // perfectly matches the cursor movement mathematically.
     const adjustedDeltaX = delta.x / scale;
     const adjustedDeltaY = delta.y / scale;
-    
+
     // 1. Drop Sidebar Item onto Canvas
     if (sourceData?.source === 'sidebar' && over.id === 'canvas') {
       const newId = `item-${Date.now()}`;
-      
+
       // // Calculate drop relative to canvas, adjusting for current zoom scale wrapper
       // const x = Math.max(20, (event.active.rect.current.translated.left - over.rect.left) / scale - 20);
       // const y = Math.max(20, (event.active.rect.current.translated.top - over.rect.top) / scale - 20);
@@ -324,7 +340,7 @@ export default function VirtualLabPage() {
       // Bước A: Lấy chính xác tọa độ TÂM của vật thể đang lơ lửng trên màn hình (chính là đầu chuột của em)
       const dropCenterX = event.active.rect.current.translated.left + (event.active.rect.current.translated.width / 2);
       const dropCenterY = event.active.rect.current.translated.top + (event.active.rect.current.translated.height / 2);
-      
+
       // Bước B: Hỏi Trình duyệt tọa độ LIVE của Canvas (Tuyệt chiêu bỏ qua cache của dnd-kit)
       const canvasEl = document.getElementById('experiment-canvas');
       if (!canvasEl) return;
@@ -338,7 +354,7 @@ export default function VirtualLabPage() {
       // (Giả sử CanvasItem của em rộng khoảng 80x80px, mình trừ đi 40px)
       const x = Math.max(0, relativeCenterX - 45);
       const y = Math.max(0, relativeCenterY - 45);
-      
+
       const newItem = {
         instanceId: newId,
         templateId: sourceData.templateId,
@@ -347,18 +363,18 @@ export default function VirtualLabPage() {
         content: null,
         isHeated: false
       };
-      
+
       setPlacedItems(prev => checkProximity([...prev, newItem]));
       setReactionInfo({ equation: 'Adding ' + activeDragItem?.name, condition: 'Workspace setup', description: 'Vật phẩm đã được thêm vào bàn làm việc.' });
     }
-    
+
     // 2. Reposition Canvas Item
     if (sourceData?.source === 'canvas') {
       const instanceId = sourceData.instanceId;
       setPlacedItems(prev => {
         let updatedItems = prev.map(item => {
           if (item.instanceId === instanceId) {
-             return { ...item, x: Math.max(0, item.x + adjustedDeltaX), y: Math.max(0, item.y + adjustedDeltaY) };
+            return { ...item, x: Math.max(0, item.x + adjustedDeltaX), y: Math.max(0, item.y + adjustedDeltaY) };
           }
           return item;
         });
@@ -378,7 +394,7 @@ export default function VirtualLabPage() {
           );
 
           if (targetContainer) {
-            const currentContent  = targetContainer.content;
+            const currentContent = targetContainer.content;
             const instanceToUpdate = targetContainer.instanceId;
 
             // Translate the dragged item's templateId to its canonical content name.
@@ -392,17 +408,17 @@ export default function VirtualLabPage() {
             if (reaction && currentContent) {
               // ── REACTION FOUND ──────────────────────────────────────────
               // Apply multi-layer content fields
-              targetContainer.liquidContent    = reaction.liquidContent ?? null;
-              targetContainer.solidContent     = reaction.solidContent  ?? null;
-              targetContainer.gasContent       = reaction.gasContent    ?? null;
+              targetContainer.liquidContent = reaction.liquidContent ?? null;
+              targetContainer.solidContent = reaction.solidContent ?? null;
+              targetContainer.gasContent = reaction.gasContent ?? null;
               // Keep legacy `content` in sync for any backward-compat code paths
               targetContainer.content =
                 reaction.liquidContent ?? reaction.solidContent ?? null;
 
-              if (reaction.liquidColor)      targetContainer.liquidColor      = reaction.liquidColor;
+              if (reaction.liquidColor) targetContainer.liquidColor = reaction.liquidColor;
               if (reaction.precipitateColor) targetContainer.precipitateColor = reaction.precipitateColor;
-              if (reaction.reactionState)    targetContainer.reactionState    = reaction.reactionState;
-              if (reaction.reactionInfo)     setReactionInfo(reaction.reactionInfo);
+              if (reaction.reactionState) targetContainer.reactionState = reaction.reactionState;
+              if (reaction.reactionInfo) setReactionInfo(reaction.reactionInfo);
 
               if (reaction.clearStateAfter) {
                 setTimeout(() => {
@@ -419,21 +435,21 @@ export default function VirtualLabPage() {
 
               if (isSolid) {
                 // Solids render as a bottom solid layer with no liquid above
-                targetContainer.solidContent  = draggedContentName;
+                targetContainer.solidContent = draggedContentName;
                 targetContainer.liquidContent = null;
-                targetContainer.content       = draggedContentName; // compat
+                targetContainer.content = draggedContentName; // compat
               } else {
                 // Liquids/solutions fill the liquid layer
                 targetContainer.liquidContent = draggedContentName;
-                targetContainer.solidContent  = null;
-                targetContainer.content       = draggedContentName; // compat
+                targetContainer.solidContent = null;
+                targetContainer.content = draggedContentName; // compat
                 const liquidColor = EMPTY_DROP_LIQUID_COLOR[draggedObj.templateId];
                 if (liquidColor) targetContainer.liquidColor = liquidColor;
               }
 
               setReactionInfo({
-                equation:    `${draggedContentName} Added`,
-                condition:   'Mixing',
+                equation: `${draggedContentName} Added`,
+                condition: 'Mixing',
                 description: `${draggedContentName} đã được thêm vào dụng cụ.`,
               });
             }
@@ -448,7 +464,18 @@ export default function VirtualLabPage() {
     }
   };
 
-  const filtered = inventory.filter(i => i.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  //this is for filtering inventory with filter bar before searching 
+  const filteredInventory = useMemo(() => {
+    if (activeFilter === 'ALL') return inventory;
+    if (activeFilter === 'EQUIPMENT') return inventory.filter(item => item.type === ITEM_TYPE.EQUIPMENT);
+    if (activeFilter === 'CONTAINER') return inventory.filter(item => item.type === ITEM_TYPE.CONTAINER);
+    if (activeFilter === 'LIQUID') return inventory.filter(item => item.state === PHYSICAL_STATE.LIQUID);
+    if (activeFilter === 'SOLID') return inventory.filter(item => item.state === PHYSICAL_STATE.SOLID);
+    if (activeFilter === 'GAS') return inventory.filter(item => item.state === PHYSICAL_STATE.GAS);
+    return inventory;
+  }, [inventory, activeFilter])
+  //this is filter by query using searchBar only 
+  const filtered = filteredInventory.filter(i => i.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
     <div style={{ display: 'flex', height: '100%', backgroundColor: '#ecf0f1', overflow: 'hidden', position: 'relative' }} className="w-full">
@@ -481,10 +508,10 @@ export default function VirtualLabPage() {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', transition: 'all 0.3s ease' }} className="p-8">
 
 
-          <CentralWorkspace 
-            placedItems={placedItems} 
-            scale={scale} 
-            setScale={setScale} 
+          <CentralWorkspace
+            placedItems={placedItems}
+            scale={scale}
+            setScale={setScale}
             selectedItemId={selectedItemId}
             setSelectedItemId={setSelectedItemId}
             onDeleteItem={handleDeleteItem}
@@ -492,12 +519,12 @@ export default function VirtualLabPage() {
         </div>
 
         {/* ================= RIGHT COLUMN (INVENTORY) ================= */}
-        <div style={{ width: isRightOpen ? '360px' : '0', transition: 'width 0.3s ease', backgroundColor: '#f8fafc', borderLeft: '2px solid #e2e8f0', position: 'relative', flexShrink: 0, zIndex: 50 }}>
+        <div style={{ width: isRightOpen ? '450px' : '0', transition: 'width 0.3s ease', backgroundColor: '#f8fafc', borderLeft: '2px solid #e2e8f0', display: 'flex', position: 'relative', flexShrink: 0, zIndex: 50 }}>
           <button onClick={() => setIsRightOpen(!isRightOpen)} className="absolute -left-8 top-6 w-8 h-12 bg-white border border-slate-200 border-r-0 rounded-l-lg flex items-center justify-center cursor-pointer shadow-sm text-slate-500 hover:text-blue-500 z-50">
             {isRightOpen ? '▶' : '◀'}
           </button>
 
-          <div style={{ display: isRightOpen ? 'flex' : 'none', flexDirection: 'column', height: '100%', width: '360px', boxSizing: 'border-box' }}>
+          {/* <div style={{ display: isRightOpen ? 'flex' : 'none', flexDirection: 'column', height: '100%', width: '360px', boxSizing: 'border-box' }}>
             <div className="p-5 border-b border-slate-200 bg-white shadow-sm z-10">
               <div className="flex gap-2">
                 <input type="text" placeholder="Tìm kiếm dụng cụ..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm" />
@@ -509,29 +536,107 @@ export default function VirtualLabPage() {
 
             <div style={{ flex: 1, overflowY: 'auto', padding: '20px', boxSizing: 'border-box' }} className="space-y-6">
               <div>
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Dụng Cụ Lab</h4>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Bình phản ứng</h4>
                 <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                  {filtered.filter(i => i.type === 'apparatus').map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
+                  {filtered.filter(i => i.type === ITEM_TYPE.CONTAINER).map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
                 </div>
               </div>
 
               <div>
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Dung Môi</h4>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Dụng cụ</h4>
                 <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                  {filtered.filter(i => i.type === 'solvent').map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
+                  {filtered.filter(i => i.type === ITEM_TYPE.EQUIPMENT).map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
                 </div>
               </div>
 
               <div>
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Hóa Chất & Kim Loại</h4>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Chất lỏng</h4>
                 <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                  {filtered.filter(i => i.type === 'chemical').map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
+                  {filtered.filter(i => i.state === PHYSICAL_STATE.LIQUID).map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Chất rắn</h4>
+                <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                  {filtered.filter(i => i.state === PHYSICAL_STATE.SOLID).map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
                 </div>
               </div>
             </div>
+          </div> */}
+
+          <div style={{ display: isRightOpen ? 'flex' : 'none', width: '100%', height: '100%' }}>
+            {/* 2. THANH FILTER DỌC (DARK MODE) NẰM TRÁI */}
+            <div className="w-20 bg-white border-r border-slate-200 flex flex-col items-center py-4 gap-4 shrink-0 shadow-sm z-20">
+              <TooltipProvider delayDuration={100}>
+                {FILTER_TABS.map((tab) => (
+                  <Tooltip key={tab.id}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setActiveFilter(tab.id)}
+                        className={`w-14 h-14 rounded-xl transition-all duration-200 ${activeFilter === tab.id
+                          ? 'bg-blue-600 text-white shadow-md shadow-blue-900/50 hover:bg-blue-500' // Trạng thái đang chọn
+                          : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100' // Trạng thái chưa chọn
+                          }`}
+                      >
+                        {tab.icon}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="left" className="font-semibold bg-white text-slate-800 border border-slate-200 shadow-sm text-base px-4 py-2.5">
+                      {tab.label}
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
+              </TooltipProvider>
+            </div>
+
+            {/* BỔ SUNG THẺ BỌC Ở ĐÂY ĐỂ TRÁNH ITEMS NẰM NGANG */}
+            <div className="flex-1 bg-slate-50 flex flex-col h-full border-l-2 border-slate-200 overflow-hidden box-border">
+              <div className="p-5 border-b border-slate-200 bg-white shadow-sm z-10">
+                <div className="flex gap-2">
+                  <input type="text" placeholder="Tìm kiếm dụng cụ..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm" />
+                  <button onClick={() => setSidebarView(sidebarView === 'grid' ? 'list' : 'grid')} className="p-2 aspect-square bg-slate-50 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-100">
+                    {sidebarView === 'grid' ? '☰' : '▦'}
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ flex: 1, overflowY: 'auto', padding: '20px', boxSizing: 'border-box' }} className="space-y-6">
+                <div>
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Bình phản ứng</h4>
+                  <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                    {filtered.filter(i => i.type === ITEM_TYPE.CONTAINER).map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Dụng cụ</h4>
+                  <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                    {filtered.filter(i => i.type === ITEM_TYPE.EQUIPMENT).map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Chất lỏng</h4>
+                  <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                    {filtered.filter(i => i.state === PHYSICAL_STATE.LIQUID).map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Chất rắn</h4>
+                  <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                    {filtered.filter(i => i.state === PHYSICAL_STATE.SOLID).map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
+                  </div>
+                </div>
+              </div>
+
+            </div> {/* ĐÓNG THẺ BỌC KHO ĐỒ */}
           </div>
         </div>
-        
+
         {/* <DragOverlay dropAnimation={null}>
           {activeDragItem ? <DragPreview item={activeDragItem} /> : null}
         </DragOverlay> */}
