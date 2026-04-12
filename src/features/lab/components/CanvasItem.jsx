@@ -25,17 +25,28 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
 
   const isSolidOnly = !legacyLiquidContent && !!legacySolidContent;
 
+  const LIQUID_COLORS = {
+    'H2O': 'rgba(96, 165, 250, 0.6)',
+    'KMnO4': 'rgba(147, 51, 234, 0.8)',
+    'NaOH': 'rgba(200, 230, 255, 0.6)',
+    'KMnO4 (Rắn)': 'rgba(88, 28, 135, 0.9)',
+    'Na (Rắn)': 'rgba(148, 163, 184, 0.9)',
+    'Zn (Rắn)': 'rgba(156, 163, 175, 0.9)',
+    'Fe (Rắn)': 'rgba(71, 85, 105, 0.9)',
+    'CaO (Rắn)': 'rgba(241, 245, 249, 0.9)',
+    'NaCl': 'rgba(255, 255, 255, 0.95)',
+    'Na2CO3': 'rgba(241, 245, 249, 0.95)'
+  };
+
   const getLiquidBg = (fallbackContent) => {
     if (item.liquidColor) return isSolidOnly ? 'transparent' : item.liquidColor;
-    if (fallbackContent === 'H2O')          return 'rgba(96, 165, 250, 0.6)';
-    if (fallbackContent === 'KMnO4')        return 'rgba(147, 51, 234, 0.8)';
-    if (fallbackContent === 'NaOH')         return 'rgba(200, 230, 255, 0.6)';
-    if (fallbackContent === 'KMnO4 (Rắn)')  return 'rgba(88, 28, 135, 0.9)'; // Tím đậm
-    if (fallbackContent === 'Na (Rắn)')     return 'rgba(148, 163, 184, 0.9)'; // Xám nhạt
-    if (fallbackContent === 'Zn (Rắn)')     return 'rgba(156, 163, 175, 0.9)'; // Xám kẽm
-    if (fallbackContent === 'Fe (Rắn)')     return 'rgba(71, 85, 105, 0.9)';   // Xám đen sắt
-    if (fallbackContent === 'CaO (Rắn)')    return 'rgba(241, 245, 249, 0.9)'; // Trắng đục vôi
-    return 'transparent';
+    
+    // Chỉ 1 dòng duy nhất thay cho sớ "if"
+    const matchedColor = LIQUID_COLORS[fallbackContent];
+    if (matchedColor) return matchedColor;
+    
+    // Fallback mặc định
+    return isSolidOnly ? 'rgba(255, 255, 255, 0.9)' : 'transparent';
   };
 
   const isDarkLiquid = (lc) => (lc || '').includes('KMnO4') || (lc || '').includes('Na (Rắn)');

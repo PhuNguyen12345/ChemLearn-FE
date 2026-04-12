@@ -431,7 +431,8 @@ export default function VirtualLabPage() {
               }
             } else if (!currentContent) {
               // ── EMPTY CONTAINER: deposit chemical ────────────────────────
-              const isSolid = draggedContentName.includes('(Rắn)');
+              const originalItem = INITIAL_INVENTORY.find(item => item.id === draggedObj.templateId);
+              const isSolid = originalItem?.state === PHYSICAL_STATE.SOLID || draggedContentName.includes('(Rắn)');
 
               if (isSolid) {
                 // Solids render as a bottom solid layer with no liquid above
