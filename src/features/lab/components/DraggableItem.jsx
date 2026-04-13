@@ -1,5 +1,6 @@
 import React from 'react';
 import { useDraggable } from '@dnd-kit/core';
+import { formatChemicalText } from '../utils/textFormatting';
 
 export default function DraggableItem({ item, viewMode, onClick }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ 
@@ -18,7 +19,7 @@ export default function DraggableItem({ item, viewMode, onClick }) {
         {...listeners} {...attributes} onClick={onClick}
       >
         <div className="text-slate-700 pointer-events-none mb-2">{item.icon}</div>
-        <span className="text-xs text-center font-bold text-slate-600 pointer-events-none">{item.name}</span>
+        <span className="text-sm text-center font-bold text-slate-600 pointer-events-none">{formatChemicalText(item.name)}</span>
       </div>
     );
   }
@@ -32,8 +33,8 @@ export default function DraggableItem({ item, viewMode, onClick }) {
     >
       <div className="mr-4 text-slate-700 pointer-events-none p-2 bg-slate-50 rounded-lg">{item.icon}</div>
       <div className="pointer-events-none">
-        <div className="font-bold text-sm text-slate-800">{item.name}</div>
-        <div className="text-xs text-slate-500 line-clamp-1">{item.desc}</div>
+        <div className="font-bold text-sm text-slate-800">{formatChemicalText(item.name)}</div>
+        <div className="text-sm text-slate-500 line-clamp-1">{formatChemicalText(item.desc)}</div>
       </div>
     </div>
   );
