@@ -2,6 +2,61 @@ import React from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { Trash2 } from 'lucide-react';
 import { CONTAINER_UI_MAP } from '../data/ContainerRendererMap';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
+// Helper function: Trả về React Elements để tự do tùy biến CSS thay vì Unicode
+export const formatChemicalText = (text) => {
+  if (!text) return text;
+  
+  // 1. Chuyển đổi toàn bộ Subscript Unicode (nếu lỡ nhập từ trước) về số bình thường
+  const UNICODE_SUBSCRIPTS = {
+    '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4',
+    '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9'
+  };
+  const normalizedText = text.replace(/[₀-₉]/g, char => UNICODE_SUBSCRIPTS[char]);
+  
+  const elements = [];
+  let buffer = "";
+  
+  for (let i = 0; i < normalizedText.length; i++) {
+    const char = normalizedText[i];
+    
+    // Nếu gặp chữ số
+    if (/[0-9]/.test(char)) {
+      const prevChar = i > 0 ? normalizedText[i-1] : "";
+      
+      let numStr = char;
+      while (i + 1 < normalizedText.length && /[0-9]/.test(normalizedText[i+1])) {
+        numStr += normalizedText[i+1];
+        i++;
+      }
+      
+      // Nếu số đứng ngay sau một kí tự chữ cái (A-Z, a-z) hoặc dấu ngoặc đóng ')' ']' -> Nó là Subscript
+      if (prevChar && /[a-zA-Z)\]]/.test(prevChar)) {
+        if (buffer) {
+          elements.push(<span key={elements.length}>{buffer}</span>);
+          buffer = "";
+        }
+        elements.push(
+          <sub key={elements.length} className="text-[0.7em] font-extrabold tracking-tight opacity-90" style={{ bottom: '-0.1em', marginLeft: '0.5px' }}>
+            {numStr}
+          </sub>
+        );
+      } else {
+        // Nếu số đứng đầu câu, hoặc đứng sau khoảng trắng/dấu + -> Nó là Hệ số Cân Bằng (VD: 2 NaOH)
+        buffer += numStr;
+      }
+    } else {
+      buffer += char;
+    }
+  }
+  
+  if (buffer) {
+    elements.push(<span key={elements.length}>{buffer}</span>);
+  }
+  
+  return <>{elements}</>;
+};
 
 export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -126,15 +181,6 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
                  zIndex: 0
                }}
              >
-               {content.liquid && (
-                 <div
-                   className={`absolute top-0 left-0 right-0 ${content.solid ? 'bottom-1/3' : 'bottom-0'} flex items-center justify-center text-[10px] font-extrabold select-none pointer-events-none uppercase px-1 text-center drop-shadow-sm z-10`}
-                   style={{ opacity: 0.9, color: isDarkLiquid(content.liquid.label) ? '#ffffff' : '#1e293b' }}
-                 >
-                   {content.liquid.label}
-                 </div>
-               )}
-
                {content.solid && (
                  <div
                    className={`absolute bottom-0 left-0 right-0 flex items-center justify-center shadow-inner ${isSolidOnly ? 'rounded-b-[5px]' : 'border-t border-white/20'}`}
@@ -144,14 +190,6 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
                      ...layout.liquidStyle, bottom: 0, left: 0, right: 0
                    }}
                  >
-                   {content.solid.label && (
-                     <span
-                       className={`font-bold select-none pointer-events-none uppercase text-center leading-tight px-1 ${isSolidOnly ? 'text-[11px]' : 'text-[9px]'}`}
-                       style={{ color: content.solid.color === 'rgba(180, 83, 9, 0.8)' ? '#fff7ed' : (isSolidOnly && isDarkLiquid(content.solid.label) ? '#ffffff' : '#1e293b') }}
-                     >
-                       {content.solid.label}
-                     </span>
-                   )}
                  </div>
                )}
 
@@ -209,22 +247,55 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
 
   return (
     <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
-      <div 
-        onPointerDown={() => onSelect()}
-        className={`relative rounded-xl transition-all duration-200 ${isSelected ? 'ring-2 ring-blue-500 ring-offset-4 ring-offset-slate-50' : ''}`}
-      >
-        {isSelected && (
-          <button
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="absolute -top-4 -right-4 p-1.5 bg-red-100 text-red-600 rounded-full shadow-md hover:bg-red-200 z-50 pointer-events-auto cursor-pointer"
-            title="Delete Item"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        )}
-        {renderSVG()}
-      </div>
+      <TooltipProvider delayDuration={200}>
+        <Tooltip>
+          <TooltipTrigger asChild onClick={(e) => e.preventDefault()}>
+            <div 
+              onPointerDown={() => onSelect()}
+              className={`relative rounded-xl transition-all duration-200 ${isSelected ? 'ring-2 ring-blue-500 ring-offset-4 ring-offset-slate-50' : ''}`}
+            >
+              {isSelected && (
+                <button
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => { e.stopPropagation(); onDelete(); }}
+                  className="absolute -top-4 -right-4 p-1.5 bg-red-100 text-red-600 rounded-full shadow-md hover:bg-red-200 z-50 pointer-events-auto cursor-pointer"
+                  title="Delete Item"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+              {renderSVG()}
+            </div>
+          </TooltipTrigger>
+          {(content.liquid?.label || content.solid?.label || content.gas?.label) && (
+             <TooltipContent className="bg-slate-800 text-white font-medium p-3 text-base shadow-xl border-slate-700 pointer-events-none rounded-lg max-w-[200px]">
+               <div className="flex flex-col gap-1.5">
+                 {content.liquid?.label && (
+                   <div className="flex items-center gap-2">
+                     <span className="w-2 h-2 rounded-full bg-blue-400"></span>
+                     <span className="text-slate-300">Dung dịch:</span> 
+                     <span className="font-bold text-blue-100">{formatChemicalText(content.liquid.label)}</span>
+                   </div>
+                 )}
+                 {content.solid?.label && (
+                   <div className="flex items-center gap-2">
+                     <span className="w-2 h-2 rounded-[2px] bg-amber-500"></span>
+                     <span className="text-slate-300">{isSolidOnly ? 'Chất rắn:' : 'Kết tủa:'}</span> 
+                     <span className="font-bold text-amber-100">{formatChemicalText(content.solid.label)}</span>
+                   </div>
+                 )}
+                 {content.gas?.label && (
+                   <div className="flex items-center gap-2">
+                     <span className="w-2 h-2 rounded-full border border-slate-300 border-dashed"></span>
+                     <span className="text-slate-300">Khí:</span> 
+                     <span className="font-bold text-slate-100">{formatChemicalText(content.gas.label)}</span>
+                   </div>
+                 )}
+               </div>
+             </TooltipContent>
+          )}
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 }
