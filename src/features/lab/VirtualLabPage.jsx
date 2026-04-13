@@ -1,21 +1,252 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { DndContext, DragOverlay } from '@dnd-kit/core';
-import '/Lab2.css'; 
-import { Trash2 } from 'lucide-react';
+import '/Lab2.css';
+import { Beaker, Box, Cloud, Droplet, Flame, Globe, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { snapCenterToCursor } from '@dnd-kit/modifiers';
-import { INITIAL_INVENTORY } from './data/constants';
+import { INITIAL_INVENTORY, ITEM_TYPE, PHYSICAL_STATE } from './data/constants';
 import DraggableItem from './components/DraggableItem';
 import DragPreview from './components/DragPreview';
 import CentralWorkspace from './components/CentralWorkspace';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
+// ---------------------------------------------------------------------------
+// REACTION_MAP  –  Strategy Pattern / Data-Driven Lookup Dictionary
+//
+// Key: alphabetically sorted reactant names joined by '_'
+//      e.g. dropping Na into H2O  →  key = 'H2O_Na (Rắn)'
+//
+// Schema (multi-layer rendering):
+//   • liquidContent    – text label shown inside the liquid layer
+//   • solidContent     – text label shown inside the solid/precipitate bottom layer (optional)
+//   • gasContent       – text label attached to smoke particles (optional)
+//   • liquidColor      – updated beaker liquid tint (optional)
+//   • precipitateColor – precipitate/solid layer tint (optional)
+//   • reactionState    – CSS animation state: 'violent'|'precipitation'|'exothermic' (optional)
+//   • clearStateAfter  – ms after which reactionState is auto-reset to null (optional)
+//   • reactionInfo     – { equation, condition, description } shown in the left panel
+// ---------------------------------------------------------------------------
+const REACTION_MAP = {
+  // 1. Na (solid) + H2O  →  NaOH  (violent, H₂ gas label, clears after 4 s)
+  'H2O_Na (Rắn)': {
+    liquidContent: 'NaOH',
+    gasContent: 'H₂',
+    liquidColor: '#ec4899',
+    reactionState: 'violent',
+    clearStateAfter: 4000,
+    reactionInfo: {
+      equation: '2Na + 2H₂O → 2NaOH + H₂↑',
+      condition: 'Tỏa nhiệt',
+      description: 'Phản ứng cháy nổ sinh khí Hydro.',
+    },
+  },
+
+  // 2. KMnO4 (solid) + H2O  →  Purple Solution
+  'H2O_KMnO4 (Rắn)': {
+    liquidContent: 'KMnO4',
+    liquidColor: '#AC26EF',
+    reactionInfo: {
+      equation: 'KMnO₄ + H₂O → Purple Solution',
+      condition: 'Phân tán',
+      description: 'Thuốc tím (KMnO4) hòa tan tạo thành dung dịch màu tím đậm.',
+    },
+  },
+
+  // 3. KMnO4 (templateId) dissolving into H2O
+  'H2O_kmno4_template': {
+    liquidContent: 'KMnO4',
+    liquidColor: '#AC26EF',
+    reactionInfo: {
+      equation: 'KMnO₄ + H₂O → Purple Solution',
+      condition: 'Phân tán',
+      description: 'Thuốc tím (KMnO4) hòa tan tạo thành dung dịch màu tím đậm.',
+    },
+  },
+
+  // 4. AgNO3 + NaCl  →  AgCl↓ + NaNO₃
+  'AgNO3_NaCl': {
+    liquidContent: 'NaNO₃',
+    solidContent: 'AgCl↓',
+    liquidColor: 'rgba(200, 230, 255, 0.7)',
+    precipitateColor: 'rgba(255, 255, 255, 0.9)',
+    reactionState: 'precipitation',
+    reactionInfo: {
+      equation: 'AgNO₃ + NaCl → AgCl↓ + NaNO₃',
+      condition: 'Kết tủa trắng',
+      description: 'Tạo thành kết tủa trắng Bạc Clorua.',
+    },
+  },
+
+  // 5. AgNO3 + HCl  →  AgCl↓ + HNO₃
+  'AgNO3_HCl': {
+    liquidContent: 'HNO₃',
+    solidContent: 'AgCl↓',
+    liquidColor: 'rgba(200, 230, 255, 0.7)',
+    precipitateColor: 'rgba(255, 255, 255, 0.9)',
+    reactionState: 'precipitation',
+    reactionInfo: {
+      equation: 'AgNO₃ + HCl → AgCl↓ + HNO₃',
+      condition: 'Kết tủa trắng',
+      description: 'Bạc Clorua kết tủa ngay lập tức.',
+    },
+  },
+
+  // 6. BaCl2 + Na2SO4  →  BaSO₄↓ + 2NaCl
+  'BaCl2_Na2SO4': {
+    liquidContent: '2NaCl',
+    solidContent: 'BaSO₄↓',
+    liquidColor: 'rgba(200, 230, 255, 0.7)',
+    precipitateColor: 'rgba(255, 255, 255, 0.9)',
+    reactionState: 'precipitation',
+    reactionInfo: {
+      equation: 'BaCl₂ + Na₂SO₄ → BaSO₄↓ + 2NaCl',
+      condition: 'Kết tủa trắng',
+      description: 'Bari Sunfat kết tủa trắng không tan trong axit.',
+    },
+  },
+
+  // 7. Fe (Rắn) + CuSO4  →  FeSO₄ (liquid) + Cu (copper precipitate deposit)
+  'CuSO4_Fe (Rắn)': {
+    liquidContent: 'FeSO₄',
+    solidContent: 'Cu',
+    liquidColor: 'rgba(187, 247, 208, 0.7)',
+    precipitateColor: 'rgba(180, 83, 9, 0.8)',
+    reactionInfo: {
+      equation: 'Fe + CuSO₄ → FeSO₄ + Cu↓',
+      condition: 'Nhiệt độ thường',
+      description: 'Sắt đẩy đồng ra khỏi dung dịch, đồng bám vào thanh sắt.',
+    },
+  },
+
+  // 8. H2C2O4 + KMnO4  →  Mn²⁺ (Colorless) — color fades to near-transparent
+  'H2C2O4_KMnO4': {
+    liquidContent: 'Mn²⁺',
+    liquidColor: 'rgba(200, 230, 255, 0.15)',
+    reactionInfo: {
+      equation: '2KMnO₄ + 5H₂C₂O₄ + 3H₂SO₄ → 2MnSO₄ + 10CO₂↑ + 8H₂O',
+      condition: 'Mất màu tím',
+      description: 'Axit oxalic khử KMnO4 tím thành Mn²⁺ không màu.',
+    },
+  },
+
+  // 9. Na2CO3 + HCl  →  NaCl + CO₂↑ + H₂O  (violent, CO₂ gas label, clears after 3 s)
+  'HCl_Na2CO3': {
+    liquidContent: 'NaCl + H₂O',
+    gasContent: 'CO₂',
+    liquidColor: 'rgba(200, 230, 255, 0.7)',
+    reactionState: 'violent',
+    clearStateAfter: 3000,
+    reactionInfo: {
+      equation: 'Na₂CO₃ + 2HCl → 2NaCl + CO₂↑ + H₂O',
+      condition: 'Sủi bọt mạnh',
+      description: 'Natri Cacbonat phản ứng với axit clohidric giải phóng CO₂.',
+    },
+  },
+
+  // 10. Zn (solid/grain) + HCl  →  ZnCl₂ (liquid) + H₂↑ (gas label, clears after 3 s)
+  'HCl_Zn (Rắn)': {
+    liquidContent: 'ZnCl₂',
+    gasContent: 'H₂',
+    liquidColor: 'rgba(200, 230, 255, 0.7)',
+    reactionState: 'violent',
+    clearStateAfter: 3000,
+    reactionInfo: {
+      equation: 'Zn + 2HCl → ZnCl₂ + H₂↑',
+      condition: 'Sủi bọt',
+      description: 'Kẽm hòa tan trong axit clohidric tạo khí Hydro.',
+    },
+  },
+
+  // 11. NaOH + HCl  →  NaCl + H₂O
+  'HCl_NaOH': {
+    liquidContent: 'NaCl + H₂O',
+    liquidColor: 'rgba(200, 230, 255, 0.7)',
+    reactionInfo: {
+      equation: 'NaOH + HCl → NaCl + H₂O',
+      condition: 'Trung hòa',
+      description: 'Phản ứng trung hòa giữa bazơ và axit tạo muối và nước.',
+    },
+  },
+
+  // 12. CaO + H2O  →  Ca(OH)₂ (exothermic)
+  'CaO (Rắn)_H2O': {
+    liquidContent: 'Ca(OH)₂',
+    liquidColor: 'rgba(255, 255, 255, 0.8)',
+    reactionState: 'exothermic',
+    reactionInfo: {
+      equation: 'CaO + H₂O → Ca(OH)₂',
+      condition: 'Tỏa nhiệt mạnh',
+      description: 'Canxi oxit phản ứng mãnh liệt với nước tạo Canxi hidroxit.',
+    },
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Helper: build a bi-directional lookup key from two reactant labels.
+// Sorting alphabetically means 'H2O + Na' and 'Na + H2O' map to the same key.
+// ---------------------------------------------------------------------------
+const getReactionKey = (a, b) => [a, b].sort().join('_');
+
+// ---------------------------------------------------------------------------
+// templateId → the string that is placed as the initial container content
+// when dropping a solid/chemical with no reaction target.
+// Also used to map the templateId to the canonical content name before
+// looking up reactions.
+// ---------------------------------------------------------------------------
+const TEMPLATE_TO_CONTENT = {
+  water: 'H2O',
+  kmno4: 'KMnO4 (Rắn)',
+  sodium: 'Na (Rắn)',
+  agno3: 'AgNO3',
+  nacl: 'NaCl',
+  bacl2: 'BaCl2',
+  na2so4: 'Na2SO4',
+  fe_powder: 'Fe (Rắn)',
+  cuso4: 'CuSO4',
+  h2c2o4: 'H2C2O4',
+  na2co3: 'Na2CO3',
+  hcl: 'HCl',
+  zn_grain: 'Zn (Rắn)',
+  cao: 'CaO (Rắn)',
+  naoh_sol: 'NaOH',
+};
+
+// Liquid colors shown when a chemical is deposited into an EMPTY container.
+const EMPTY_DROP_LIQUID_COLOR = {
+  water: 'rgba(96, 165, 250, 0.6)',
+  agno3: 'rgba(200, 230, 255, 0.7)',
+  nacl: 'rgba(200, 230, 255, 0.7)',
+  bacl2: 'rgba(200, 230, 255, 0.7)',
+  na2so4: 'rgba(200, 230, 255, 0.7)',
+  cuso4: 'rgba(37, 99, 235, 0.6)',
+  h2c2o4: 'rgba(200, 230, 255, 0.7)',
+  na2co3: 'rgba(200, 230, 255, 0.7)',
+  hcl: 'rgba(200, 230, 255, 0.7)',
+  naoh_sol: 'rgba(200, 230, 255, 0.7)',
+};
+
+const FILTER_TABS = [
+  { id: 'ALL', label: 'Tất cả', icon: <Globe className="w-7 h-7" /> },
+  { id: 'CONTAINER', label: 'Bình phản ứng', icon: <Beaker className="w-7 h-7" /> },
+  { id: 'EQUIPMENT', label: 'Thiết bị', icon: <Flame className="w-7 h-7" /> },
+  { id: 'LIQUID', label: 'Chất lỏng', icon: <Droplet className="w-7 h-7" /> },
+  { id: 'SOLID', label: 'Chất rắn', icon: <Box className="w-7 h-7" /> },
+  { id: 'GAS', label: 'Chất khí', icon: <Cloud className="w-7 h-7" /> },
+];
+
 
 export default function VirtualLabPage() {
   const [inventory, setInventory] = useState(INITIAL_INVENTORY);
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarView, setSidebarView] = useState('grid');
-  
+
   const [isLeftOpen, setIsLeftOpen] = useState(true);
   const [isRightOpen, setIsRightOpen] = useState(true);
+
+  //for closing both filter and inventory 
+  const [isInventoryOpen, setIsInventoryOpen] = useState(true);
+  //saving current filter status 
+  const [activeFilter, setActiveFilter] = useState('ALL');
 
   // New Free-form & Zoom State
   const [placedItems, setPlacedItems] = useState([]);
@@ -41,7 +272,16 @@ export default function VirtualLabPage() {
 
   // Drag state
   const [activeDragData, setActiveDragData] = useState(null);
-  
+
+  useEffect(() => {
+    const handleClearDesk = () => {
+      setPlacedItems([]);
+      setReactionInfo({ equation: '-', condition: '-', description: 'Bàn làm việc đã được dọn sạch.' });
+    };
+    window.addEventListener('clear-lab-desk', handleClearDesk);
+    return () => window.removeEventListener('clear-lab-desk', handleClearDesk);
+  }, []);
+
   const activeDragItem = useMemo(() => {
     if (!activeDragData) return null;
     if (activeDragData.source === 'sidebar') return inventory.find(i => i.id === activeDragData.templateId);
@@ -53,16 +293,16 @@ export default function VirtualLabPage() {
 
   const checkProximity = (items) => {
     const burners = items.filter(i => i.templateId === 'bunsen_burner');
-    
+
     return items.map(item => {
       let isHeated = false;
       if (item.templateId === 'beaker' || item.templateId === 'test_tube') {
-        isHeated = burners.some(burner => 
+        isHeated = burners.some(burner =>
           Math.abs(burner.x - item.x) < 50 &&
           (burner.y - item.y) > 40 && (burner.y - item.y) < 160
         );
       } else if (item.templateId === 'bunsen_burner') {
-        isHeated = items.some(container => 
+        isHeated = items.some(container =>
           ['beaker', 'test_tube'].includes(container.templateId) &&
           Math.abs(container.x - item.x) < 50 &&
           (item.y - container.y) > 40 && (item.y - container.y) < 160
@@ -73,26 +313,26 @@ export default function VirtualLabPage() {
   };
 
   const handleDragStart = (event) => {
-    setActiveDragData(event.active.data.current); 
+    setActiveDragData(event.active.data.current);
   };
 
   const handleDragEnd = (event) => {
-    setActiveDragData(null); 
+    setActiveDragData(null);
     const { active, over, delta } = event;
-    if (!over) return; 
+    if (!over) return;
 
     const sourceData = active.data.current;
-    
+
     // @dnd-kit provides screen-pixel deltas. Because our canvas is scaled, 
     // we must divide the delta by the current scale so the visual drag 
     // perfectly matches the cursor movement mathematically.
     const adjustedDeltaX = delta.x / scale;
     const adjustedDeltaY = delta.y / scale;
-    
+
     // 1. Drop Sidebar Item onto Canvas
     if (sourceData?.source === 'sidebar' && over.id === 'canvas') {
       const newId = `item-${Date.now()}`;
-      
+
       // // Calculate drop relative to canvas, adjusting for current zoom scale wrapper
       // const x = Math.max(20, (event.active.rect.current.translated.left - over.rect.left) / scale - 20);
       // const y = Math.max(20, (event.active.rect.current.translated.top - over.rect.top) / scale - 20);
@@ -100,7 +340,7 @@ export default function VirtualLabPage() {
       // Bước A: Lấy chính xác tọa độ TÂM của vật thể đang lơ lửng trên màn hình (chính là đầu chuột của em)
       const dropCenterX = event.active.rect.current.translated.left + (event.active.rect.current.translated.width / 2);
       const dropCenterY = event.active.rect.current.translated.top + (event.active.rect.current.translated.height / 2);
-      
+
       // Bước B: Hỏi Trình duyệt tọa độ LIVE của Canvas (Tuyệt chiêu bỏ qua cache của dnd-kit)
       const canvasEl = document.getElementById('experiment-canvas');
       if (!canvasEl) return;
@@ -114,7 +354,7 @@ export default function VirtualLabPage() {
       // (Giả sử CanvasItem của em rộng khoảng 80x80px, mình trừ đi 40px)
       const x = Math.max(0, relativeCenterX - 45);
       const y = Math.max(0, relativeCenterY - 45);
-      
+
       const newItem = {
         instanceId: newId,
         templateId: sourceData.templateId,
@@ -123,95 +363,120 @@ export default function VirtualLabPage() {
         content: null,
         isHeated: false
       };
-      
+
       setPlacedItems(prev => checkProximity([...prev, newItem]));
       setReactionInfo({ equation: 'Adding ' + activeDragItem?.name, condition: 'Workspace setup', description: 'Vật phẩm đã được thêm vào bàn làm việc.' });
     }
-    
+
     // 2. Reposition Canvas Item
     if (sourceData?.source === 'canvas') {
       const instanceId = sourceData.instanceId;
       setPlacedItems(prev => {
         let updatedItems = prev.map(item => {
           if (item.instanceId === instanceId) {
-             return { ...item, x: Math.max(0, item.x + adjustedDeltaX), y: Math.max(0, item.y + adjustedDeltaY) };
+            return { ...item, x: Math.max(0, item.x + adjustedDeltaX), y: Math.max(0, item.y + adjustedDeltaY) };
           }
           return item;
         });
 
-        // 3. Chemical to Container Drop Logic
+        // 3. Chemical-to-Container Drop Logic (Data-Driven Strategy Pattern)
         const draggedObj = updatedItems.find(i => i.instanceId === instanceId);
-        if (draggedObj && ['water', 'kmno4', 'sodium'].includes(draggedObj.templateId)) {
-           const targetContainer = updatedItems.find(i => 
-             i.instanceId !== instanceId && 
-             ['beaker', 'test_tube'].includes(i.templateId) && 
-             // Scale down the hitbox for chemistry drops tightly 
-             Math.abs(i.x - draggedObj.x) < 70 && 
-             Math.abs(i.y - draggedObj.y) < 70
-           );
+        if (
+          draggedObj &&
+          Object.prototype.hasOwnProperty.call(TEMPLATE_TO_CONTENT, draggedObj.templateId)
+        ) {
+          const targetContainer = updatedItems.find(
+            i =>
+              i.instanceId !== instanceId &&
+              ['beaker', 'test_tube'].includes(i.templateId) &&
+              Math.abs(i.x - draggedObj.x) < 70 &&
+              Math.abs(i.y - draggedObj.y) < 70
+          );
 
-           if (targetContainer) {
-             const currentContent = targetContainer.content;
-             const instanceToUpdate = targetContainer.instanceId;
+          if (targetContainer) {
+            const currentContent = targetContainer.content;
+            const instanceToUpdate = targetContainer.instanceId;
 
-             // 1. DROPPING WATER
-             if (draggedObj.templateId === 'water') {
-                if (currentContent === 'Na (Rắn)') {
-                  targetContainer.content = 'NaOH';
-                  targetContainer.reactionState = 'violent';
-                  setReactionInfo({ equation: `2Na + 2H₂O → 2NaOH + H₂↑`, condition: 'Tỏa nhiệt', description: `Phản ứng cháy nổ sinh khí Hydro.` });
-                  setTimeout(() => {
-                    setPlacedItems(currentItems => 
-                      currentItems.map(item => 
-                        item.instanceId === instanceToUpdate ? { ...item, reactionState: null } : item
-                      )
-                    );
-                  }, 4000);
-                } else if (currentContent === 'KMnO4 (Rắn)') {
-                  targetContainer.content = 'KMnO4';
-                  setReactionInfo({ equation: `KMnO₄ + H₂O → Purple Solution`, condition: 'Phân tán', description: `Thuốc tím (KMnO4) hòa tan tạo thành dung dịch màu tím đậm.` });
-                } else if (!currentContent) {
-                  targetContainer.content = 'H2O';
-                  setReactionInfo({ equation: `H₂O Added`, condition: 'Mixing', description: `Dung môi Nước cất (H2O) đã được thêm vào cốc.` });
-                }
-             } 
-             // 2. DROPPING KMNO4
-             else if (draggedObj.templateId === 'kmno4') {
-                if (currentContent === 'H2O') {
-                  targetContainer.content = 'KMnO4';
-                  setReactionInfo({ equation: `KMnO₄ + H₂O → Purple Solution`, condition: 'Phân tán', description: `Thuốc tím (KMnO4) hòa tan tạo thành dung dịch màu tím đậm.` });
-                } else if (!currentContent || currentContent.includes('(Rắn)')) {
-                  targetContainer.content = 'KMnO4 (Rắn)';
-                }
-             }
-             // 3. DROPPING SODIUM
-             else if (draggedObj.templateId === 'sodium') {
-                if (currentContent === 'H2O') {
-                  targetContainer.content = 'NaOH';
-                  targetContainer.reactionState = 'violent';
-                  setReactionInfo({ equation: `2Na + 2H₂O → 2NaOH + H₂↑`, condition: 'Tỏa nhiệt', description: `Phản ứng cháy nổ sinh khí Hydro.` });
-                  setTimeout(() => {
-                    setPlacedItems(currentItems => 
-                      currentItems.map(item => 
-                        item.instanceId === instanceToUpdate ? { ...item, reactionState: null } : item
-                      )
-                    );
-                  }, 4000);
-                } else if (!currentContent || currentContent.includes('(Rắn)')) {
-                  targetContainer.content = 'Na (Rắn)';
-                }
-             }
-             
-             // Remove the dragged chemical solid/droplet from the canvas since it was deposited
-             updatedItems = updatedItems.filter(i => i.instanceId !== instanceId);
-           }
+            // Translate the dragged item's templateId to its canonical content name.
+            // For kmno4 we use the canonical 'KMnO4 (Rắn)' in the key lookup.
+            const draggedContentName = TEMPLATE_TO_CONTENT[draggedObj.templateId];
+
+            // Build the bi-directional lookup key.
+            const key = getReactionKey(currentContent, draggedContentName);
+            const reaction = REACTION_MAP[key];
+
+            if (reaction && currentContent) {
+              // ── REACTION FOUND ──────────────────────────────────────────
+              // Apply multi-layer content fields
+              targetContainer.liquidContent = reaction.liquidContent ?? null;
+              targetContainer.solidContent = reaction.solidContent ?? null;
+              targetContainer.gasContent = reaction.gasContent ?? null;
+              // Keep legacy `content` in sync for any backward-compat code paths
+              targetContainer.content =
+                reaction.liquidContent ?? reaction.solidContent ?? null;
+
+              if (reaction.liquidColor) targetContainer.liquidColor = reaction.liquidColor;
+              if (reaction.precipitateColor) targetContainer.precipitateColor = reaction.precipitateColor;
+              if (reaction.reactionState) targetContainer.reactionState = reaction.reactionState;
+              if (reaction.reactionInfo) setReactionInfo(reaction.reactionInfo);
+
+              if (reaction.clearStateAfter) {
+                setTimeout(() => {
+                  setPlacedItems(curr =>
+                    curr.map(it =>
+                      it.instanceId === instanceToUpdate ? { ...it, reactionState: null, gasContent: null } : it
+                    )
+                  );
+                }, reaction.clearStateAfter);
+              }
+            } else if (!currentContent) {
+              // ── EMPTY CONTAINER: deposit chemical ────────────────────────
+              const originalItem = INITIAL_INVENTORY.find(item => item.id === draggedObj.templateId);
+              const isSolid = originalItem?.state === PHYSICAL_STATE.SOLID || draggedContentName.includes('(Rắn)');
+
+              if (isSolid) {
+                // Solids render as a bottom solid layer with no liquid above
+                targetContainer.solidContent = draggedContentName;
+                targetContainer.liquidContent = null;
+                targetContainer.content = draggedContentName; // compat
+              } else {
+                // Liquids/solutions fill the liquid layer
+                targetContainer.liquidContent = draggedContentName;
+                targetContainer.solidContent = null;
+                targetContainer.content = draggedContentName; // compat
+                const liquidColor = EMPTY_DROP_LIQUID_COLOR[draggedObj.templateId];
+                if (liquidColor) targetContainer.liquidColor = liquidColor;
+              }
+
+              setReactionInfo({
+                equation: `${draggedContentName} Added`,
+                condition: 'Mixing',
+                description: `${draggedContentName} đã được thêm vào dụng cụ.`,
+              });
+            }
+            // else: container already has content and no matching reaction → ignore drop
+
+            // Remove the dragged chemical from the canvas once deposited
+            updatedItems = updatedItems.filter(i => i.instanceId !== instanceId);
+          }
         }
         return checkProximity(updatedItems);
       });
     }
   };
 
-  const filtered = inventory.filter(i => i.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  //this is for filtering inventory with filter bar before searching 
+  const filteredInventory = useMemo(() => {
+    if (activeFilter === 'ALL') return inventory;
+    if (activeFilter === 'EQUIPMENT') return inventory.filter(item => item.type === ITEM_TYPE.EQUIPMENT);
+    if (activeFilter === 'CONTAINER') return inventory.filter(item => item.type === ITEM_TYPE.CONTAINER);
+    if (activeFilter === 'LIQUID') return inventory.filter(item => item.state === PHYSICAL_STATE.LIQUID);
+    if (activeFilter === 'SOLID') return inventory.filter(item => item.state === PHYSICAL_STATE.SOLID);
+    if (activeFilter === 'GAS') return inventory.filter(item => item.state === PHYSICAL_STATE.GAS);
+    return inventory;
+  }, [inventory, activeFilter])
+  //this is filter by query using searchBar only 
+  const filtered = filteredInventory.filter(i => i.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
     <div style={{ display: 'flex', height: '100%', backgroundColor: '#ecf0f1', overflow: 'hidden', position: 'relative' }} className="w-full">
@@ -242,20 +507,12 @@ export default function VirtualLabPage() {
 
         {/* ================= MIDDLE WORKSPACE ================= */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', transition: 'all 0.3s ease' }} className="p-8">
-          
-          <div className="flex gap-4 w-full mb-6 items-center justify-between bg-white p-4 px-6 rounded-2xl shadow-sm border border-slate-200">
-            <h2 className="text-xl font-extrabold text-slate-800 tracking-tight">Virtual Chemistry Lab</h2>
-            <div className="flex gap-3">
-              <Button variant="outline" className="text-destructive hover:bg-red-50 hover:text-red-600 border-slate-200" onClick={() => { setPlacedItems([]); setReactionInfo({ equation: '-', condition: '-', description: 'Bàn làm việc đã được dọn sạch.' }); }}>
-                 <Trash2 className="w-4 h-4 mr-2" /> Clear Desk
-              </Button>
-            </div>
-          </div>
 
-          <CentralWorkspace 
-            placedItems={placedItems} 
-            scale={scale} 
-            setScale={setScale} 
+
+          <CentralWorkspace
+            placedItems={placedItems}
+            scale={scale}
+            setScale={setScale}
             selectedItemId={selectedItemId}
             setSelectedItemId={setSelectedItemId}
             onDeleteItem={handleDeleteItem}
@@ -263,12 +520,12 @@ export default function VirtualLabPage() {
         </div>
 
         {/* ================= RIGHT COLUMN (INVENTORY) ================= */}
-        <div style={{ width: isRightOpen ? '360px' : '0', transition: 'width 0.3s ease', backgroundColor: '#f8fafc', borderLeft: '2px solid #e2e8f0', position: 'relative', flexShrink: 0, zIndex: 50 }}>
+        <div style={{ width: isRightOpen ? '450px' : '0', transition: 'width 0.3s ease', backgroundColor: '#f8fafc', borderLeft: '2px solid #e2e8f0', display: 'flex', position: 'relative', flexShrink: 0, zIndex: 50 }}>
           <button onClick={() => setIsRightOpen(!isRightOpen)} className="absolute -left-8 top-6 w-8 h-12 bg-white border border-slate-200 border-r-0 rounded-l-lg flex items-center justify-center cursor-pointer shadow-sm text-slate-500 hover:text-blue-500 z-50">
             {isRightOpen ? '▶' : '◀'}
           </button>
 
-          <div style={{ display: isRightOpen ? 'flex' : 'none', flexDirection: 'column', height: '100%', width: '360px', boxSizing: 'border-box' }}>
+          {/* <div style={{ display: isRightOpen ? 'flex' : 'none', flexDirection: 'column', height: '100%', width: '360px', boxSizing: 'border-box' }}>
             <div className="p-5 border-b border-slate-200 bg-white shadow-sm z-10">
               <div className="flex gap-2">
                 <input type="text" placeholder="Tìm kiếm dụng cụ..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm" />
@@ -280,29 +537,107 @@ export default function VirtualLabPage() {
 
             <div style={{ flex: 1, overflowY: 'auto', padding: '20px', boxSizing: 'border-box' }} className="space-y-6">
               <div>
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Dụng Cụ Lab</h4>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Bình phản ứng</h4>
                 <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                  {filtered.filter(i => i.type === 'apparatus').map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
+                  {filtered.filter(i => i.type === ITEM_TYPE.CONTAINER).map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
                 </div>
               </div>
 
               <div>
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Dung Môi</h4>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Dụng cụ</h4>
                 <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                  {filtered.filter(i => i.type === 'solvent').map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
+                  {filtered.filter(i => i.type === ITEM_TYPE.EQUIPMENT).map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
                 </div>
               </div>
 
               <div>
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Hóa Chất & Kim Loại</h4>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Chất lỏng</h4>
                 <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                  {filtered.filter(i => i.type === 'chemical').map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
+                  {filtered.filter(i => i.state === PHYSICAL_STATE.LIQUID).map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Chất rắn</h4>
+                <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                  {filtered.filter(i => i.state === PHYSICAL_STATE.SOLID).map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
                 </div>
               </div>
             </div>
+          </div> */}
+
+          <div style={{ display: isRightOpen ? 'flex' : 'none', width: '100%', height: '100%' }}>
+            {/* 2. THANH FILTER DỌC (DARK MODE) NẰM TRÁI */}
+            <div className="w-20 bg-white border-r border-slate-200 flex flex-col items-center py-4 gap-4 shrink-0 shadow-sm z-20">
+              <TooltipProvider delayDuration={100}>
+                {FILTER_TABS.map((tab) => (
+                  <Tooltip key={tab.id}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setActiveFilter(tab.id)}
+                        className={`w-14 h-14 rounded-xl transition-all duration-200 ${activeFilter === tab.id
+                          ? 'bg-blue-600 text-white shadow-md shadow-blue-900/50 hover:bg-blue-500' // Trạng thái đang chọn
+                          : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100' // Trạng thái chưa chọn
+                          }`}
+                      >
+                        {tab.icon}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="left" className="font-semibold bg-white text-slate-800 border border-slate-200 shadow-sm text-base px-4 py-2.5">
+                      {tab.label}
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
+              </TooltipProvider>
+            </div>
+
+            {/* BỔ SUNG THẺ BỌC Ở ĐÂY ĐỂ TRÁNH ITEMS NẰM NGANG */}
+            <div className="flex-1 bg-slate-50 flex flex-col h-full border-l-2 border-slate-200 overflow-hidden box-border">
+              <div className="p-5 border-b border-slate-200 bg-white shadow-sm z-10">
+                <div className="flex gap-2">
+                  <input type="text" placeholder="Tìm kiếm dụng cụ..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm" />
+                  <button onClick={() => setSidebarView(sidebarView === 'grid' ? 'list' : 'grid')} className="p-2 aspect-square bg-slate-50 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-100">
+                    {sidebarView === 'grid' ? '☰' : '▦'}
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ flex: 1, overflowY: 'auto', padding: '20px', boxSizing: 'border-box' }} className="space-y-6">
+                <div>
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Bình phản ứng</h4>
+                  <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                    {filtered.filter(i => i.type === ITEM_TYPE.CONTAINER).map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Dụng cụ</h4>
+                  <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                    {filtered.filter(i => i.type === ITEM_TYPE.EQUIPMENT).map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Chất lỏng</h4>
+                  <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                    {filtered.filter(i => i.state === PHYSICAL_STATE.LIQUID).map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Chất rắn</h4>
+                  <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                    {filtered.filter(i => i.state === PHYSICAL_STATE.SOLID).map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
+                  </div>
+                </div>
+              </div>
+
+            </div> {/* ĐÓNG THẺ BỌC KHO ĐỒ */}
           </div>
         </div>
-        
+
         {/* <DragOverlay dropAnimation={null}>
           {activeDragItem ? <DragPreview item={activeDragItem} /> : null}
         </DragOverlay> */}

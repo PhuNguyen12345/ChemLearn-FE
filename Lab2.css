@@ -1,6 +1,6 @@
 /* Bo góc cho nước khớp với cốc */
 .water-layer {
-  border-radius: 0 0 24px 24px; 
+  border-radius: 0 0 24px 24px;
 }
 
 /* HIỆU ỨNG NHÚN CHO KIM LOẠI */
@@ -9,20 +9,36 @@
   border-radius: 50%;
   transition: all 0.1s ease;
 }
+
 .hard-metal:active {
   transform: translateY(2px);
 }
 
 /* NƯỚC SỦI BỌT VÀ NHÁY TRẮNG XANH NHANH HƠN (0.25s) */
 @keyframes bubbling {
-  0% { transform: translateY(0); }
-  50% { transform: translateY(-3px); }
-  100% { transform: translateY(0); }
+  0% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-3px);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
 }
 
 @keyframes fastGlow {
-  0% { box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.3); background-color: rgba(52, 152, 219, 0.8); }
-  100% { box-shadow: inset 0 0 60px rgba(255, 255, 255, 0.95); background-color: rgba(133, 193, 233, 0.9); }
+  0% {
+    box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.3);
+    background-color: rgba(52, 152, 219, 0.8);
+  }
+
+  100% {
+    box-shadow: inset 0 0 60px rgba(255, 255, 255, 0.95);
+    background-color: rgba(133, 193, 233, 0.9);
+  }
 }
 
 .water-reacting {
@@ -31,10 +47,23 @@
 
 /* HẠT BỌT KHÍ NỔI LÊN (Giữ lại để thêm phần chân thực) */
 @keyframes violentBubble {
-  0% { bottom: 10%; opacity: 0; transform: translateX(0) scale(0.5); }
-  20% { opacity: 1; }
-  100% { bottom: 120%; opacity: 0; transform: translateX(calc(-10px + 20px * var(--rnd))) scale(1.2); }
+  0% {
+    bottom: 10%;
+    opacity: 0;
+    transform: translateX(0) scale(0.5);
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  100% {
+    bottom: 120%;
+    opacity: 0;
+    transform: translateX(calc(-10px + 20px * var(--rnd))) scale(1.2);
+  }
 }
+
 .particle-bubble-violent {
   position: absolute;
   background-color: rgba(255, 255, 255, 0.9);
@@ -44,24 +73,45 @@
 
 /* LỬA CHÁY TRÊN MẶT NƯỚC */
 @keyframes fireFlicker {
-  0% { opacity: 0.9; transform: scale(1) translateY(0); }
-  50% { opacity: 1; transform: scale(1.1) translateY(-2px); }
-  100% { opacity: 0.9; transform: scale(1) translateY(0); }
+  0% {
+    opacity: 0.9;
+    transform: scale(1) translateY(0);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.1) translateY(-2px);
+  }
+
+  100% {
+    opacity: 0.9;
+    transform: scale(1) translateY(0);
+  }
 }
+
 .fire-animation {
   position: absolute;
-  top: -30px; 
+  top: -30px;
   left: 35%;
   font-size: 50px;
-  animation: fireFlicker 0.15s infinite alternate; /* Cháy nhanh hơn chút cho dữ dội */
+  animation: fireFlicker 0.15s infinite alternate;
+  /* Cháy nhanh hơn chút cho dữ dội */
   z-index: 10;
 }
 
 /* KHÓI BAY LÊN VÀ MỜ DẦN */
 @keyframes smokeRise {
-  0% { opacity: 0.8; transform: translateY(0) scale(1); }
-  100% { opacity: 0; transform: translateY(-80px) scale(1.5); }
+  0% {
+    opacity: 0.8;
+    transform: translateY(0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-80px) scale(1.5);
+  }
 }
+
 .smoke-animation {
   position: absolute;
   top: -20px;
@@ -74,32 +124,107 @@
 /* CHỐNG TRÀN TEXT CỘT TRÁI */
 .info-box {
   width: 100%;
-  box-sizing: border-box; 
-  word-wrap: break-word;  
+  box-sizing: border-box;
+  word-wrap: break-word;
   white-space: normal;
 }
 
 /* MULTI-DIRECTIONAL SMOKE ANIMATIONS */
 @keyframes smoke-rise-up {
-  0% { transform: translateY(0) scale(0.5); opacity: 0.8; }
-  100% { transform: translateY(-80px) scale(1.5); opacity: 0; }
+  0% {
+    transform: translateY(0) scale(0.5);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: translateY(-80px) scale(1.5);
+    opacity: 0;
+  }
 }
+
 @keyframes smoke-float-left {
-  0% { transform: translate(0, 0) scale(0.5); opacity: 0.8; }
-  100% { transform: translate(-40px, -80px) scale(1.5); opacity: 0; }
+  0% {
+    transform: translate(0, 0) scale(0.5);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: translate(-40px, -80px) scale(1.5);
+    opacity: 0;
+  }
 }
+
 @keyframes smoke-float-right {
-  0% { transform: translate(0, 0) scale(0.5); opacity: 0.8; }
-  100% { transform: translate(40px, -80px) scale(1.5); opacity: 0; }
+  0% {
+    transform: translate(0, 0) scale(0.5);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: translate(40px, -80px) scale(1.5);
+    opacity: 0;
+  }
 }
+
 @keyframes smoke-spiral {
-  0% { transform: translate(0, 0) scale(0.5); opacity: 0.8; }
-  50% { transform: translate(-20px, -40px) scale(1); opacity: 0.6; }
-  100% { transform: translate(30px, -90px) scale(1.5); opacity: 0; }
+  0% {
+    transform: translate(0, 0) scale(0.5);
+    opacity: 0.8;
+  }
+
+  50% {
+    transform: translate(-20px, -40px) scale(1);
+    opacity: 0.6;
+  }
+
+  100% {
+    transform: translate(30px, -90px) scale(1.5);
+    opacity: 0;
+  }
 }
 
 .smoke-particle {
   pointer-events: none;
   left: 50%;
   transform: translateX(-50%);
+}
+
+/* KẾT TỦA: TUYẾT RƠI + LỚP DƯỚI ĐÁY */
+@keyframes precip-fall {
+  0% { transform: translateY(-30px) scale(0.5); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translateY(40px) scale(1); opacity: 0.3; }
+}
+
+.precip-particle {
+  position: absolute;
+  top: 10%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  animation: precip-fall 2s linear infinite;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.precip-layer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 0;
+  transition: height 5s ease-out;
+  z-index: 4;
+  border-radius: 0 0 12px 12px;
+}
+
+/* NHIỆT ĐỘ: QUẦNG SÁNG TỎA NHIỆT / THU NHIỆT */
+.exothermic-glow {
+  box-shadow: 0 0 25px rgba(239, 68, 68, 0.6) !important;
+  transition: box-shadow 1s ease;
+}
+
+.endothermic-glow {
+  box-shadow: 0 0 25px rgba(34, 211, 238, 0.6) !important;
+  transition: box-shadow 1s ease;
 }
