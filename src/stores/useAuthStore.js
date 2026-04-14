@@ -1,19 +1,46 @@
 import { create } from 'zustand';
 
-// Store lưu trạng thái đăng nhập và thông tin người dùng
-const useAuthStore = create((set) => ({
-  user: null, // Thông tin người dùng (id, name, email, role, ...)
-  isAuthenticated: false, // Trạng thái login
-  
-  login: (userData) => set({
-    user: userData,
-    isAuthenticated: true
-  }),
+const storedToken = localStorage.getItem('auth_token');
+const parseStoredUser = () => {
+  try {
+    const raw = localStorage.getItem('auth_user');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    localStorage.removeItem('auth_user');
+    return null;
+  }
+};
 
-  logout: () => set({
-    user: null,
-    isAuthenticated: false
-  })
+const storedUser = parseStoredUser();
+
+const useAuthStore = create((set) => ({
+  token: storedToken || null,
+  user: storedUser,
+  isAuthenticated: !!storedToken,
+
+  login: ({ token, username, email, role }) => {
+    const user = { username, email, role };
+
+    localStorage.setItem('auth_token', token);
+    localStorage.setItem('auth_user', JSON.stringify(user));
+
+    set({
+      token,
+      user,
+      isAuthenticated: true,
+    });
+  },
+
+  logout: () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_user');
+
+    set({
+      token: null,
+      user: null,
+      isAuthenticated: false,
+    });
+  },
 }));
 
 export default useAuthStore;

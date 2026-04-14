@@ -133,7 +133,7 @@ const LandingPage = () => {
             <Link to="#lessons" className="rounded-full px-4 py-1.5 bg-green-500 text-white hover:bg-green-600 transition-colors shadow-sm shadow-green-200">
               {t.nav.lessons}
             </Link>
-            <Link to="/lab1" className="rounded-full px-4 py-1.5 bg-yellow-400 text-white hover:bg-yellow-500 transition-colors shadow-sm shadow-yellow-200">
+            <Link to="/lab" className="rounded-full px-4 py-1.5 bg-yellow-400 text-white hover:bg-yellow-500 transition-colors shadow-sm shadow-yellow-200">
               {t.nav.virtualLab}
             </Link>
             <Link to="#quizzes" className="rounded-full px-4 py-1.5 bg-orange-400 text-white hover:bg-orange-500 transition-colors shadow-sm shadow-orange-200">
@@ -163,12 +163,12 @@ const LandingPage = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button variant="ghost" className="rounded-full text-slate-600 hover:text-cyan-600 hover:bg-cyan-50 font-bold px-6">
+            <Link to="/login" variant="ghost" className="rounded-full text-slate-600 hover:text-cyan-600 hover:bg-cyan-50 font-bold px-6">
               {t.nav.login}
-            </Button>
-            <Button className="rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600 text-white font-bold px-6 shadow-md shadow-cyan-200">
+            </Link>
+            <Link to="/register" className="rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600 text-white font-bold px-6 shadow-md shadow-cyan-200">
               {t.nav.signUp}
-            </Button>
+            </Link>
           </div>
         </div>
       </nav>
@@ -619,7 +619,7 @@ const LandingPage = () => {
               <h4 className="text-white font-extrabold mb-6 text-lg">{t.footer.platformHeading}</h4>
               <ul className="space-y-4 text-sm font-medium text-purple-100">
                 <li><Link to="#features" className="hover:text-white transition-colors">{t.footer.features}</Link></li>
-                <li><Link to="/lab1" className="hover:text-white transition-colors">{t.footer.virtualLab}</Link></li>
+                <li><Link to="/lab" className="hover:text-white transition-colors">{t.footer.virtualLab}</Link></li>
                 <li><Link to="#" className="hover:text-white transition-colors">{t.footer.pricing}</Link></li>
                 <li><Link to="#" className="hover:text-white transition-colors">{t.footer.forSchools}</Link></li>
               </ul>
