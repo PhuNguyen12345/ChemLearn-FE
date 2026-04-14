@@ -32,17 +32,20 @@ export const useLabStore = create((set, get) => ({
   _originalTemplate: null, // For resetting
 
   // ACTIONS
-  initFromTemplate: (templateJson) => set({
-    lab_id: templateJson.lab_id,
-    version: templateJson.version || "1.0",
-    metadata: templateJson.metadata,
-    config: templateJson.config,
-    viewport: templateJson.viewport,
-    workspace: templateJson.workspace,
-    progress: templateJson.progress,
-    _originalTemplate: templateJson,
-    reactionInfo: { equation: '-', condition: 'Template Loaded', description: `Đã nạp bài thực hành: ${templateJson.metadata.title}` }
-  }),
+  initFromTemplate: (templateJson) => {
+    const clone = structuredClone(templateJson);
+    set({
+      lab_id: clone.lab_id,
+      version: clone.version || "1.0",
+      metadata: clone.metadata,
+      config: clone.config,
+      viewport: clone.viewport,
+      workspace: clone.workspace,
+      progress: clone.progress,
+      _originalTemplate: structuredClone(templateJson),
+      reactionInfo: { equation: '-', condition: 'Template Loaded', description: `Đã nạp bài thực hành: ${clone.metadata.title}` }
+    });
+  },
 
   resetToTemplate: () => {
     const original = get()._originalTemplate;
@@ -66,14 +69,15 @@ export const useLabStore = create((set, get) => ({
     viewport: { ...state.viewport, zoom_scale: scale }
   })),
 
-  // Gamification: Record Reaction
+  // Gamification: Record Reaction & Add Score
   recordReaction: (reactionKey) => set((state) => {
     const actions = state.progress.completed_actions;
     if (!actions.includes(reactionKey)) {
       return {
         progress: {
           ...state.progress,
-          completed_actions: [...actions, reactionKey]
+          completed_actions: [...actions, reactionKey],
+          score: (state.progress.score || 0) + 10 // Cộng 10 điểm (EXP) cho mỗi phản ứng mới
         }
       };
     }

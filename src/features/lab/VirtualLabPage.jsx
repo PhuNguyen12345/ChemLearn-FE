@@ -404,7 +404,7 @@ export default function VirtualLabPage() {
           draggedObj &&
           Object.prototype.hasOwnProperty.call(TEMPLATE_TO_CONTENT, draggedObj.templateId)
         ) {
-          const targetContainer = updatedItems.find(
+          const targetContainerIndex = updatedItems.findIndex(
             i =>
               i.instanceId !== instanceId &&
               ['beaker', 'test_tube'].includes(i.templateId) &&
@@ -412,7 +412,8 @@ export default function VirtualLabPage() {
               Math.abs(i.y - draggedObj.y) < 70
           );
 
-          if (targetContainer) {
+          if (targetContainerIndex !== -1) {
+            let targetContainer = { ...updatedItems[targetContainerIndex] };
             const currentContent = targetContainer.content;
             const instanceToUpdate = targetContainer.instanceId;
 
@@ -486,6 +487,9 @@ export default function VirtualLabPage() {
             }
             // else: container already has content and no matching reaction → ignore drop
 
+            // Đưa container đã được cập nhật nội dung vào lại mảng
+            updatedItems[targetContainerIndex] = targetContainer;
+
             // Remove the dragged chemical from the canvas once deposited
             updatedItems = updatedItems.filter(i => i.instanceId !== instanceId);
           }
@@ -510,7 +514,7 @@ export default function VirtualLabPage() {
 
   return (
     <div style={{ display: 'flex', height: '100%', backgroundColor: '#ecf0f1', overflow: 'hidden', position: 'relative' }} className="w-full">
-      <Toaster richColors />
+      <Toaster richColors toastOptions={{className: 'text-lg font-semibold', descriptionClassName: "text-lg font-medium text-slate-600"}}/>
       <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         {/* ================= LEFT COLUMN ================= */}
         <div style={{ width: isLeftOpen ? '320px' : '0', transition: 'width 0.3s ease', backgroundColor: '#fff', borderRight: '2px solid #e2e8f0', position: 'relative', flexShrink: 0, zIndex: 50 }}>
