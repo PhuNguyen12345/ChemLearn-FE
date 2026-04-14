@@ -562,47 +562,6 @@ export default function VirtualLabPage() {
             {isRightOpen ? '▶' : '◀'}
           </button>
 
-          {/* <div style={{ display: isRightOpen ? 'flex' : 'none', flexDirection: 'column', height: '100%', width: '360px', boxSizing: 'border-box' }}>
-            <div className="p-5 border-b border-slate-200 bg-white shadow-sm z-10">
-              <div className="flex gap-2">
-                <input type="text" placeholder="Tìm kiếm dụng cụ..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm" />
-                <button onClick={() => setSidebarView(sidebarView === 'grid' ? 'list' : 'grid')} className="p-2 aspect-square bg-slate-50 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-100">
-                  {sidebarView === 'grid' ? '☰' : '▦'}
-                </button>
-              </div>
-            </div>
-
-            <div style={{ flex: 1, overflowY: 'auto', padding: '20px', boxSizing: 'border-box' }} className="space-y-6">
-              <div>
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Bình phản ứng</h4>
-                <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                  {filtered.filter(i => i.type === ITEM_TYPE.CONTAINER).map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Dụng cụ</h4>
-                <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                  {filtered.filter(i => i.type === ITEM_TYPE.EQUIPMENT).map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Chất lỏng</h4>
-                <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                  {filtered.filter(i => i.state === PHYSICAL_STATE.LIQUID).map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Chất rắn</h4>
-                <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                  {filtered.filter(i => i.state === PHYSICAL_STATE.SOLID).map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
-                </div>
-              </div>
-            </div>
-          </div> */}
-
           <div style={{ display: isRightOpen ? 'flex' : 'none', width: '100%', height: '100%' }}>
             {/* 2. THANH FILTER DỌC (DARK MODE) NẰM TRÁI */}
             <div className="w-20 bg-white border-r border-slate-200 flex flex-col items-center py-4 gap-4 shrink-0 shadow-sm z-20">
