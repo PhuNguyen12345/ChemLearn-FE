@@ -5,10 +5,13 @@ import { Beaker, Box, Cloud, Droplet, Flame, Globe, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button';
 import { snapCenterToCursor } from '@dnd-kit/modifiers';
 import { INITIAL_INVENTORY, ITEM_TYPE, PHYSICAL_STATE } from './data/constants';
-import DraggableItem from './components/DraggableItem';
-import DragPreview from './components/DragPreview';
+import { Toaster, toast } from 'sonner';
+import { useLabStore } from './stores/useLabStore';
+import mockAxitBazo from './data/mockAxitBazo.json';
 import CentralWorkspace from './components/CentralWorkspace';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import DraggableItem from './components/DraggableItem';
+import DragPreview from './components/DragPreview';
 
 // ---------------------------------------------------------------------------
 // REACTION_MAP  –  Strategy Pattern / Data-Driven Lookup Dictionary
@@ -249,12 +252,26 @@ export default function VirtualLabPage() {
   const [activeFilter, setActiveFilter] = useState('ALL');
 
   // New Free-form & Zoom State
-  const [placedItems, setPlacedItems] = useState([]);
-  const [scale, setScale] = useState(1);
+  // Global CSLS State
+  const { 
+    workspace: placedItems, 
+    viewport, 
+    reactionInfo,
+    initFromTemplate,
+    resetToTemplate,
+    clearWorkspace,
+    setWorkspace, 
+    setViewportScale,
+    setReactionInfo,
+    recordReaction,
+    serializeLabState
+  } = useLabStore();
+  const scale = viewport.zoom_scale;
+
   const [selectedItemId, setSelectedItemId] = useState(null);
 
   const handleDeleteItem = (id) => {
-    setPlacedItems(prev => prev.filter(item => item.instanceId !== id));
+    setWorkspace(prev => prev.filter(item => item.instanceId !== id));
     if (selectedItemId === id) setSelectedItemId(null);
   };
 
@@ -273,14 +290,18 @@ export default function VirtualLabPage() {
   // Drag state
   const [activeDragData, setActiveDragData] = useState(null);
 
+  // Khởi tạo bài học từ Template
+  useEffect(() => {
+    initFromTemplate(mockAxitBazo);
+  }, [initFromTemplate]);
+
   useEffect(() => {
     const handleClearDesk = () => {
-      setPlacedItems([]);
-      setReactionInfo({ equation: '-', condition: '-', description: 'Bàn làm việc đã được dọn sạch.' });
+      clearWorkspace();
     };
     window.addEventListener('clear-lab-desk', handleClearDesk);
     return () => window.removeEventListener('clear-lab-desk', handleClearDesk);
-  }, []);
+  }, [clearWorkspace]);
 
   const activeDragItem = useMemo(() => {
     if (!activeDragData) return null;
@@ -288,8 +309,6 @@ export default function VirtualLabPage() {
     if (activeDragData.source === 'canvas') return inventory.find(i => i.id === activeDragData.templateId);
     return null;
   }, [activeDragData, inventory]);
-
-  const [reactionInfo, setReactionInfo] = useState({ equation: '-', condition: '-', description: 'Kéo dụng cụ và hóa chất vào Workspace để bắt đầu.' });
 
   const checkProximity = (items) => {
     const burners = items.filter(i => i.templateId === 'bunsen_burner');
@@ -364,14 +383,14 @@ export default function VirtualLabPage() {
         isHeated: false
       };
 
-      setPlacedItems(prev => checkProximity([...prev, newItem]));
+      setWorkspace(prev => checkProximity([...prev, newItem]));
       setReactionInfo({ equation: 'Adding ' + activeDragItem?.name, condition: 'Workspace setup', description: 'Vật phẩm đã được thêm vào bàn làm việc.' });
     }
 
     // 2. Reposition Canvas Item
     if (sourceData?.source === 'canvas') {
       const instanceId = sourceData.instanceId;
-      setPlacedItems(prev => {
+      setWorkspace(prev => {
         let updatedItems = prev.map(item => {
           if (item.instanceId === instanceId) {
             return { ...item, x: Math.max(0, item.x + adjustedDeltaX), y: Math.max(0, item.y + adjustedDeltaY) };
@@ -407,6 +426,17 @@ export default function VirtualLabPage() {
 
             if (reaction && currentContent) {
               // ── REACTION FOUND ──────────────────────────────────────────
+              
+              // GAMIFICATION: Nhận thưởng EXP và Toast
+              const previousActions = useLabStore.getState().progress.completed_actions;
+              if (!previousActions.includes(key)) {
+                toast.success(`Phản ứng mới: ${reaction?.reactionInfo?.equation || key}`, {
+                  description: "Bạn nhận được +10 EXP!",
+                  position: 'bottom-right'
+                });
+                recordReaction(key);
+              }
+
               // Apply multi-layer content fields
               targetContainer.liquidContent = reaction.liquidContent ?? null;
               targetContainer.solidContent = reaction.solidContent ?? null;
@@ -422,7 +452,7 @@ export default function VirtualLabPage() {
 
               if (reaction.clearStateAfter) {
                 setTimeout(() => {
-                  setPlacedItems(curr =>
+                  setWorkspace(curr =>
                     curr.map(it =>
                       it.instanceId === instanceToUpdate ? { ...it, reactionState: null, gasContent: null } : it
                     )
@@ -480,11 +510,18 @@ export default function VirtualLabPage() {
 
   return (
     <div style={{ display: 'flex', height: '100%', backgroundColor: '#ecf0f1', overflow: 'hidden', position: 'relative' }} className="w-full">
+      <Toaster richColors />
       <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         {/* ================= LEFT COLUMN ================= */}
         <div style={{ width: isLeftOpen ? '320px' : '0', transition: 'width 0.3s ease', backgroundColor: '#fff', borderRight: '2px solid #e2e8f0', position: 'relative', flexShrink: 0, zIndex: 50 }}>
           <div style={{ display: isLeftOpen ? 'block' : 'none', width: '320px', height: '100%', padding: '24px', boxSizing: 'border-box', overflowY: 'auto' }}>
             <h3 className="text-xl font-bold text-slate-800 border-b-2 border-blue-400 pb-3">📊 Phân tích Lab</h3>
+            
+            <div className="flex gap-2 mt-4">
+              <Button size="sm" variant="outline" className="flex-1 border-blue-200 text-blue-600 hover:bg-blue-50" onClick={resetToTemplate}>🔄 Reset</Button>
+              <Button size="sm" variant="default" className="flex-1 bg-blue-600 hover:bg-blue-700 text-white" onClick={serializeLabState}>💾 Lưu</Button>
+            </div>
+
             <div className="mt-6 space-y-4">
               <div>
                 <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Trạng thái/Phản ứng:</h4>
@@ -512,7 +549,7 @@ export default function VirtualLabPage() {
           <CentralWorkspace
             placedItems={placedItems}
             scale={scale}
-            setScale={setScale}
+            setScale={setViewportScale}
             selectedItemId={selectedItemId}
             setSelectedItemId={setSelectedItemId}
             onDeleteItem={handleDeleteItem}
