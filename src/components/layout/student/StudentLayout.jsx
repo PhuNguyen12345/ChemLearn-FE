@@ -12,6 +12,8 @@ import VirtualLabPage from '../../../features/lab/VirtualLabPage';
 import FireQuizGame from '../../FireQuizGame';
 import StudentShop from '../../../pages/student/StudentShop';
 import StudentIsland from '../../../pages/student/StudentIsland';
+import StudentProfile from '../../../pages/student/StudentProfile';
+import ProgressMap from '../../../pages/student/ProgressMap';
 
 const StudentLayout = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -100,6 +102,14 @@ const StudentLayout = () => {
                 {activeTab === 'island' && (
                   <div className="absolute inset-0 z-50 bg-black flex flex-col">
                     <StudentIsland onBack={() => setActiveTab('dashboard')} />
+                  </div>
+                )}
+                {activeTab === 'profile' && (
+                  <StudentProfile />
+                )}
+                {activeTab === 'progressMap' && (
+                  <div className="absolute inset-0 z-50 bg-[#0a0e27] flex flex-col">
+                    <ProgressMap onBack={() => setActiveTab('dashboard')} setActiveTab={setActiveTab} />
                   </div>
                 )}
               </>

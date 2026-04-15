@@ -24,7 +24,7 @@ const INITIAL_LIVES = 3;
 const HP_REDUCTION = 20;
 
 export default function FireQuizGame({ onBack, onGoShop }) {
-  const { addCoins } = useStudentStore();
+  const { addCoins, inventory, consumeItem } = useStudentStore();
   const [gameState, setGameState] = useState('playing'); // 'playing', 'gameover', 'victory'
   const [hp, setHp] = useState(INITIAL_HP);
   const [lives, setLives] = useState(INITIAL_LIVES);
@@ -49,6 +49,20 @@ export default function FireQuizGame({ onBack, onGoShop }) {
     setIsAnswersDisabled(false);
     setShowExplosion(false);
     setScreenFlashHit(false);
+  };
+
+  const bottleCount = inventory.filter(i => i.id === 'bottle1').length;
+  const hasSword = inventory.some(i => i.id === 'sword1');
+  const hasStaff = inventory.some(i => i.id === 'staff1');
+  
+  const ACTUAL_DAMAGE = hasStaff ? 40 : hasSword ? 30 : HP_REDUCTION;
+
+  const useBottle = () => {
+    if (bottleCount > 0 && lives < INITIAL_LIVES + 2) {
+      consumeItem('bottle1');
+      setLives(lives + 1);
+      // Optional: Add healing animation/sound here if desired
+    }
   };
 
   useEffect(() => {
@@ -101,7 +115,7 @@ export default function FireQuizGame({ onBack, onGoShop }) {
       }, 600);
       setTimeout(() => {
         setShowExplosion(false);
-        const newHp = Math.max(0, hp - HP_REDUCTION);
+        const newHp = Math.max(0, hp - ACTUAL_DAMAGE);
         setHp(newHp);
 
         if (newHp <= 0) {
@@ -194,8 +208,32 @@ export default function FireQuizGame({ onBack, onGoShop }) {
             </div>
           </div>
 
-          <div className="bg-black/50 px-6 py-2 rounded-xl border border-white/10 backdrop-blur-md font-bold text-xl tracking-wider text-orange-200 uppercase">
-            Boss Fight
+          <div className="flex flex-col gap-2">
+            <div className="bg-black/50 px-6 py-2 rounded-xl border border-white/10 backdrop-blur-md font-bold text-xl tracking-wider text-orange-200 uppercase justify-end flex">
+              Boss Fight
+            </div>
+
+            {/* INVENTORY QUICK USE */}
+            <div className="flex gap-2 self-end">
+               {bottleCount > 0 && (
+                  <button onClick={useBottle} className="relative group p-2 bg-blue-900/50 hover:bg-blue-600/80 rounded-xl border border-blue-400/50 transition-colors shadow-lg flex items-center justify-center tooltip-trigger">
+                     <span className="text-xl">🧪</span>
+                     <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border border-white/20 shadow-md transform transition-transform group-hover:scale-110">{bottleCount}</span>
+                  </button>
+               )}
+               {hasSword && (
+                  <div className="relative p-2 bg-slate-800/80 rounded-xl border border-slate-500/50 flex items-center justify-center cursor-help">
+                     <span className="text-xl">⚔️</span>
+                     <span className="absolute flex w-max top-full mt-2 -right-2 opacity-0 hover:opacity-100 transition-opacity bg-black text-white text-xs px-2 py-1 rounded">Kiếm Tân Binh: Dmg 30</span>
+                  </div>
+               )}
+               {hasStaff && (
+                  <div className="relative p-2 bg-purple-900/80 rounded-xl border border-purple-500/50 flex items-center justify-center cursor-help">
+                     <span className="text-xl">🪄</span>
+                     <span className="absolute flex w-max top-full mt-2 -right-2 opacity-0 hover:opacity-100 transition-opacity bg-black text-white text-xs px-2 py-1 rounded">Trượng Pháp Thuật: Dmg 40</span>
+                  </div>
+               )}
+            </div>
           </div>
         </div>
 
