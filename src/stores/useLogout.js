@@ -23,7 +23,7 @@ export const useLogout = () => {
     } finally {
       // Clear local auth state regardless of backend response
       storeLogout();
-      navigate('/login', { replace: true });
+      navigate('/', { replace: true });
     }
   };
 

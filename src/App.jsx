@@ -1,7 +1,7 @@
 
 import "./App.css";
 import { useEffect } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import StudentHome from "./pages/student/StudentHome";
 import Missions from "./pages/student/Missions";
 import Leaderboard from "./pages/student/Leaderboard";
@@ -52,11 +52,19 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/auth/login" element={<Navigate to="/login" replace />} />
+          <Route path="/auth/register" element={<Navigate to="/register" replace />} />
           <Route path="/fire-quiz" element={<FireQuizGame />} />
           <Route
             path="/lab"
             element={<VirtualLabPage></VirtualLabPage>}
           ></Route>
+
+          <Route path="/student" element={<Navigate to="/student/home" replace />} />
+          <Route path="/parent" element={<Navigate to="/parent/dashboard" replace />} />
+          <Route path="/teacher" element={<Navigate to="/teacher/dashboard" replace />} />
+          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+
           <Route element={<ProtectedRoute allowedRoles={["ROLE_STUDENT"]} />}>
             <Route element={<StudentLayout />}>
               <Route path="/student/home" element={<StudentHome />} />
