@@ -1,8 +1,6 @@
 
 import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import VirtualLab from "./pages/VirtualLab";
-import AdvancedVirtualLab from "./pages/AdvancedVirtualLab";
 import StudentHome from "./pages/student/StudentHome";
 import Missions from "./pages/student/Missions";
 import Leaderboard from "./pages/student/Leaderboard";
@@ -16,6 +14,10 @@ import LandingPage from "./pages/LandingPage";
 import AdminLayout from "./components/layout/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import VirtualLabPage from "./features/lab/VirtualLabPage";
+import StudyZone from "./pages/student/StudyZone";
+import QuizDashboard from "./pages/student/QuizDashboard";
+import QuizPlayer from "./pages/student/QuizPlayer";
+import LabDashboard from "./features/lab/components/LabDashboard";
 
 function App() {
   return (
@@ -27,13 +29,17 @@ function App() {
             element={<LandingPage />}
           />
           <Route
-            path="/lab"
-            element={<VirtualLabPage></VirtualLabPage>}
-          ></Route>
+            path="/lab-workspace/:id"
+            element={<VirtualLabPage />}
+          />
           <Route element={<StudentLayout />}>
             <Route path="/student/home" element={<StudentHome />} />
             <Route path="/student/missions" element={<Missions />} />
             <Route path="/student/leaderboard" element={<Leaderboard />} />
+            <Route path="/student/study-zone" element={<StudyZone />} />
+            <Route path="/student/quiz" element={<QuizDashboard />} />
+            <Route path="/student/quiz/:id" element={<QuizPlayer />} />
+            <Route path="/student/virtual-lab" element={<LabDashboard />} />
             {/* Các trang khác của student ném hết vào đây */}
           </Route>
           <Route element={<ParentLayout />}>

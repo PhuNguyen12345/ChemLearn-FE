@@ -84,6 +84,13 @@ export const useLabStore = create((set, get) => ({
     return {};
   }),
 
+  markAsFinished: () => set((state) => ({
+    progress: {
+      ...state.progress,
+      is_finished: true
+    }
+  })),
+
   // Set explicitly (for one-off usages)
   setReactionInfo: (info) => set({ reactionInfo: info }),
 

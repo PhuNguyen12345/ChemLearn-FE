@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { DndContext, DragOverlay } from '@dnd-kit/core';
+import LabWorkspaceHeader from './components/LabWorkspaceHeader';
 import '/Lab2.css';
 import { Beaker, Box, Cloud, Droplet, Flame, Globe, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,6 +14,7 @@ import CentralWorkspace from './components/CentralWorkspace';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import DraggableItem from './components/DraggableItem';
 import DragPreview from './components/DragPreview';
+import confetti from 'canvas-confetti';
 
 // ---------------------------------------------------------------------------
 // REACTION_MAP  –  Strategy Pattern / Data-Driven Lookup Dictionary
@@ -239,9 +242,31 @@ const FILTER_TABS = [
 
 
 export default function VirtualLabPage() {
+  const navigate = useNavigate();
+  const { id } = useParams();
   const [inventory, setInventory] = useState(INITIAL_INVENTORY);
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarView, setSidebarView] = useState('grid');
+
+  const [showModal, setShowModal] = useState(false);
+  const markAsFinished = useLabStore(state => state.markAsFinished);
+  const progress = useLabStore(state => state.progress);
+  const maxScore = useLabStore(state => state.metadata?.max_score) || 50;
+  const score = progress?.score || 0;
+
+  useEffect(() => {
+    if (score >= maxScore && maxScore > 0 && !progress.is_finished) {
+      confetti({
+        particleCount: 150,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ['#2563eb', '#fbbf24', '#34d399', '#ef4444'],
+        zIndex: 1000
+      });
+      setShowModal(true);
+      markAsFinished();
+    }
+  }, [score, maxScore, progress.is_finished, markAsFinished]);
 
   const [isLeftOpen, setIsLeftOpen] = useState(true);
   const [isRightOpen, setIsRightOpen] = useState(true);
@@ -513,7 +538,13 @@ export default function VirtualLabPage() {
   const filtered = filteredInventory.filter(i => i.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
-    <div style={{ display: 'flex', height: '100%', backgroundColor: '#ecf0f1', overflow: 'hidden', position: 'relative' }} className="w-full">
+    <div className="flex flex-col h-screen w-full overflow-hidden absolute inset-0 z-50">
+      <LabWorkspaceHeader 
+        onBack={() => navigate('/student/virtual-lab')} 
+        titleText={id === 'new' ? 'Untitled Experiment' : 'My Saved Lab'} 
+        labId={id}
+      />
+      <div style={{ display: 'flex', height: '100%', backgroundColor: '#ecf0f1', overflow: 'hidden', position: 'relative' }} className="w-full flex-1">
       <Toaster 
         richColors 
         toastOptions={{ 
@@ -528,11 +559,6 @@ export default function VirtualLabPage() {
         <div style={{ width: isLeftOpen ? '320px' : '0', transition: 'width 0.3s ease', backgroundColor: '#fff', borderRight: '2px solid #e2e8f0', position: 'relative', flexShrink: 0, zIndex: 50 }}>
           <div style={{ display: isLeftOpen ? 'block' : 'none', width: '320px', height: '100%', padding: '24px', boxSizing: 'border-box', overflowY: 'auto' }}>
             <h3 className="text-xl font-bold text-slate-800 border-b-2 border-blue-400 pb-3">📊 Phân tích Lab</h3>
-            
-            <div className="flex gap-2 mt-4">
-              <Button size="sm" variant="outline" className="flex-1 border-blue-200 text-blue-600 hover:bg-blue-50" onClick={resetToTemplate}>🔄 Reset</Button>
-              <Button size="sm" variant="default" className="flex-1 bg-blue-600 hover:bg-blue-700 text-white" onClick={serializeLabState}>💾 Lưu</Button>
-            </div>
 
             <div className="mt-6 space-y-4">
               <div>
@@ -653,6 +679,43 @@ export default function VirtualLabPage() {
           {activeDragItem ? <DragPreview item={activeDragItem} /> : null}
         </DragOverlay>
       </DndContext>
+
+      {/* Celebration Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center animate-in fade-in duration-300">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 flex flex-col items-center text-center animate-in zoom-in-95 duration-500">
+            <div className="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mb-6 shadow-inner animate-bounce">
+              <span className="text-6xl filter drop-shadow-md">🏆</span>
+            </div>
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">Tuyệt vời! Bạn đã phá đảo!</h2>
+            <p className="text-slate-600 mb-8 leading-relaxed">
+              Bạn đã khám phá ra toàn bộ các phương trình phản ứng được yêu cầu trong bài học này. 
+              <br/><span className="inline-block mt-3 font-bold text-amber-600 bg-amber-50 px-4 py-1.5 rounded-full shadow-inner">{score} / {maxScore} EXP</span>
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 w-full">
+              <Button 
+                variant="outline" 
+                className="flex-1 h-11 border-blue-200 text-blue-600 hover:bg-blue-50 cursor-pointer"
+                onClick={() => setShowModal(false)}
+              >
+                Khám phá tiếp 🧪
+              </Button>
+              <Button 
+                className="flex-1 h-11 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+                onClick={() => {
+                  useLabStore.getState().serializeLabState();
+                  setShowModal(false);
+                  navigate('/student/virtual-lab');
+                }}
+              >
+                💾 Về trang chủ
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      </div>
     </div>
   );
 }

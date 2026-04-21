@@ -5,7 +5,8 @@
     "title": "Phản ứng Axit - Bazơ",
     "description": "Thực hành phản ứng trung hòa và các phản ứng đặc trưng của axit mạnh với bazơ, muối. Khám phá sự đổi màu và hiện tượng sủi bọt/kết tủa.",
     "category": "AXIT_BAZO",
-    "difficulty": "EASY"
+    "difficulty": "EASY",
+    "max_score": 50
   },
   "config": {
     "sidebar_locked": false,

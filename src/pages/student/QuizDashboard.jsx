@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   PlayCircle, 
   Clock, 
@@ -89,7 +90,8 @@ const availableQuizzes = [
   }
 ];
 
-const QuizDashboard = ({ onPlayQuiz }) => {
+const QuizDashboard = () => {
+  const navigate = useNavigate();
   return (
     <div className="w-full h-full bg-slate-50 overflow-y-auto pb-12">
       
@@ -153,7 +155,7 @@ const QuizDashboard = ({ onPlayQuiz }) => {
             return (
               <div 
                 key={quiz.id}
-                onClick={() => onPlayQuiz(quiz.id)}
+                onClick={() => navigate(`/student/quiz/${quiz.id}`)}
                 className="group bg-white rounded-[2.5rem] border-2 border-slate-100 border-b-[6.5px] border-b-slate-200 shadow-sm hover:shadow-xl hover:border-b-2 hover:translate-y-1 transition-all duration-300 cursor-pointer p-7 flex flex-col relative overflow-hidden"
               >
                 {/* Background Decoration - Static classes used here */}

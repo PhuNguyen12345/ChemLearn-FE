@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Plus, Beaker, MoreVertical, Edit2, Trash, Copy, FlaskConical, Sparkles, Zap } from 'lucide-react';
 
 /* ─────────────────────────────────────────────────────────
@@ -42,7 +43,8 @@ const mockLabs = [
 /* ─────────────────────────────────────────────────────────
    Main Component
 ───────────────────────────────────────────────────────── */
-const LabDashboard = ({ onOpenLab }) => {
+const LabDashboard = () => {
+  const navigate = useNavigate();
   const [searchQuery,  setSearchQuery]  = useState('');
   const [activeMenuId, setActiveMenuId] = useState(null);
 
@@ -113,7 +115,7 @@ const LabDashboard = ({ onOpenLab }) => {
 
             {/* Create button — Emerald tactile */}
             <button
-              onClick={() => onOpenLab('new')}
+              onClick={() => navigate('/lab-workspace/new')}
               className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-400 hover:bg-emerald-500 text-white font-black rounded-2xl border-b-4 border-emerald-700 hover:border-emerald-800 active:border-b active:translate-y-1 transition-all duration-150 shadow-lg shadow-emerald-500/30 shrink-0 text-sm"
             >
               <Plus className="w-5 h-5" />
@@ -143,7 +145,7 @@ const LabDashboard = ({ onOpenLab }) => {
 
           {/* ── CREATE NEW card ── */}
           <div
-            onClick={() => onOpenLab('new')}
+            onClick={() => navigate('/lab-workspace/new')}
             className="group bg-indigo-50 rounded-3xl border-4 border-dashed border-indigo-300 hover:border-indigo-500 hover:bg-indigo-100/70 hover:-translate-y-2 hover:shadow-[0_10px_28px_rgba(99,102,241,0.3)] transition-all duration-300 flex flex-col items-center justify-center p-8 cursor-pointer aspect-[4/3] min-h-[200px]"
           >
             <div className="w-20 h-20 rounded-3xl bg-indigo-200 group-hover:bg-indigo-300 flex items-center justify-center mb-4 transition-all duration-300 shadow-inner shadow-indigo-300/50 group-hover:scale-110 group-hover:rotate-3">
@@ -159,7 +161,7 @@ const LabDashboard = ({ onOpenLab }) => {
           {filteredLabs.map((lab) => (
             <div
               key={lab.id}
-              onClick={() => onOpenLab(lab.id)}
+              onClick={() => navigate('/lab-workspace/' + lab.id)}
               className="group bg-white rounded-3xl border-2 border-slate-100 border-b-4 border-b-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-2 hover:border-indigo-200 hover:border-b-indigo-300 transition-all duration-300 cursor-pointer flex flex-col overflow-hidden relative"
             >
               {/* ── Gradient Thumbnail ── */}

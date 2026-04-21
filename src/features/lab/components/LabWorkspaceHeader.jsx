@@ -1,10 +1,30 @@
 import React, { useState } from 'react';
-import { ArrowLeft, CheckCircle2, User, Edit3, Trash2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, User, Edit3, Trash2, Save, RefreshCw, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useLabStore } from '../stores/useLabStore';
 
 const LabWorkspaceHeader = ({ onBack, titleText = "Untitled Experiment" }) => {
   const [title, setTitle] = useState(titleText);
   const [isEditing, setIsEditing] = useState(false);
+  const [saveState, setSaveState] = useState('idle'); // 'idle' | 'saving' | 'saved'
+  const { serializeLabState, clearWorkspace, resetToTemplate } = useLabStore();
+  const score = useLabStore(state => state.progress?.score || 0);
+  const maxScore = useLabStore(state => state.metadata?.max_score || 50);
+  const percentage = Math.min((score / maxScore) * 100, 100);
+  const isFinished = percentage === 100;
+
+  const handleSave = () => {
+    if (saveState !== 'idle') return;
+    setSaveState('saving');
+    // Fake API call delay
+    setTimeout(() => {
+      serializeLabState();
+      setSaveState('saved');
+      setTimeout(() => {
+        setSaveState('idle');
+      }, 1500);
+    }, 800);
+  };
 
   const handleTitleSubmit = (e) => {
     if (e.key === 'Enter') {
@@ -15,7 +35,7 @@ const LabWorkspaceHeader = ({ onBack, titleText = "Untitled Experiment" }) => {
   return (
     <div className="h-14 w-full bg-white border-b border-slate-200 shadow-sm flex items-center justify-between px-4 z-50 shrink-0 relative">
       
-      {/* Left: Back Button & Logo */}
+      {/* Left: Back Button & Title */}
       <div className="flex items-center gap-2 w-1/3">
         <button 
           onClick={onBack}
@@ -25,45 +45,97 @@ const LabWorkspaceHeader = ({ onBack, titleText = "Untitled Experiment" }) => {
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
           <span className="font-bold text-sm hidden sm:block">Dashboard</span>
         </button>
+        <div className="h-6 w-[2px] bg-slate-200 mx-1 rounded-full hidden sm:block"></div>
+        <div className="flex items-center">
+          {isEditing ? (
+            <input
+              autoFocus
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onBlur={() => setIsEditing(false)}
+              onKeyDown={handleTitleSubmit}
+              className="text-base sm:text-lg font-bold text-slate-800 bg-slate-50 border-b-2 border-indigo-500 focus:outline-none px-2 py-0.5 rounded-t-md min-w-[200px]"
+            />
+          ) : (
+            <div 
+              onClick={() => setIsEditing(true)}
+              className="group flex items-center gap-2 cursor-pointer px-3 py-1 rounded-md hover:bg-slate-100 transition-colors"
+            >
+              <h2 className="text-base sm:text-lg font-bold text-slate-800 truncate max-w-[200px] xl:max-w-[300px]">{title}</h2>
+              <Edit3 className="w-4 h-4 text-slate-400 group-hover:text-indigo-500 transition-colors opacity-0 group-hover:opacity-100" />
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Center: Editable Title */}
+      {/* Center: EXP Progress Bar */}
       <div className="flex items-center justify-center w-1/3">
-        {isEditing ? (
-          <input
-            autoFocus
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            onBlur={() => setIsEditing(false)}
-            onKeyDown={handleTitleSubmit}
-            className="text-lg font-bold text-center text-slate-800 bg-slate-50 border-b-2 border-indigo-500 focus:outline-none px-2 py-0.5 rounded-t-md min-w-[200px]"
-          />
-        ) : (
-          <div 
-            onClick={() => setIsEditing(true)}
-            className="group flex items-center gap-2 cursor-pointer px-3 py-1 rounded-md hover:bg-slate-100 transition-colors"
-          >
-            <h2 className="text-lg font-bold text-slate-800 truncate max-w-[300px]">{title}</h2>
-            <Edit3 className="w-4 h-4 text-slate-300 group-hover:text-indigo-500 transition-colors opacity-0 group-hover:opacity-100" />
+        <div className="w-full max-w-sm flex flex-col items-center gap-1">
+          <div className="flex items-center justify-between w-full text-xs font-bold text-slate-500">
+            <span className="uppercase tracking-wider">Tiến độ Lab</span>
+            <span className={`transition-colors duration-300 ${isFinished ? "text-amber-500" : "text-blue-600"} flex items-center gap-1`}>
+              {isFinished && "⭐"} {score}/{maxScore} EXP
+            </span>
           </div>
-        )}
+          <div className="h-3.5 w-full bg-slate-200 rounded-full p-0.5 shadow-inner relative overflow-hidden">
+            <div 
+              className={`h-full rounded-full transition-all duration-500 ease-out relative ${
+                isFinished 
+                  ? 'bg-gradient-to-b from-amber-300 to-amber-500 shadow-[0_0_10px_rgba(251,191,36,0.8)]' 
+                  : 'bg-gradient-to-b from-blue-400 to-blue-600'
+              }`}
+              style={{ width: `${percentage}%`, minWidth: percentage > 0 ? '1.5rem' : '0' }}
+            >
+              {/* Glossy Jelly Highlight overlay */}
+              <div className="absolute top-0 left-0 right-0 h-1/2 bg-white/30 rounded-t-full" />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Right: Actions, Cloud Save & Avatar */}
-      <div className="flex items-center justify-end gap-3 w-1/3">
+      <div className="flex items-center justify-end gap-3 w-[45%]">
         <Button 
           variant="outline" 
           className="text-destructive hover:bg-red-50 hover:text-red-600 border-slate-200 h-9 px-3" 
-          onClick={() => window.dispatchEvent(new Event('clear-lab-desk'))}
+          onClick={clearWorkspace}
         >
           <Trash2 className="w-4 h-4 mr-2" /> Clear Desk
         </Button>
 
-        <div className="hidden sm:flex items-center gap-2 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 h-9">
-          <CheckCircle2 className="w-4 h-4" />
-          <span className="text-xs font-bold uppercase tracking-wide">Saved</span>
-        </div>
+        <Button 
+          variant="outline" 
+          className="text-blue-600 hover:bg-blue-50 border-blue-200 h-9 px-3" 
+          onClick={resetToTemplate}
+        >
+          <RotateCcw className="w-4 h-4 mr-2" /> Reset Lab
+        </Button>
+
+        <Button
+          variant="default"
+          className={`h-9 px-4 transition-all duration-300 min-w-[100px] ${
+            saveState === 'saved' 
+              ? 'bg-emerald-500 hover:bg-emerald-600' 
+              : 'bg-blue-600 hover:bg-blue-700'
+          }`}
+          onClick={handleSave}
+          disabled={saveState === 'saving'}
+        >
+          {saveState === 'saving' ? (
+            <>
+              <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Saving...
+            </>
+          ) : saveState === 'saved' ? (
+            <>
+              <CheckCircle2 className="w-4 h-4 mr-2" /> Saved
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4 mr-2" /> Save
+            </>
+          )}
+        </Button>
         
         <div className="w-8 h-8 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-600 font-bold overflow-hidden shadow-inner cursor-pointer hover:ring-2 hover:ring-indigo-300 transition-all">
           {/* Mock Avatar */}

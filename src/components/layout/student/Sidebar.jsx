@@ -13,9 +13,9 @@ import {
 
 const navItems = [
   { name: 'Dashboard',   icon: LayoutDashboard, path: '/student/home', id: 'dashboard',    emoji: '🏠' },
-  { name: 'Study Zone',  icon: BookOpen,         path: '/student/home', id: 'studyZone',    emoji: '📚' },
-  { name: 'Virtual Lab', icon: Microscope,        path: '/student/home', id: 'labDashboard', emoji: '🧪' },
-  { name: 'Quizzes',     icon: ClipboardList,     path: '/student/home', id: 'quizzes',      emoji: '❓' },
+  { name: 'Study Zone',  icon: BookOpen,         path: '/student/study-zone', id: 'studyZone',    emoji: '📚' },
+  { name: 'Virtual Lab', icon: Microscope,        path: '/student/virtual-lab', id: 'labDashboard', emoji: '🧪' },
+  { name: 'Quizzes',     icon: ClipboardList,     path: '/student/quiz', id: 'quizzes',      emoji: '❓' },
   { name: 'Missions',    icon: Target,            path: '/student/missions', id: 'missions', emoji: '🎯' },
   { name: 'Leaderboard', icon: Trophy,            path: '/student/leaderboard', id: 'leaderboard', emoji: '🏆' },
 ];
@@ -30,21 +30,12 @@ const itemAccent = {
   leaderboard:  { bg: 'bg-amber-500',   border: 'border-b-amber-700',   shadow: 'shadow-amber-300/40'   },
 };
 
-const Sidebar = ({ className = '', activeTab, setActiveTab }) => {
+const Sidebar = ({ className = '' }) => {
   const navigate  = useNavigate();
   const location  = useLocation();
 
-  const handleNavClick = (e, item) => {
-    if (['dashboard', 'studyZone', 'labDashboard', 'quizzes'].includes(item.id)) {
-      e.preventDefault();
-      if (location.pathname !== '/student/home') navigate('/student/home');
-      if (setActiveTab) setActiveTab(item.id);
-    }
-  };
-
   const handleLogoClick = () => {
-    if (location.pathname !== '/student/home') navigate('/student/home');
-    if (setActiveTab) setActiveTab('dashboard');
+    navigate('/student/home');
   };
 
   return (
@@ -67,16 +58,13 @@ const Sidebar = ({ className = '', activeTab, setActiveTab }) => {
       {/* ── Navigation ── */}
       <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-1.5">
         {navItems.map((item) => {
-          const isTabActive   = location.pathname === '/student/home' && activeTab === item.id;
-          const isRouteActive = location.pathname === item.path && !['dashboard', 'studyZone', 'labDashboard', 'quizzes'].includes(item.id);
-          const isActive      = isTabActive || isRouteActive;
-          const accent        = itemAccent[item.id] ?? itemAccent.dashboard;
+          const isActive = location.pathname.startsWith(item.path);
+          const accent   = itemAccent[item.id] ?? itemAccent.dashboard;
 
           return (
             <NavLink
               key={item.name}
               to={item.path}
-              onClick={(e) => handleNavClick(e, item)}
               className={`
                 flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all duration-200 select-none
                 ${isActive
