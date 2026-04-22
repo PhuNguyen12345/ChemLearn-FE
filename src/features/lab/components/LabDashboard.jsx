@@ -1,61 +1,47 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Beaker, MoreVertical, Edit2, Trash, Copy, FlaskConical, Sparkles, Zap } from 'lucide-react';
+import { toast } from 'sonner';
+import {
+  Search, Plus, FlaskConical, Sparkles, Compass, ClipboardList
+} from 'lucide-react';
 
-/* ─────────────────────────────────────────────────────────
-   Mock data — each lab now has a `gradient` for its thumbnail
-───────────────────────────────────────────────────────── */
-const mockLabs = [
-  {
-    id: '1',
-    title: 'Acid-Base Titration',
-    lastEdited: '2 hours ago',
-    gradient: 'from-teal-400 to-emerald-500',
-    iconColor: 'text-emerald-100',
-    tag: '🧪 Reactions',
-  },
-  {
-    id: '2',
-    title: 'Exothermic Reactions 101',
-    lastEdited: 'Yesterday',
-    gradient: 'from-orange-400 to-rose-500',
-    iconColor: 'text-rose-100',
-    tag: '🔥 Thermochemistry',
-  },
-  {
-    id: '3',
-    title: 'Properties of Metals',
-    lastEdited: '3 days ago',
-    gradient: 'from-sky-400 to-blue-600',
-    iconColor: 'text-blue-100',
-    tag: '⚗️ Materials',
-  },
-  {
-    id: '4',
-    title: 'My First Experiment',
-    lastEdited: '1 week ago',
-    gradient: 'from-violet-400 to-purple-600',
-    iconColor: 'text-purple-100',
-    tag: '🌟 Beginner',
-  },
-];
+import { useLabData } from '../hooks/useLabData';
+import LabCard from './LabCard';
 
 /* ─────────────────────────────────────────────────────────
    Main Component
 ───────────────────────────────────────────────────────── */
 const LabDashboard = () => {
   const navigate = useNavigate();
-  const [searchQuery,  setSearchQuery]  = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [activeMenuId, setActiveMenuId] = useState(null);
+  
+  // Default to Discovery tab
+  const [activeTab, setActiveTab] = useState('PREMADE');
 
-  const filteredLabs = mockLabs.filter((lab) =>
-    lab.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Custom hook for logic
+  const { filteredLabs, tabCounts, hasUncompletedAssignment } = useLabData(activeTab, searchQuery);
 
-  const toggleMenu = (e, id) => {
-    e.stopPropagation();
-    setActiveMenuId(activeMenuId === id ? null : id);
+  // Object Map to manage header content
+  const bannerContent = {
+    PREMADE: {
+      icon: <Compass className="w-6 h-6 text-white" />,
+      title: "Discovery Labs 🧭",
+      desc: "Learn from standard laboratory experiments, pre-designed to help you get acquainted."
+    },
+    SANDBOX: {
+      icon: <Sparkles className="w-6 h-6 text-white" />,
+      title: "Your Experiments ✨",
+      desc: "Create and formulate freely without limits. Record every new discovery!"
+    },
+    ASSIGNMENT: {
+      icon: <ClipboardList className="w-6 h-6 text-white" />,
+      title: "Assignments 📝",
+      desc: "Complete assigned tasks to accumulate EXP and unlock achievements."
+    }
   };
+
+  const currentBanner = bannerContent[activeTab];
 
   /* Close any open menu when clicking elsewhere */
   const handleWrapperClick = () => {
@@ -84,18 +70,18 @@ const LabDashboard = () => {
         <div className="relative z-10">
           {/* Title row */}
           <div className="flex items-center gap-2 mb-1">
-            <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
-              <FlaskConical className="w-6 h-6 text-white" />
+            <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm transition-all duration-300">
+              {currentBanner.icon}
             </div>
             <span className="text-white/80 text-sm font-black uppercase tracking-widest flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-yellow-300" /> My Lab Hub
+              <FlaskConical className="w-3.5 h-3.5 text-yellow-300" /> ChemLearn
             </span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight drop-shadow-sm mt-2">
-            Your Experiments 🧪
+          <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight drop-shadow-sm mt-2 transition-all duration-300">
+            {currentBanner.title}
           </h1>
-          <p className="text-indigo-100 mt-1.5 font-semibold text-base max-w-lg">
-            Create, manage, and revisit your virtual lab experiments. Earn XP for every discovery!
+          <p className="text-indigo-100 mt-1.5 font-semibold text-base max-w-lg transition-all duration-300">
+            {currentBanner.desc}
           </p>
 
           {/* Search + Create button row */}
@@ -114,27 +100,61 @@ const LabDashboard = () => {
             </div>
 
             {/* Create button — Emerald tactile */}
-            <button
-              onClick={() => navigate('/lab-workspace/new')}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-400 hover:bg-emerald-500 text-white font-black rounded-2xl border-b-4 border-emerald-700 hover:border-emerald-800 active:border-b active:translate-y-1 transition-all duration-150 shadow-lg shadow-emerald-500/30 shrink-0 text-sm"
-            >
-              <Plus className="w-5 h-5" />
-              Create New Lab
-            </button>
+            <div className={`transition-all duration-300 ${activeTab === 'SANDBOX' ? 'opacity-100 scale-100 w-auto' : 'opacity-0 scale-95 w-0 overflow-hidden absolute pointer-events-none'}`}>
+              <button
+                onClick={() => navigate('/lab-workspace/new')}
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-400 hover:bg-emerald-500 text-white font-black rounded-2xl border-b-4 border-emerald-700 hover:border-emerald-800 active:border-b active:translate-y-1 shadow-lg shadow-emerald-500/30 shrink-0 text-sm whitespace-nowrap"
+              >
+                <Plus className="w-5 h-5" />
+                Create New Lab
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* ══════════════════════════════════════════════
-          STATS ROW
+          TABS NAVIGATION
       ══════════════════════════════════════════════ */}
-      <div className="px-4 md:px-6 mb-2 flex flex-wrap gap-3">
-        <div className="flex items-center gap-2 bg-white border-2 border-indigo-100 border-b-[3px] border-b-indigo-300 rounded-2xl px-4 py-2 shadow-sm text-sm font-black text-indigo-600">
-          <FlaskConical className="w-4 h-4" /> {filteredLabs.length} Experiments
-        </div>
-        <div className="flex items-center gap-2 bg-white border-2 border-emerald-100 border-b-[3px] border-b-emerald-300 rounded-2xl px-4 py-2 shadow-sm text-sm font-black text-emerald-600">
-          <Zap className="w-4 h-4" /> +120 XP Earned
-        </div>
+      <div className="px-4 md:px-6 mb-6 flex flex-wrap gap-3">
+        {/* Tab: Discovery */}
+        <button
+          onClick={() => setActiveTab('PREMADE')}
+          className={`flex items-center gap-2.5 px-5 py-2.5 rounded-2xl text-sm font-black transition-all duration-300 ${
+            activeTab === 'PREMADE'
+              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 border-2 border-indigo-600 translate-y-[-2px]'
+              : 'bg-white text-slate-500 border-2 border-slate-200 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50'
+          }`}
+        >
+          <Compass className="w-4 h-4" /> Discovery ({tabCounts.premade})
+        </button>
+
+        {/* Tab: Sandbox */}
+        <button
+          onClick={() => setActiveTab('SANDBOX')}
+          className={`flex items-center gap-2.5 px-5 py-2.5 rounded-2xl text-sm font-black transition-all duration-300 ${
+            activeTab === 'SANDBOX'
+              ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/30 border-2 border-pink-500 translate-y-[-2px]'
+              : 'bg-white text-slate-500 border-2 border-slate-200 hover:border-pink-300 hover:text-pink-600 hover:bg-pink-50'
+          }`}
+        >
+          <Sparkles className="w-4 h-4" /> Your Experiment ({tabCounts.sandbox})
+        </button>
+
+        {/* Tab: Assignments */}
+        <button
+          onClick={() => setActiveTab('ASSIGNMENT')}
+          className={`relative flex items-center gap-2.5 px-5 py-2.5 rounded-2xl text-sm font-black transition-all duration-300 ${
+            activeTab === 'ASSIGNMENT'
+              ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30 border-2 border-rose-500 translate-y-[-2px]'
+              : 'bg-white text-slate-500 border-2 border-slate-200 hover:border-rose-300 hover:text-rose-600 hover:bg-rose-50'
+          }`}
+        >
+          <ClipboardList className="w-4 h-4" /> Assignments ({tabCounts.assignment})
+          {hasUncompletedAssignment && (
+            <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-rose-500 border-2 border-white rounded-full animate-pulse" />
+          )}
+        </button>
       </div>
 
       {/* ══════════════════════════════════════════════
@@ -143,104 +163,34 @@ const LabDashboard = () => {
       <div className="px-4 md:px-6 pb-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
 
-          {/* ── CREATE NEW card ── */}
-          <div
-            onClick={() => navigate('/lab-workspace/new')}
-            className="group bg-indigo-50 rounded-3xl border-4 border-dashed border-indigo-300 hover:border-indigo-500 hover:bg-indigo-100/70 hover:-translate-y-2 hover:shadow-[0_10px_28px_rgba(99,102,241,0.3)] transition-all duration-300 flex flex-col items-center justify-center p-8 cursor-pointer aspect-[4/3] min-h-[200px]"
-          >
-            <div className="w-20 h-20 rounded-3xl bg-indigo-200 group-hover:bg-indigo-300 flex items-center justify-center mb-4 transition-all duration-300 shadow-inner shadow-indigo-300/50 group-hover:scale-110 group-hover:rotate-3">
-              <Plus className="w-10 h-10 text-indigo-600 group-hover:text-indigo-700" />
+          {/* ── CREATE NEW card (Only show when in SANDBOX tab) ── */}
+          {activeTab === 'SANDBOX' && (
+            <div
+              onClick={() => navigate('/lab-workspace/new')}
+              className="group bg-indigo-50 rounded-3xl border-4 border-dashed border-indigo-300 hover:border-indigo-500 hover:bg-indigo-100/70 hover:-translate-y-2 hover:shadow-[0_10px_28px_rgba(99,102,241,0.3)] transition-all duration-300 flex flex-col items-center justify-center p-8 cursor-pointer aspect-[4/3] min-h-[200px]"
+            >
+              <div className="w-20 h-20 rounded-3xl bg-indigo-200 group-hover:bg-indigo-300 flex items-center justify-center mb-4 transition-all duration-300 shadow-inner shadow-indigo-300/50 group-hover:scale-110 group-hover:rotate-3">
+                <Plus className="w-10 h-10 text-indigo-600 group-hover:text-indigo-700" />
+              </div>
+              <h3 className="font-black text-indigo-600 group-hover:text-indigo-700 text-base text-center">
+                New Experiment
+              </h3>
+              <p className="text-indigo-400 text-xs font-semibold mt-1 text-center">Start from scratch</p>
             </div>
-            <h3 className="font-black text-indigo-600 group-hover:text-indigo-700 text-base text-center">
-              New Experiment
-            </h3>
-            <p className="text-indigo-400 text-xs font-semibold mt-1 text-center">Start from scratch</p>
-          </div>
+          )}
 
           {/* ── Existing Lab Cards ── */}
           {filteredLabs.map((lab) => (
-            <div
+            <LabCard
               key={lab.id}
-              onClick={() => navigate('/lab-workspace/' + lab.id)}
-              className="group bg-white rounded-3xl border-2 border-slate-100 border-b-4 border-b-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-2 hover:border-indigo-200 hover:border-b-indigo-300 transition-all duration-300 cursor-pointer flex flex-col overflow-hidden relative"
-            >
-              {/* ── Gradient Thumbnail ── */}
-              <div className={`w-full aspect-video bg-gradient-to-br ${lab.gradient} flex items-center justify-center relative overflow-hidden`}>
-                {/* Inner gloss */}
-                <div className="absolute inset-0 bg-white/10" />
-                <div className="absolute inset-x-0 top-0 h-1/3 bg-white/10" />
-
-                <Beaker
-                  className={`w-14 h-14 ${lab.iconColor} relative z-10 drop-shadow-lg group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300`}
-                  strokeWidth={1.5}
-                />
-
-                {/* Tag badge on thumbnail */}
-                <span className="absolute bottom-2 left-2.5 text-[10px] font-black text-white bg-black/25 backdrop-blur-sm px-2 py-0.5 rounded-full border border-white/20">
-                  {lab.tag}
-                </span>
-              </div>
-
-              {/* ── Card Details ── */}
-              <div className="p-4 flex flex-col flex-1 relative">
-                <h3 className="font-black text-slate-800 text-base truncate pr-8" title={lab.title}>
-                  {lab.title}
-                </h3>
-                <p className="text-xs font-semibold text-slate-400 mt-1">
-                  ✏️ Edited {lab.lastEdited}
-                </p>
-
-                {/* Open button that appears on hover */}
-                <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <div className="text-xs font-black text-indigo-500 flex items-center gap-1">
-                    Open Lab <span className="group-hover:translate-x-1 inline-block transition-transform">→</span>
-                  </div>
-                </div>
-
-                {/* ── Settings trigger ── */}
-                <button
-                  onClick={(e) => toggleMenu(e, lab.id)}
-                  className="absolute right-3 top-3 p-1.5 rounded-xl hover:bg-indigo-50 hover:text-indigo-600 text-slate-400 transition-all duration-150"
-                >
-                  <MoreVertical className="w-4 h-4" />
-                </button>
-
-                {/* ── Popover menu ── */}
-                {activeMenuId === lab.id && (
-                  <div className="absolute right-3 top-10 bg-white border border-slate-100 shadow-2xl rounded-2xl flex flex-col py-2 z-20 w-40 overflow-hidden">
-                    <button
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 text-left w-full transition-colors"
-                      onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); }}
-                    >
-                      <div className="w-6 h-6 rounded-lg bg-indigo-100 flex items-center justify-center">
-                        <Edit2 className="w-3.5 h-3.5 text-indigo-600" />
-                      </div>
-                      Rename
-                    </button>
-                    <button
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-sky-50 hover:text-sky-700 text-left w-full transition-colors"
-                      onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); }}
-                    >
-                      <div className="w-6 h-6 rounded-lg bg-sky-100 flex items-center justify-center">
-                        <Copy className="w-3.5 h-3.5 text-sky-600" />
-                      </div>
-                      Duplicate
-                    </button>
-                    <div className="mx-3 border-t border-slate-100 my-1" />
-                    <button
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-rose-500 hover:bg-rose-50 text-left w-full transition-colors"
-                      onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); }}
-                    >
-                      <div className="w-6 h-6 rounded-lg bg-rose-100 flex items-center justify-center">
-                        <Trash className="w-3.5 h-3.5 text-rose-600" />
-                      </div>
-                      Delete
-                    </button>
-                  </div>
-                )}
-              </div>
-
-            </div>
+              lab={lab}
+              isMenuOpen={activeMenuId === lab.id}
+              onToggleMenu={() => setActiveMenuId(activeMenuId === lab.id ? null : lab.id)}
+              onOpen={() => navigate('/lab-workspace/' + lab.id)}
+              onRename={() => toast.info('Feature coming in the next update!')}
+              onDuplicate={() => toast.info('Feature coming in the next update!')}
+              onDelete={() => toast.error('Delete feature temporarily locked to protect core data.')}
+            />
           ))}
 
         </div>
@@ -250,7 +200,11 @@ const LabDashboard = () => {
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="text-6xl mb-4 animate-bounce" style={{ animationDuration: '2s' }}>🔍</div>
             <h3 className="font-black text-slate-700 text-xl mb-2">No experiments found</h3>
-            <p className="text-slate-400 font-semibold text-sm">Try a different search term, or create a new experiment!</p>
+            <p className="text-slate-400 font-semibold text-sm">
+              {activeTab === 'SANDBOX' 
+                ? 'Try searching with different keywords, or create a new experiment!'
+                : 'Try searching with different keywords, there seem to be no tasks here.'}
+            </p>
           </div>
         )}
       </div>

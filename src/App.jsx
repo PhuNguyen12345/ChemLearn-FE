@@ -1,6 +1,7 @@
 
 import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Toaster } from "sonner";
 import StudentHome from "./pages/student/StudentHome";
 import Missions from "./pages/student/Missions";
 import Leaderboard from "./pages/student/Leaderboard";
@@ -22,6 +23,7 @@ import LabDashboard from "./features/lab/components/LabDashboard";
 function App() {
   return (
     <>
+      <Toaster position="top-right" richColors />
       <BrowserRouter>
         <Routes>
           <Route
