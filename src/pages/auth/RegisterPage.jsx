@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import useAuthStore from '../../stores/useAuthStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import api from '@/lib/api';
+
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_.]).{8,32}$/;
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -16,6 +19,7 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const logout = useAuthStore((state) => state.logout);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -24,6 +28,11 @@ export default function RegisterPage() {
 
     if (formData.password !== formData.confirmPassword) {
       setError('Mat khau xac nhan khong khop.');
+      return;
+    }
+
+    if (!PASSWORD_REGEX.test(formData.password)) {
+      setError('Mật khẩu phải 8-32 ký tự, có chữ hoa, chữ thường, số và ký tự đặc biệt.');
       return;
     }
 
@@ -36,8 +45,9 @@ export default function RegisterPage() {
         password: formData.password,
       });
 
-      setSuccess('Dang ky thanh cong. Dang chuyen sang trang dang nhap...');
-      setTimeout(() => navigate('/login'), 800);
+      logout();
+      setSuccess('Đăng kí thành công. Chuyển sang trang đăng nhập...');
+      setTimeout(() => navigate('/login', { replace: true }), 800);
     } catch (err) {
       const backendMessage =
         err?.response?.data?.message ||

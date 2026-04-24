@@ -48,7 +48,7 @@ export default function LoginPage() {
       const backendMessage =
         err?.response?.data?.message ||
         err?.response?.data ||
-        'Dang nhap that bai. Vui long kiem tra tai khoan va mat khau.';
+        'Đăng nhập thất bại.';
 
       setError(String(backendMessage));
     } finally {

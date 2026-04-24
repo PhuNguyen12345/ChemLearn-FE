@@ -13,11 +13,38 @@ import FireQuizGame from '../../FireQuizGame';
 import StudentShop from '../../../pages/student/StudentShop';
 import StudentIsland from '../../../pages/student/StudentIsland';
 
+const STUDENT_HOME_TAB_KEY = 'chemlearn_student_home_tab';
+
+const allowedHomeTabs = new Set([
+  'dashboard',
+  'studyZone',
+  'quizzes',
+  'quizPlayer',
+  'labDashboard',
+  'labWorkspace',
+  'fireQuiz',
+  'shop',
+  'island',
+]);
+
+const readStoredHomeTab = () => {
+  if (typeof window === 'undefined') return 'dashboard';
+
+  const storedTab = localStorage.getItem(STUDENT_HOME_TAB_KEY);
+  return storedTab && allowedHomeTabs.has(storedTab) ? storedTab : 'dashboard';
+};
+
 const StudentLayout = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState(readStoredHomeTab);
   const [activeLabId, setActiveLabId] = useState(null);
   const [activeQuizId, setActiveQuizId] = useState(null);
   const location = useLocation();
+
+  React.useEffect(() => {
+    if (location.pathname === '/student/home') {
+      localStorage.setItem(STUDENT_HOME_TAB_KEY, activeTab);
+    }
+  }, [activeTab, location.pathname]);
 
   // If we're on the main student home route, we intercept to allow internal tabs
   const isHomeRoute = location.pathname === '/student/home';

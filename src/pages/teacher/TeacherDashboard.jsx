@@ -48,7 +48,21 @@ import {
 } from '@/lib/api';
 import useAuthStore from '@/stores/useAuthStore';
 
-const TeacherDashboard = () => {
+const TEACHER_DASHBOARD_TAB_KEY = 'chemlearn_teacher_dashboard_tab';
+const teacherDashboardTabs = new Set(['performance', 'submissions', 'content', 'quizzes', 'assignments']);
+
+const resolveInitialTeacherTab = (preferredTab) => {
+  if (preferredTab && teacherDashboardTabs.has(preferredTab)) {
+    return preferredTab;
+  }
+
+  if (typeof window === 'undefined') return 'performance';
+
+  const storedTab = localStorage.getItem(TEACHER_DASHBOARD_TAB_KEY);
+  return storedTab && teacherDashboardTabs.has(storedTab) ? storedTab : 'performance';
+};
+
+const TeacherDashboard = ({ initialTab }) => {
   const { user } = useAuthStore();
   const [summary, setSummary] = useState(null);
   const [performance, setPerformance] = useState([]);
@@ -61,6 +75,7 @@ const TeacherDashboard = () => {
   const [selectedQuizForQuestions, setSelectedQuizForQuestions] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState(() => resolveInitialTeacherTab(initialTab));
 
   // Modal states
   const [showQuizModal, setShowQuizModal] = useState(false);
@@ -153,6 +168,10 @@ const TeacherDashboard = () => {
   useEffect(() => {
     loadData(false);
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem(TEACHER_DASHBOARD_TAB_KEY, activeTab);
+  }, [activeTab]);
 
   useEffect(() => {
     const loadQuestions = async () => {
@@ -666,7 +685,7 @@ const TeacherDashboard = () => {
             </Card>
           </div>
 
-          <Tabs defaultValue="performance" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="bg-slate-100/50 p-1 rounded-xl">
               <TabsTrigger value="performance" className="rounded-lg">Student Performance</TabsTrigger>
               <TabsTrigger value="submissions" className="rounded-lg">Submissions</TabsTrigger>

@@ -88,6 +88,16 @@ export const getTeacherLessons = async () => {
   return response.data;
 };
 
+export const getTeacherClasses = async () => {
+  const response = await api.get('/api/teacher/classes');
+  return response.data;
+};
+
+export const getTeacherStudentAccount = async (studentId) => {
+  const response = await api.get(`/api/teacher/students/${studentId}`);
+  return response.data;
+};
+
 // Teacher chapter operations
 export const createTeacherChapter = async (payload) => {
   const response = await api.post('/api/teacher/chapters', payload);
@@ -157,6 +167,31 @@ export const deleteTeacherQuizQuestion = async (questionId) => {
   return response.data;
 };
 
+export const getTeacherQuestionBank = async () => {
+  const response = await api.get('/api/teacher/question-bank');
+  return response.data;
+};
+
+export const createTeacherQuestionBankItem = async (payload) => {
+  const response = await api.post('/api/teacher/question-bank', payload);
+  return response.data;
+};
+
+export const updateTeacherQuestionBankItem = async (bankQuestionId, payload) => {
+  const response = await api.put(`/api/teacher/question-bank/${bankQuestionId}`, payload);
+  return response.data;
+};
+
+export const deleteTeacherQuestionBankItem = async (bankQuestionId) => {
+  const response = await api.delete(`/api/teacher/question-bank/${bankQuestionId}`);
+  return response.data;
+};
+
+export const addQuestionFromBankToQuiz = async (quizId, bankQuestionId) => {
+  const response = await api.post(`/api/teacher/quizzes/${quizId}/questions/from-bank/${bankQuestionId}`);
+  return response.data;
+};
+
 // Teacher assignment operations
 export const createTeacherAssignment = async (payload) => {
   const response = await api.post('/api/teacher/assignments', payload);
@@ -170,6 +205,31 @@ export const updateTeacherAssignment = async (assignmentId, payload) => {
 
 export const deleteTeacherAssignment = async (assignmentId) => {
   const response = await api.delete(`/api/teacher/assignments/${assignmentId}`);
+  return response.data;
+};
+
+export const getAccounts = async () => {
+  const response = await api.get('/api/accounts');
+  return response.data;
+};
+
+export const getAdminClasses = async () => {
+  const response = await api.get('/api/admin/classes');
+  return response.data;
+};
+
+export const createAdminClass = async (payload) => {
+  const response = await api.post('/api/admin/classes', payload);
+  return response.data;
+};
+
+export const updateAdminClass = async (classId, payload) => {
+  const response = await api.put(`/api/admin/classes/${classId}`, payload);
+  return response.data;
+};
+
+export const deleteAdminClass = async (classId) => {
+  const response = await api.delete(`/api/admin/classes/${classId}`);
   return response.data;
 };
 

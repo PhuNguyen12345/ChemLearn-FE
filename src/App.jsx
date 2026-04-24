@@ -10,6 +10,9 @@ import ParentLayout from "./components/layout/parent/ParentLayout";
 import ParentDashboard from "./pages/parent/ParentDashboard";
 import TeacherLayout from "./components/layout/teacher/TeacherLayout";
 import TeacherDashboard from "./pages/teacher/TeacherDashboard";
+import TeacherClassManagement from "./pages/teacher/TeacherClassManagement";
+import TeacherQuestionBank from "./pages/teacher/TeacherQuestionBank";
+import TeacherStudentProfile from "./pages/teacher/TeacherStudentProfile";
 import LandingPage from "./pages/LandingPage";
 
 import AdminLayout from "./components/layout/admin/AdminLayout";
@@ -17,6 +20,7 @@ import AuthLayout from "./components/layout/auth/AuthLayout";
 import Login from "./pages/auth/LoginPage";
 import Register from "./pages/auth/RegisterPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminClassManagement from "./pages/admin/AdminClassManagement";
 import VirtualLabPage from "./features/lab/VirtualLabPage";
 import FireQuizGame from "./components/FireQuizGame";
 import ProtectedRoute from "./components/shared/ProtectedRoute";
@@ -83,7 +87,10 @@ function App() {
 
           <Route element={<ProtectedRoute allowedRoles={["ROLE_TEACHER"]} />}>
             <Route element={<TeacherLayout />}>
-              <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
+              <Route path="/teacher/dashboard" element={<TeacherDashboard initialTab="performance" />} />
+              <Route path="/teacher/classes" element={<TeacherClassManagement />} />
+              <Route path="/teacher/questions" element={<TeacherQuestionBank />} />
+              <Route path="/teacher/students/:studentId" element={<TeacherStudentProfile />} />
               {/* Các trang khác của teacher ném hết vào đây */}
             </Route>
           </Route>
@@ -91,6 +98,7 @@ function App() {
           <Route element={<ProtectedRoute allowedRoles={["ROLE_ADMIN"]} />}>
             <Route element={<AdminLayout />}>
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/classes" element={<AdminClassManagement />} />
               {/* Các trang khác của admin ném hết vào đây */}
             </Route>
           </Route>
