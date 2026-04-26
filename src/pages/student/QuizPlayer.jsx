@@ -50,7 +50,7 @@ const QuizPlayer = ({ quizId, onBack }) => {
         setQuiz(quizData);
         setAttemptId(attemptData.attemptId);
 
-        if (quizData.quizType === 'TIMED' && quizData.durationMinutes) {
+        if (quizData.durationMinutes && quizData.quizType !== 'FREE') {
           setTimeLeft(quizData.durationMinutes * 60);
         } else {
           setTimeLeft(null);
@@ -117,7 +117,7 @@ const QuizPlayer = ({ quizId, onBack }) => {
     if (!attemptId || !questions.length) return;
 
     const answers = Object.entries(selectedAnswers).map(([questionId, selectedOption]) => ({
-      questionId: Number(questionId),
+      questionId,
       selectedOption,
     }));
 

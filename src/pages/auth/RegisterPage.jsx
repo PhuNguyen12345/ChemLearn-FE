@@ -11,6 +11,7 @@ const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_.]).{8,32}$
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
     username: '',
+    fullName: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -42,6 +43,7 @@ export default function RegisterPage() {
       await api.post('/api/auth/register', {
         username: formData.username,
         email: formData.email,
+        fullName: formData.fullName,
         password: formData.password,
       });
 
@@ -83,36 +85,56 @@ export default function RegisterPage() {
         <form onSubmit={handleRegister} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="username">Tên đăng nhập</Label>
-            <Input 
-              id="username" 
-              type="text" 
+            <Input
+              id="username"
+              type="text"
               placeholder="Nhập tên đăng nhập"
               value={formData.username}
-              onChange={(e) => setFormData({...formData, username: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, username: e.target.value })
+              }
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="fullName">Tên đầy đủ</Label>
+            <Input
+              id="fullName"
+              type="text"
+              placeholder="Nhập tên đầy đủ"
+              value={formData.fullName}
+              onChange={(e) =>
+                setFormData({ ...formData, fullName: e.target.value })
+              }
               required
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input 
-              id="email" 
-              type="email" 
+            <Input
+              id="email"
+              type="email"
               placeholder="Nhập email"
               value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
               required
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="password">Mật khẩu</Label>
-            <Input 
-              id="password" 
-              type="password" 
+            <Input
+              id="password"
+              type="password"
               placeholder="Nhập mật khẩu"
               value={formData.password}
-              onChange={(e) => setFormData({...formData, password: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
               required
             />
           </div>
@@ -124,26 +146,33 @@ export default function RegisterPage() {
               type="password"
               placeholder="Nhập lại mật khẩu"
               value={formData.confirmPassword}
-              onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, confirmPassword: e.target.value })
+              }
               required
             />
           </div>
 
           <p className="text-xs text-gray-500">
-            Mật khẩu phải 8-32 ký tự, có chữ hoa, chữ thường, số và ký tự đặc biệt.
+            Mật khẩu phải 8-32 ký tự, có chữ hoa, chữ thường, số và ký tự đặc
+            biệt.
           </p>
 
           <p className="text-xs text-gray-500">
             Tài khoản đăng ký mới hiện tại được gán mặc định vai trò học sinh.
           </p>
 
-          <Button type="submit" disabled={isLoading} className="w-full bg-blue-600 hover:bg-blue-700 mt-6">
-            {isLoading ? 'Đang xử lý...' : 'Đăng Ký'}
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-blue-600 hover:bg-blue-700 mt-6"
+          >
+            {isLoading ? "Đang xử lý..." : "Đăng Ký"}
           </Button>
         </form>
 
         <div className="mt-6 text-center text-sm text-gray-500">
-          Đã có tài khoản?{' '}
+          Đã có tài khoản?{" "}
           <Link to="/login" className="text-blue-600 hover:underline">
             Đăng nhập
           </Link>

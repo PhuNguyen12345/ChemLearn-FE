@@ -46,6 +46,7 @@ import {
   updateTeacherAssignment,
   deleteTeacherAssignment,
 } from '@/lib/api';
+import { formatInstantToLocale, instantToDatetimeLocal } from '@/lib/utils';
 import useAuthStore from '@/stores/useAuthStore';
 
 const TEACHER_DASHBOARD_TAB_KEY = 'chemlearn_teacher_dashboard_tab';
@@ -296,7 +297,7 @@ const TeacherDashboard = ({ initialTab }) => {
       setSubmitting(true);
       const payload = {
         ...lessonForm,
-        chapterId: Number(lessonForm.chapterId),
+        chapterId: lessonForm.chapterId,
         estimatedMinutes: Number.isFinite(Number(lessonForm.estimatedMinutes)) ? Number(lessonForm.estimatedMinutes) : null,
         displayOrder: Number.isFinite(Number(lessonForm.displayOrder)) ? Number(lessonForm.displayOrder) : 0,
       };
@@ -440,7 +441,7 @@ const TeacherDashboard = ({ initialTab }) => {
         description: assignment.description || '',
         quizId: String(assignment.quizId || defaultQuizId),
         studentId: String(assignment.studentId || defaultStudentId),
-        dueAt: assignment.dueAt ? new Date(assignment.dueAt).toISOString().slice(0, 16) : '',
+        dueAt: instantToDatetimeLocal(assignment.dueAt),
       });
     } else {
       setEditingAssignment(null);
@@ -533,7 +534,7 @@ const TeacherDashboard = ({ initialTab }) => {
         description: assignment.description || '',
         quizId: String(assignment.quizId || defaultQuizId),
         studentId: String(assignment.studentId || defaultStudentId),
-        dueAt: assignment.dueAt ? new Date(assignment.dueAt).toISOString().slice(0, 16) : '',
+        dueAt: instantToDatetimeLocal(assignment.dueAt),
       });
     } else {
       setEditingAssignment(null);
@@ -566,8 +567,8 @@ const TeacherDashboard = ({ initialTab }) => {
       const payload = {
         ...assignmentForm,
         dueAt: assignmentForm.dueAt ? new Date(assignmentForm.dueAt).toISOString() : null,
-        quizId: assignmentForm.quizId ? parseInt(assignmentForm.quizId) : null,
-        studentId: assignmentForm.studentId ? parseInt(assignmentForm.studentId) : null,
+        quizId: assignmentForm.quizId || null,
+        studentId: assignmentForm.studentId || null,
       };
       if (editingAssignment) {
         await updateTeacherAssignment(editingAssignment.id, payload);
@@ -1014,7 +1015,7 @@ const TeacherDashboard = ({ initialTab }) => {
                           <TableCell>
                             <Badge className="bg-indigo-100 text-indigo-800 border-none">{assignment.status}</Badge>
                           </TableCell>
-                          <TableCell>{assignment.dueAt ? new Date(assignment.dueAt).toLocaleString() : '-'}</TableCell>
+                          <TableCell>{formatInstantToLocale(assignment.dueAt)}</TableCell>
                           <TableCell className="flex gap-2">
                             <button
                               onClick={() => handleAssignmentModalOpen(assignment)}
@@ -1099,7 +1100,7 @@ const TeacherDashboard = ({ initialTab }) => {
                   <input
                     type="number"
                     value={quizForm.durationMinutes}
-                    onChange={(e) => setQuizForm({ ...quizForm, durationMinutes: parseInt(e.target.value) })}
+                    onChange={(e) => setQuizForm({ ...quizForm, durationMinutes: e.target.value })}
                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     min="1"
                     disabled={submitting}

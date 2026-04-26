@@ -132,7 +132,7 @@ const TeacherQuestionBank = () => {
       setSaving(true);
       setError('');
       setSuccess('');
-      await addQuestionFromBankToQuiz(Number(selectedQuizId), bankQuestionId);
+      await addQuestionFromBankToQuiz(selectedQuizId, bankQuestionId);
       setSuccess('Question copied into selected quiz.');
     } catch (err) {
       setError(err?.response?.data?.message || 'Failed to add question to quiz.');

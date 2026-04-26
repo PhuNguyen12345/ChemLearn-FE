@@ -99,7 +99,7 @@ const AdminClassManagement = () => {
 
       const payload = {
         ...form,
-        teacherId: form.teacherId ? Number(form.teacherId) : null,
+        teacherId: form.teacherId || null,
       };
 
       if (editingClassId) {
