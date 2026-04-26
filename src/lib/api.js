@@ -208,8 +208,35 @@ export const deleteTeacherAssignment = async (assignmentId) => {
   return response.data;
 };
 
-export const getAccounts = async () => {
-  const response = await api.get('/api/accounts');
+export const getUsers = async () => {
+  const response = await api.get('/api/users');
+  return response.data;
+};
+
+export const getAccounts = getUsers;
+
+export const getUserById = async (userId) => {
+  const response = await api.get(`/api/users/${userId}`);
+  return response.data;
+};
+
+export const createUser = async (payload) => {
+  const response = await api.post('/api/users', payload);
+  return response.data;
+};
+
+export const updateUser = async (userId, payload) => {
+  const response = await api.patch(`/api/users/${userId}`, payload);
+  return response.data;
+};
+
+export const deactivateUser = async (userId) => {
+  const response = await api.patch(`/api/users/${userId}/deactivate`);
+  return response.data;
+};
+
+export const deleteUser = async (userId) => {
+  const response = await api.delete(`/api/users/${userId}`);
   return response.data;
 };
 

@@ -63,6 +63,13 @@ const resolveInitialTeacherTab = (preferredTab) => {
   return storedTab && teacherDashboardTabs.has(storedTab) ? storedTab : 'performance';
 };
 
+const toArray = (value) => {
+  if (Array.isArray(value)) return value;
+  if (Array.isArray(value?.content)) return value.content;
+  if (Array.isArray(value?.data)) return value.data;
+  return [];
+};
+
 const TeacherDashboard = ({ initialTab }) => {
   const { user } = useAuthStore();
   const [summary, setSummary] = useState(null);
@@ -108,15 +115,15 @@ const TeacherDashboard = ({ initialTab }) => {
   const [chapterForm, setChapterForm] = useState({
     title: '',
     description: '',
-    displayOrder: 0,
+    orderIndex: 0,
     published: true,
   });
   const [lessonForm, setLessonForm] = useState({
     chapterId: '',
     title: '',
     content: '',
-    estimatedMinutes: 10,
-    displayOrder: 0,
+    durationMinutes: 10,
+    orderIndex: 0,
     published: true,
   });
   const [questionForm, setQuestionForm] = useState({
@@ -127,7 +134,7 @@ const TeacherDashboard = ({ initialTab }) => {
     optionD: '',
     correctOption: 'A',
     explanation: '',
-    displayOrder: 0,
+    orderIndex: 0,
   });
 
   const loadData = async (keepQuestionSelection = true) => {
@@ -145,18 +152,25 @@ const TeacherDashboard = ({ initialTab }) => {
         getTeacherLessons(),
       ]);
 
+      const normalizedPerformance = toArray(performanceData);
+      const normalizedSubmissions = toArray(submissionsData);
+      const normalizedQuizzes = toArray(quizzesData);
+      const normalizedAssignments = toArray(assignmentsData);
+      const normalizedChapters = toArray(chaptersData);
+      const normalizedLessons = toArray(lessonsData);
+
       setSummary(summaryData);
-      setPerformance(performanceData || []);
-      setSubmissions(submissionsData || []);
-      setQuizzes(quizzesData || []);
-      setAssignments(assignmentsData || []);
-      setChapters(chaptersData || []);
-      setLessons(lessonsData || []);
+      setPerformance(normalizedPerformance);
+      setSubmissions(normalizedSubmissions);
+      setQuizzes(normalizedQuizzes);
+      setAssignments(normalizedAssignments);
+      setChapters(normalizedChapters);
+      setLessons(normalizedLessons);
 
       if (!keepQuestionSelection || !selectedQuizForQuestions) {
         setSelectedQuizForQuestions((currentValue) => {
           if (currentValue && keepQuestionSelection) return currentValue;
-          return quizzesData?.[0]?.id ? String(quizzesData[0].id) : '';
+          return normalizedQuizzes?.[0]?.id ? String(normalizedQuizzes[0].id) : '';
         });
       }
     } catch (err) {
@@ -204,13 +218,13 @@ const TeacherDashboard = ({ initialTab }) => {
       });
   }, [performance]);
 
-  const openChapterModal = (chapter = null) => {
+  const openChapterModal = (chapter) => {
     if (chapter) {
       setEditingChapter(chapter);
       setChapterForm({
         title: chapter.title || '',
         description: chapter.description || '',
-        displayOrder: chapter.displayOrder ?? 0,
+        orderIndex: chapter.orderIndex ?? chapter.displayOrder ?? 0,
         published: chapter.published ?? true,
       });
     } else {
@@ -218,7 +232,7 @@ const TeacherDashboard = ({ initialTab }) => {
       setChapterForm({
         title: '',
         description: '',
-        displayOrder: 0,
+        orderIndex: 0,
         published: true,
       });
     }
@@ -231,8 +245,10 @@ const TeacherDashboard = ({ initialTab }) => {
     try {
       setSubmitting(true);
       const payload = {
-        ...chapterForm,
-        displayOrder: Number.isFinite(Number(chapterForm.displayOrder)) ? Number(chapterForm.displayOrder) : 0,
+        title: chapterForm.title,
+        description: chapterForm.description,
+        displayOrder: Number.isFinite(Number(chapterForm.orderIndex)) ? Number(chapterForm.orderIndex) : 0,
+        published: chapterForm.published,
       };
 
       if (editingChapter) {
@@ -272,8 +288,8 @@ const TeacherDashboard = ({ initialTab }) => {
         chapterId: String(lesson.chapterId || lesson.chapter?.id || defaultChapterId),
         title: lesson.title || '',
         content: lesson.content || '',
-        estimatedMinutes: lesson.estimatedMinutes ?? 10,
-        displayOrder: lesson.displayOrder ?? 0,
+        durationMinutes: lesson.durationMinutes ?? lesson.estimatedMinutes ?? 10,
+        orderIndex: lesson.orderIndex ?? lesson.displayOrder ?? 0,
         published: lesson.published ?? true,
       });
     } else {
@@ -282,8 +298,8 @@ const TeacherDashboard = ({ initialTab }) => {
         chapterId: defaultChapterId,
         title: '',
         content: '',
-        estimatedMinutes: 10,
-        displayOrder: 0,
+        durationMinutes: 10,
+        orderIndex: 0,
         published: true,
       });
     }
@@ -296,10 +312,12 @@ const TeacherDashboard = ({ initialTab }) => {
     try {
       setSubmitting(true);
       const payload = {
-        ...lessonForm,
         chapterId: lessonForm.chapterId,
-        estimatedMinutes: Number.isFinite(Number(lessonForm.estimatedMinutes)) ? Number(lessonForm.estimatedMinutes) : null,
-        displayOrder: Number.isFinite(Number(lessonForm.displayOrder)) ? Number(lessonForm.displayOrder) : 0,
+        title: lessonForm.title,
+        content: lessonForm.content,
+        estimatedMinutes: Number.isFinite(Number(lessonForm.durationMinutes)) ? Number(lessonForm.durationMinutes) : null,
+        displayOrder: Number.isFinite(Number(lessonForm.orderIndex)) ? Number(lessonForm.orderIndex) : 0,
+        published: lessonForm.published,
       };
 
       if (editingLesson) {
@@ -345,7 +363,7 @@ const TeacherDashboard = ({ initialTab }) => {
         optionD: question.optionD || '',
         correctOption: question.correctOption || 'A',
         explanation: question.explanation || '',
-        displayOrder: question.displayOrder ?? 0,
+        orderIndex: question.displayOrder ?? question.orderIndex ?? 0,
       });
     } else {
       setEditingQuestion(null);
@@ -357,7 +375,7 @@ const TeacherDashboard = ({ initialTab }) => {
         optionD: '',
         correctOption: 'A',
         explanation: '',
-        displayOrder: 0,
+        orderIndex: 0,
       });
     }
 
@@ -374,9 +392,14 @@ const TeacherDashboard = ({ initialTab }) => {
     try {
       setSubmitting(true);
       const payload = {
-        ...questionForm,
+        prompt: questionForm.prompt,
+        optionA: questionForm.optionA,
+        optionB: questionForm.optionB,
+        optionC: questionForm.optionC,
+        optionD: questionForm.optionD,
         correctOption: String(questionForm.correctOption || 'A').toUpperCase(),
-        displayOrder: Number.isFinite(Number(questionForm.displayOrder)) ? Number(questionForm.displayOrder) : 0,
+        explanation: questionForm.explanation,
+        displayOrder: Number.isFinite(Number(questionForm.orderIndex)) ? Number(questionForm.orderIndex) : 0,
       };
 
       if (editingQuestion) {
@@ -790,7 +813,7 @@ const TeacherDashboard = ({ initialTab }) => {
                         {chapters.map((chapter) => (
                           <TableRow key={chapter.id}>
                             <TableCell className="font-medium">{chapter.title}</TableCell>
-                            <TableCell>{chapter.displayOrder ?? 0}</TableCell>
+                            <TableCell>{chapter.orderIndex ?? chapter.displayOrder ?? 0}</TableCell>
                             <TableCell>{chapter.published ? 'Yes' : 'No'}</TableCell>
                             <TableCell className="flex gap-2">
                               <button
@@ -840,8 +863,8 @@ const TeacherDashboard = ({ initialTab }) => {
                         {lessons.map((lesson) => (
                           <TableRow key={lesson.id}>
                             <TableCell className="font-medium max-w-[220px] truncate">{lesson.title}</TableCell>
-                            <TableCell>{lesson.estimatedMinutes ?? '-'}</TableCell>
-                            <TableCell>{lesson.displayOrder ?? 0}</TableCell>
+                            <TableCell>{lesson.durationMinutes ?? lesson.estimatedMinutes ?? '-'}</TableCell>
+                            <TableCell>{lesson.orderIndex ?? lesson.displayOrder ?? 0}</TableCell>
                             <TableCell>{lesson.published ? 'Yes' : 'No'}</TableCell>
                             <TableCell className="flex gap-2">
                               <button
@@ -962,7 +985,7 @@ const TeacherDashboard = ({ initialTab }) => {
                         <TableRow key={question.id}>
                           <TableCell className="font-medium max-w-[360px] truncate">{question.prompt}</TableCell>
                           <TableCell>{question.correctOption}</TableCell>
-                          <TableCell>{question.displayOrder ?? 0}</TableCell>
+                          <TableCell>{question.displayOrder ?? question.orderIndex ?? 0}</TableCell>
                           <TableCell className="flex gap-2">
                             <button
                               onClick={() => openQuestionModal(question)}
@@ -1273,8 +1296,8 @@ const TeacherDashboard = ({ initialTab }) => {
                     <label className="block text-sm font-medium mb-1">Display Order</label>
                     <input
                       type="number"
-                      value={chapterForm.displayOrder}
-                      onChange={(e) => setChapterForm({ ...chapterForm, displayOrder: e.target.value })}
+                      value={chapterForm.orderIndex}
+                      onChange={(e) => setChapterForm({ ...chapterForm, orderIndex: e.target.value })}
                       className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       min="0"
                       disabled={submitting}
@@ -1374,8 +1397,8 @@ const TeacherDashboard = ({ initialTab }) => {
                     <label className="block text-sm font-medium mb-1">Estimated Minutes</label>
                     <input
                       type="number"
-                      value={lessonForm.estimatedMinutes}
-                      onChange={(e) => setLessonForm({ ...lessonForm, estimatedMinutes: e.target.value })}
+                      value={lessonForm.durationMinutes}
+                      onChange={(e) => setLessonForm({ ...lessonForm, durationMinutes: e.target.value })}
                       className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       min="1"
                       disabled={submitting}
@@ -1385,8 +1408,8 @@ const TeacherDashboard = ({ initialTab }) => {
                     <label className="block text-sm font-medium mb-1">Display Order</label>
                     <input
                       type="number"
-                      value={lessonForm.displayOrder}
-                      onChange={(e) => setLessonForm({ ...lessonForm, displayOrder: e.target.value })}
+                      value={lessonForm.orderIndex}
+                      onChange={(e) => setLessonForm({ ...lessonForm, orderIndex: e.target.value })}
                       className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       min="0"
                       disabled={submitting}
@@ -1486,8 +1509,8 @@ const TeacherDashboard = ({ initialTab }) => {
                     <label className="block text-sm font-medium mb-1">Display Order</label>
                     <input
                       type="number"
-                      value={questionForm.displayOrder}
-                      onChange={(e) => setQuestionForm({ ...questionForm, displayOrder: e.target.value })}
+                      value={questionForm.orderIndex}
+                      onChange={(e) => setQuestionForm({ ...questionForm, orderIndex: e.target.value })}
                       className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       min="0"
                       disabled={submitting}

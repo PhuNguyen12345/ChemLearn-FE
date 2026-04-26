@@ -21,6 +21,7 @@ import Login from "./pages/auth/LoginPage";
 import Register from "./pages/auth/RegisterPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminClassManagement from "./pages/admin/AdminClassManagement";
+import AdminUserManagement from "./pages/admin/AdminUserManagement";
 import VirtualLabPage from "./features/lab/VirtualLabPage";
 import FireQuizGame from "./components/FireQuizGame";
 import ProtectedRoute from "./components/shared/ProtectedRoute";
@@ -99,6 +100,7 @@ function App() {
             <Route element={<AdminLayout />}>
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/classes" element={<AdminClassManagement />} />
+              <Route path="/admin/users" element={<AdminUserManagement />} />
               {/* Các trang khác của admin ném hết vào đây */}
             </Route>
           </Route>
