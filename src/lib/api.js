@@ -275,4 +275,10 @@ export const getParentChildAssessments = async (childId) => {
   return response.data;
 };
 
+// Virtual Lab operations
+export const getVirtualLabs = async (params) => {
+  const response = await api.get('/api/v1/student/virtual-labs', { params });
+  return response.data;
+};
+
 export default api;

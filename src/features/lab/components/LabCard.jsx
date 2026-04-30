@@ -1,6 +1,7 @@
 import React from 'react';
 import { Beaker, MoreVertical, Edit2, Trash, Copy, CheckCircle2, Clock, CircleDashed, Info } from 'lucide-react';
 import { LAB_THEMES } from '../data/theme';
+import { formatRelativeTime } from '../../../lib/utils';
 
 const LabCard = ({
   lab,
@@ -122,7 +123,7 @@ const LabCard = ({
           {lab.title}
         </h3>
         <p className="text-xs font-semibold text-slate-400 mt-1">
-          ✏️ Edited {lab.lastEdited}
+          ✏️ {formatRelativeTime(lab.updatedAt)}
         </p>
 
         {/* Open button that appears on hover */}

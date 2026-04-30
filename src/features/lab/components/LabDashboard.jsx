@@ -20,9 +20,40 @@ const LabDashboard = () => {
   
   // Default to Discovery tab
   const [activeTab, setActiveTab] = useState('PREMADE');
+  const [selectedCategory, setSelectedCategory] = useState('ALL');
+  const [currentPage, setCurrentPage] = useState(0);
 
   // Custom hook for logic
-  const { filteredLabs, tabCounts, hasUncompletedAssignment } = useLabData(activeTab, searchQuery);
+  const { filteredLabs, totalPages, isLoading, hasUncompletedAssignment } = useLabData(activeTab, searchQuery, selectedCategory, currentPage);
+
+  const categories = [
+    { value: 'ALL', label: 'Tất cả' },
+    { value: 'AXIT_BAZO', label: 'Axit - Bazơ' },
+    { value: 'KIM_LOAI', label: 'Kim Loại' },
+    { value: 'PHI_KIM', label: 'Phi Kim' },
+    { value: 'KET_TUA', label: 'Kết Tủa' },
+    { value: 'CHAT_KHI', label: 'Chất Khí' },
+    { value: 'OXI_HOA_KHU', label: 'Oxi Hóa Khử' },
+    { value: 'NHIET_HOC', label: 'Nhiệt Học' },
+    { value: 'CAN_BANG', label: 'Cân Bằng' },
+    { value: 'HUU_CO', label: 'Hữu Cơ' },
+    { value: 'KHAC', label: 'Khác' }
+  ];
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setCurrentPage(0);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(0);
+  };
+
+  const handleCategoryChange = (e) => {
+    setSelectedCategory(e.target.value);
+    setCurrentPage(0);
+  };
 
   // Object Map to manage header content
   const bannerContent = {
@@ -95,11 +126,23 @@ const LabDashboard = () => {
                 type="text"
                 placeholder="Search experiments..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleSearchChange}
                 onClick={(e) => e.stopPropagation()}
                 className="w-full pl-11 pr-4 py-3 bg-white rounded-2xl shadow-xl shadow-black/10 border-none focus:outline-none focus:ring-4 focus:ring-white/40 font-semibold text-slate-700 placeholder:text-slate-400 text-sm"
               />
             </div>
+
+            {/* Category Dropdown */}
+            <select
+              value={selectedCategory}
+              onChange={handleCategoryChange}
+              className="py-3 px-4 bg-white rounded-2xl shadow-xl shadow-black/10 border-none focus:outline-none focus:ring-4 focus:ring-white/40 font-semibold text-slate-700 text-sm cursor-pointer"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {categories.map((c) => (
+                <option key={c.value} value={c.value}>{c.label}</option>
+              ))}
+            </select>
 
             {/* Create button — Emerald tactile */}
             <div className={`transition-all duration-300 ${activeTab === 'SANDBOX' ? 'opacity-100 scale-100 w-auto' : 'opacity-0 scale-95 w-0 overflow-hidden absolute pointer-events-none'}`}>
@@ -121,38 +164,38 @@ const LabDashboard = () => {
       <div className="px-4 md:px-6 mb-6 flex flex-wrap gap-3">
         {/* Tab: Discovery */}
         <button
-          onClick={() => setActiveTab('PREMADE')}
+          onClick={() => handleTabChange('PREMADE')}
           className={`flex items-center gap-2.5 px-5 py-2.5 rounded-2xl text-sm font-black transition-all duration-300 ${
             activeTab === 'PREMADE'
               ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 border-2 border-indigo-600 translate-y-[-2px]'
               : 'bg-white text-slate-500 border-2 border-slate-200 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50'
           }`}
         >
-          <Compass className="w-4 h-4" /> Discovery ({tabCounts.premade})
+          <Compass className="w-4 h-4" /> Discovery
         </button>
 
         {/* Tab: Sandbox */}
         <button
-          onClick={() => setActiveTab('SANDBOX')}
+          onClick={() => handleTabChange('SANDBOX')}
           className={`flex items-center gap-2.5 px-5 py-2.5 rounded-2xl text-sm font-black transition-all duration-300 ${
             activeTab === 'SANDBOX'
               ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/30 border-2 border-pink-500 translate-y-[-2px]'
               : 'bg-white text-slate-500 border-2 border-slate-200 hover:border-pink-300 hover:text-pink-600 hover:bg-pink-50'
           }`}
         >
-          <Sparkles className="w-4 h-4" /> Your Experiment ({tabCounts.sandbox})
+          <Sparkles className="w-4 h-4" /> Your Experiment
         </button>
 
         {/* Tab: Assignments */}
         <button
-          onClick={() => setActiveTab('ASSIGNMENT')}
+          onClick={() => handleTabChange('ASSIGNMENT')}
           className={`relative flex items-center gap-2.5 px-5 py-2.5 rounded-2xl text-sm font-black transition-all duration-300 ${
             activeTab === 'ASSIGNMENT'
               ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30 border-2 border-rose-500 translate-y-[-2px]'
               : 'bg-white text-slate-500 border-2 border-slate-200 hover:border-rose-300 hover:text-rose-600 hover:bg-rose-50'
           }`}
         >
-          <ClipboardList className="w-4 h-4" /> Assignments ({tabCounts.assignment})
+          <ClipboardList className="w-4 h-4" /> Assignments
           {hasUncompletedAssignment && (
             <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-rose-500 border-2 border-white rounded-full animate-pulse" />
           )}
@@ -199,7 +242,7 @@ const LabDashboard = () => {
         </div>
 
         {/* Empty state */}
-        {filteredLabs.length === 0 && (
+        {filteredLabs.length === 0 && !isLoading && (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="text-6xl mb-4 animate-bounce" style={{ animationDuration: '2s' }}>🔍</div>
             <h3 className="font-black text-slate-700 text-xl mb-2">No experiments found</h3>
@@ -208,6 +251,37 @@ const LabDashboard = () => {
                 ? 'Try searching with different keywords, or create a new experiment!'
                 : 'Try searching with different keywords, there seem to be no tasks here.'}
             </p>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {totalPages > 0 && (
+          <div className="flex justify-center items-center gap-4 mt-12 mb-4">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+              disabled={currentPage === 0}
+              className={`px-4 py-2 rounded-xl text-sm font-bold border-2 transition-all ${
+                currentPage === 0 
+                  ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed' 
+                  : 'bg-white text-indigo-600 border-indigo-200 hover:border-indigo-400 hover:bg-indigo-50 shadow-sm'
+              }`}
+            >
+              Trang trước
+            </button>
+            <span className="text-sm font-black text-slate-600 bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100">
+              Trang {currentPage + 1} / {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
+              disabled={currentPage >= totalPages - 1}
+              className={`px-4 py-2 rounded-xl text-sm font-bold border-2 transition-all ${
+                currentPage >= totalPages - 1 
+                  ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed' 
+                  : 'bg-white text-indigo-600 border-indigo-200 hover:border-indigo-400 hover:bg-indigo-50 shadow-sm'
+              }`}
+            >
+              Trang sau
+            </button>
           </div>
         )}
       </div>
