@@ -1,233 +1,308 @@
-import React, { useState } from 'react';
-import { Star, CheckCircle2, XCircle, Volume2, Beaker, HelpCircle, ArrowRight, SkipForward, ArrowLeft } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Star,
+  CheckCircle2,
+  Volume2,
+  Beaker,
+  HelpCircle,
+  ArrowRight,
+  SkipForward,
+  ArrowLeft,
+  LoaderCircle,
+  Timer,
+} from 'lucide-react';
+import {
+  getQuizDetail,
+  startQuizAttempt,
+  submitQuizAttempt,
+} from '../../lib/api';
 
-const mockQuestions = [
-  {
-    id: 1,
-    questionText: "What is the primary indicator that a chemical reaction has occurred when two clear liquids are mixed and a white solid forms?",
-    options: [
-      { id: 'A', text: "Change in temperature", isCorrect: false },
-      { id: 'B', text: "Formation of a precipitate", isCorrect: true },
-      { id: 'C', text: "Release of a gas", isCorrect: false },
-      { id: 'D', text: "Color change", isCorrect: false },
-    ],
-    explanation: "Excellent! A precipitate is a solid formed from a chemical reaction in a liquid solution."
-  },
-  {
-    id: 2,
-    questionText: "Which of the following describes an exothermic reaction?",
-    options: [
-      { id: 'A', text: "It absorbs heat from its surroundings.", isCorrect: false },
-      { id: 'B', text: "It requires a constant input of energy.", isCorrect: false },
-      { id: 'C', text: "It releases energy in the form of heat or light.", isCorrect: true },
-      { id: 'D', text: "It only occurs in the presence of a catalyst.", isCorrect: false },
-    ],
-    explanation: "Spot on! 'Exo' means outward and 'thermic' relates to heat. Exothermic reactions release energy!"
-  },
-  {
-    id: 3,
-    questionText: "In the chemical equation 2H₂ + O₂ → 2H₂O, what are the reactants?",
-    options: [
-      { id: 'A', text: "H₂O only", isCorrect: false },
-      { id: 'B', text: "H₂ and O₂", isCorrect: true },
-      { id: 'C', text: "O₂ and H₂O", isCorrect: false },
-      { id: 'D', text: "H₂ only", isCorrect: false },
-    ],
-    explanation: "Correct! Reactants are the starting substances on the left side of the arrow."
-  }
-];
+const optionLabels = ['A', 'B', 'C', 'D'];
 
 const QuizPlayer = ({ quizId, onBack }) => {
+  const [quiz, setQuiz] = useState(null);
+  const [attemptId, setAttemptId] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedOptionId, setSelectedOptionId] = useState(null);
-  const [isAnswerChecked, setIsAnswerChecked] = useState(false);
-  const [score, setScore] = useState(850); // Initial score offset mimic
+  const [selectedAnswers, setSelectedAnswers] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [result, setResult] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(null);
+  const autoSubmittedRef = useRef(false);
 
-  const currentQuestion = mockQuestions[currentQuestionIndex];
-  const progressPercentage = ((currentQuestionIndex + 1) / mockQuestions.length) * 100;
+  useEffect(() => {
+    const loadQuizAndAttempt = async () => {
+      if (!quizId) return;
+      try {
+        setLoading(true);
+        setError('');
+        setResult(null);
+        setSelectedAnswers({});
+        setCurrentQuestionIndex(0);
+        autoSubmittedRef.current = false;
 
-  const handleOptionSelect = (id) => {
-    if (!isAnswerChecked) {
-      setSelectedOptionId(id);
+        const [quizData, attemptData] = await Promise.all([
+          getQuizDetail(quizId),
+          startQuizAttempt(quizId),
+        ]);
+
+        setQuiz(quizData);
+        setAttemptId(attemptData.attemptId);
+
+        if (quizData.durationMinutes && quizData.quizType !== 'FREE') {
+          setTimeLeft(quizData.durationMinutes * 60);
+        } else {
+          setTimeLeft(null);
+        }
+      } catch (err) {
+        setError(err?.response?.data?.message || 'Failed to load quiz player.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadQuizAndAttempt();
+  }, [quizId]);
+
+  useEffect(() => {
+    if (timeLeft === null || result || loading) return;
+    if (timeLeft <= 0 && !autoSubmittedRef.current) {
+      autoSubmittedRef.current = true;
+      handleSubmit(true);
+      return;
     }
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => (prev !== null ? prev - 1 : prev));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timeLeft, result, loading]);
+
+  const questions = quiz?.questions || [];
+  const currentQuestion = questions[currentQuestionIndex];
+
+  const progressPercentage = questions.length
+    ? ((currentQuestionIndex + 1) / questions.length) * 100
+    : 0;
+
+  const answeredCount = useMemo(
+    () => Object.keys(selectedAnswers).length,
+    [selectedAnswers]
+  );
+
+  const formatTime = (seconds) => {
+    if (seconds === null || seconds < 0) return '--:--';
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
 
-  const handleCheckAnswer = () => {
-    if (selectedOptionId) {
-      setIsAnswerChecked(true);
-      const isCorrect = currentQuestion.options.find(opt => opt.id === selectedOptionId)?.isCorrect;
-      if (isCorrect) {
-        setScore(prev => prev + 50);
-      }
-    }
+  const handleSelect = (questionId, label) => {
+    if (result) return;
+    setSelectedAnswers((prev) => ({
+      ...prev,
+      [questionId]: label,
+    }));
   };
 
   const handleNextQuestion = () => {
-    if (currentQuestionIndex < mockQuestions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
-      setSelectedOptionId(null);
-      setIsAnswerChecked(false);
-    } else {
-      alert(`Quiz Completed! Final Score: ${score}`);
-      onBack();
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex((prev) => prev + 1);
     }
   };
 
-  const getOptionStyles = (option) => {
-    if (!isAnswerChecked) {
-      return selectedOptionId === option.id 
-        ? "border-blue-500 bg-blue-50 text-blue-700 shadow-sm transform scale-[1.02]" 
-        : "border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:bg-slate-50 hover:shadow-sm";
+  const handleSubmit = async (isAuto = false) => {
+    if (!attemptId || !questions.length) return;
+
+    const answers = Object.entries(selectedAnswers).map(([questionId, selectedOption]) => ({
+      questionId,
+      selectedOption,
+    }));
+
+    if (!answers.length && !isAuto) {
+      setError('Please answer at least one question before submitting.');
+      return;
     }
 
-    if (isAnswerChecked) {
-      if (option.isCorrect) {
-        return "border-emerald-500 bg-emerald-50 text-emerald-800 shadow-sm";
-      }
-      if (selectedOptionId === option.id && !option.isCorrect) {
-        return "border-rose-400 bg-rose-50 text-rose-700 shadow-sm";
-      }
-      return "border-slate-200 bg-slate-50 text-slate-400 opacity-70";
+    try {
+      setSubmitting(true);
+      setError('');
+      const submitResult = await submitQuizAttempt(attemptId, { answers });
+      setResult(submitResult);
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Failed to submit quiz attempt.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const isCurrentSelectionCorrect = isAnswerChecked && currentQuestion.options.find(opt => opt.id === selectedOptionId)?.isCorrect;
+  if (loading) {
+    return (
+      <div className="w-full h-full min-h-screen bg-slate-50 py-8 px-4 flex items-center justify-center text-slate-500 font-semibold gap-2">
+        <LoaderCircle className="w-4 h-4 animate-spin" /> Loading quiz...
+      </div>
+    );
+  }
+
+  if (!quiz || !currentQuestion) {
+    return (
+      <div className="w-full h-full min-h-screen bg-slate-50 py-8 px-4">
+        <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 text-rose-700 font-semibold">
+          {error || 'Quiz data is unavailable.'}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-full min-h-screen bg-slate-50 py-8 px-4 flex flex-col items-center overflow-y-auto">
-      
-      {/* Container Array */}
       <div className="w-full max-w-3xl flex flex-col gap-8 pb-12 relative">
-        
-        {/* Back Button */}
-        <button 
+        <button
           onClick={onBack}
           className="absolute -top-10 left-0 flex items-center gap-2 text-slate-500 hover:text-slate-800 font-bold transition-colors"
         >
           <ArrowLeft className="w-5 h-5" /> Back to Quizzes
         </button>
 
-        {/* Header Section */}
         <div className="flex items-center justify-between w-full bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mt-2">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 border border-blue-200">
+            <div className="w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-600 border border-cyan-200">
               <HelpCircle className="w-5 h-5" />
             </div>
-            <h1 className="text-xl font-extrabold text-slate-800 hidden sm:block">Chemical Reactions Quiz</h1>
+            <h1 className="text-xl font-extrabold text-slate-800 hidden sm:block">{quiz.title}</h1>
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="bg-amber-100 text-amber-700 px-4 py-2 rounded-xl font-bold flex items-center gap-2 shadow-inner">
-              <Star className="w-5 h-5 fill-amber-500 text-amber-500" />
-              {score}
-            </div>
-            <div className="text-slate-500 font-bold bg-slate-100 px-4 py-2 rounded-xl">
-              {currentQuestionIndex + 1}/{mockQuestions.length}
-            </div>
-          </div>
-        </div>
-
-        {/* Question Card */}
-        <div className="relative w-full">
-          {/* Floating Icon */}
-          <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md border border-slate-100 z-10">
-            <Beaker className="w-6 h-6 text-fuchsia-500" />
-          </div>
-
-          <div className="w-full bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-500 rounded-3xl p-1 shadow-lg overflow-hidden relative">
-             <div className="absolute inset-0 bg-white/10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4xNSIvPjwvc3ZnPg==')] opacity-50 mix-blend-overlay"></div>
-             <div className="relative z-10 p-8 sm:p-12 text-center flex flex-col items-center justify-center min-h-[220px]">
-                <button className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 rounded-full text-white backdrop-blur-sm transition-colors">
-                  <Volume2 className="w-5 h-5" />
-                </button>
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight mt-4 drop-shadow-md">
-                   {currentQuestion.questionText}
-                </h2>
-             </div>
-          </div>
-        </div>
-
-        {/* Options Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full px-2">
-          {currentQuestion.options.map((option) => (
-            <button
-              key={option.id}
-              onClick={() => handleOptionSelect(option.id)}
-              disabled={isAnswerChecked}
-              className={`p-6 rounded-2xl border-2 text-left transition-all duration-200 flex items-center gap-4 ${getOptionStyles(option)}`}
-            >
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-extrabold text-lg shrink-0 transition-colors ${
-                isAnswerChecked && option.isCorrect ? 'bg-emerald-500 text-white border-emerald-500' :
-                isAnswerChecked && selectedOptionId === option.id && !option.isCorrect ? 'bg-rose-500 text-white border-rose-500' :
-                selectedOptionId === option.id ? 'bg-blue-600 text-white border-blue-600' :
-                'bg-slate-100 text-slate-500 border border-slate-200'
-              }`}>
-                {isAnswerChecked && option.isCorrect ? <CheckCircle2 className="w-6 h-6" /> :
-                 isAnswerChecked && selectedOptionId === option.id && !option.isCorrect ? <XCircle className="w-6 h-6" /> :
-                 option.id}
+            {timeLeft !== null && (
+              <div className="bg-rose-100 text-rose-700 px-4 py-2 rounded-xl font-bold flex items-center gap-2 shadow-inner">
+                <Timer className="w-4 h-4" />
+                {formatTime(timeLeft)}
               </div>
-              <span className="font-bold text-lg">{option.text}</span>
-            </button>
-          ))}
+            )}
+            <div className="text-slate-500 font-bold bg-slate-100 px-4 py-2 rounded-xl">
+              {currentQuestionIndex + 1}/{questions.length}
+            </div>
+          </div>
         </div>
 
-        {/* Result Explanation Badge */}
-        {isAnswerChecked && (
-           <div className={`p-6 rounded-2xl border-2 animate-in slide-in-from-bottom-2 fade-in duration-300 w-full ${isCurrentSelectionCorrect ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'}`}>
-             <div className="flex items-start gap-4">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${isCurrentSelectionCorrect ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
-                   {isCurrentSelectionCorrect ? <Star className="w-6 h-6 fill-emerald-500" /> : <HelpCircle className="w-6 h-6" />}
-                </div>
-                <div>
-                  <h3 className={`text-xl font-extrabold mb-1 ${isCurrentSelectionCorrect ? 'text-emerald-800' : 'text-rose-800'}`}>
-                    {isCurrentSelectionCorrect ? 'Awesome job! +50 XP' : 'Not quite right!'}
-                  </h3>
-                  <p className={`font-medium ${isCurrentSelectionCorrect ? 'text-emerald-700' : 'text-rose-700'}`}>
-                    {currentQuestion.explanation}
-                  </p>
-                </div>
-             </div>
-           </div>
+        {error && (
+          <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 text-rose-700 font-semibold">
+            {error}
+          </div>
         )}
 
-        {/* Footer Controls */}
-        <div className="w-full bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mt-4 flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="w-full sm:w-1/2 space-y-2">
-            <div className="flex justify-between text-sm font-bold text-slate-500">
-              <span>Progress</span>
-              <span>{Math.round(progressPercentage)}%</span>
+        {result ? (
+          <div className="bg-white border border-slate-200 rounded-3xl p-8 space-y-4 shadow-sm">
+            <h2 className="text-2xl font-black text-slate-800">Attempt Submitted</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="rounded-2xl p-4 bg-cyan-50 border border-cyan-200">
+                <p className="text-sm font-bold text-cyan-700">Score</p>
+                <p className="text-2xl font-black text-cyan-800">{result.score}%</p>
+              </div>
+              <div className="rounded-2xl p-4 bg-emerald-50 border border-emerald-200">
+                <p className="text-sm font-bold text-emerald-700">Correct</p>
+                <p className="text-2xl font-black text-emerald-800">{result.correctAnswers}</p>
+              </div>
+              <div className="rounded-2xl p-4 bg-amber-50 border border-amber-200">
+                <p className="text-sm font-bold text-amber-700">Total</p>
+                <p className="text-2xl font-black text-amber-800">{result.totalQuestions}</p>
+              </div>
             </div>
-            <div className="w-full bg-slate-100 rounded-full h-3 shadow-inner overflow-hidden">
-               <div className="h-full bg-gradient-to-r from-blue-400 to-purple-500 rounded-full transition-all duration-500" style={{ width: `${progressPercentage}%` }}></div>
-            </div>
-            <p className="text-xs font-bold text-slate-400 text-center sm:text-left">You're on fire 🔥! Keep going!</p>
+            <button
+              onClick={onBack}
+              className="px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl font-bold"
+            >
+              Return to Quiz List
+            </button>
           </div>
+        ) : (
+          <>
+            <div className="relative w-full">
+              <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md border border-slate-100 z-10">
+                <Beaker className="w-6 h-6 text-cyan-600" />
+              </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-             {!isAnswerChecked ? (
-               <>
-                 <button onClick={handleNextQuestion} className="px-6 py-3 font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors flex items-center gap-2">
-                    <SkipForward className="w-5 h-5" /> Skip
-                 </button>
-                 <button 
-                    onClick={handleCheckAnswer}
-                    disabled={!selectedOptionId}
-                    className="flex-1 sm:flex-none px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                 >
-                    Check <CheckCircle2 className="w-5 h-5" />
-                 </button>
-               </>
-             ) : (
-               <button 
+              <div className="w-full bg-gradient-to-br from-cyan-500 via-blue-600 to-indigo-700 rounded-3xl p-1 shadow-lg overflow-hidden relative">
+                <div className="absolute inset-0 bg-white/10 opacity-50 mix-blend-overlay" />
+                <div className="relative z-10 p-8 sm:p-12 text-center flex flex-col items-center justify-center min-h-[220px]">
+                  <button className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 rounded-full text-white backdrop-blur-sm transition-colors">
+                    <Volume2 className="w-5 h-5" />
+                  </button>
+                  <h2 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight mt-4 drop-shadow-md">
+                    {currentQuestion.prompt}
+                  </h2>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full px-2">
+              {optionLabels.map((label) => {
+                const text = currentQuestion[`option${label}`];
+                const selected = selectedAnswers[currentQuestion.id] === label;
+                return (
+                  <button
+                    key={label}
+                    onClick={() => handleSelect(currentQuestion.id, label)}
+                    className={`p-6 rounded-2xl border-2 text-left transition-all duration-200 flex items-center gap-4 ${selected
+                      ? 'border-cyan-500 bg-cyan-50 text-cyan-700 shadow-sm transform scale-[1.02]'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-cyan-300 hover:bg-slate-50 hover:shadow-sm'
+                      }`}
+                  >
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-extrabold text-lg shrink-0 transition-colors ${selected
+                      ? 'bg-cyan-600 text-white border-cyan-600'
+                      : 'bg-slate-100 text-slate-500 border border-slate-200'
+                      }`}>
+                      {selected ? <CheckCircle2 className="w-6 h-6" /> : label}
+                    </div>
+                    <span className="font-bold text-lg">{text}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="w-full bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mt-4 flex flex-col sm:flex-row items-center justify-between gap-6">
+              <div className="w-full sm:w-1/2 space-y-2">
+                <div className="flex justify-between text-sm font-bold text-slate-500">
+                  <span>Progress</span>
+                  <span>{Math.round(progressPercentage)}%</span>
+                </div>
+                <div className="w-full bg-slate-100 rounded-full h-3 shadow-inner overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-cyan-500 to-indigo-600 rounded-full transition-all duration-500" style={{ width: `${progressPercentage}%` }} />
+                </div>
+                <p className="text-xs font-bold text-slate-400 text-center sm:text-left">
+                  {answeredCount}/{questions.length} answered
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <button
                   onClick={handleNextQuestion}
-                  className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
-               >
-                  Next Question <ArrowRight className="w-5 h-5" />
-               </button>
-             )}
-          </div>
-        </div>
-
+                  disabled={currentQuestionIndex >= questions.length - 1}
+                  className="px-6 py-3 font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50"
+                >
+                  <SkipForward className="w-5 h-5" /> Next
+                </button>
+                <button
+                  onClick={() => handleSubmit(false)}
+                  disabled={submitting}
+                  className="flex-1 sm:flex-none px-8 py-3 bg-gradient-to-r from-cyan-600 to-blue-700 hover:from-cyan-700 hover:to-blue-800 text-white font-bold rounded-xl shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {submitting ? (
+                    <>
+                      <LoaderCircle className="w-4 h-4 animate-spin" /> Submitting
+                    </>
+                  ) : (
+                    <>
+                      Submit <ArrowRight className="w-5 h-5" />
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

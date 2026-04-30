@@ -1,12 +1,11 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { BookOpenCheck, Library, PenTool, LayoutTemplate, FlaskConical } from 'lucide-react';
+import { LayoutDashboard, Library, LayoutTemplate, FlaskConical } from 'lucide-react';
 
 const navItems = [
+  { name: 'Dashboard', icon: LayoutDashboard, path: '/teacher/dashboard' },
   { name: 'Class Management', icon: LayoutTemplate, path: '/teacher/classes' },
   { name: 'Question Bank', icon: Library, path: '/teacher/questions' },
-  { name: 'Grading', icon: PenTool, path: '/teacher/grading' },
-  { name: 'Reports', icon: BookOpenCheck, path: '/teacher/reports' },
 ];
 
 const Sidebar = ({ className = '' }) => {

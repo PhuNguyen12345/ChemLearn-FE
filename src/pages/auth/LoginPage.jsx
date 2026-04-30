@@ -4,38 +4,55 @@ import useAuthStore from '../../stores/useAuthStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import api from '@/lib/api';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    try {
-      // Mock API call
-      const response = await fetch(`http://localhost:5000/users?email=${email}&password=${password}`);
-      const users = await response.json();
+    setError('');
+    setIsLoading(true);
 
-      if (users.length > 0) {
-        const user = users[0];
-        login(user);
-        
-        // Redirect based on role
-        switch(user.role) {
-          case 'STUDENT': navigate('/student/home'); break;
-          case 'TEACHER': navigate('/teacher/dashboard'); break;
-          case 'PARENT': navigate('/parent/dashboard'); break;
-          case 'ADMIN': navigate('/admin/dashboard'); break;
-          default: navigate('/');
-        }
-      } else {
-        setError('Email hoặc mật khẩu không chính xác.');
+    try {
+      const response = await api.post('/api/auth/login', {
+        username,
+        password,
+      });
+
+      const authData = response.data;
+      login(authData);
+
+      switch (authData.role) {
+        case 'ROLE_STUDENT':
+          navigate('/student/home');
+          break;
+        case 'ROLE_TEACHER':
+          navigate('/teacher/dashboard');
+          break;
+        case 'ROLE_PARENT':
+          navigate('/parent/dashboard');
+          break;
+        case 'ROLE_ADMIN':
+          navigate('/admin/dashboard');
+          break;
+        default:
+          navigate('/');
       }
     } catch (err) {
-      setError('Lỗi kết nối đến máy chủ.');
+      const backendMessage =
+        err?.response?.data?.message ||
+        err?.response?.data ||
+        'Đăng nhập thất bại.';
+
+      setError(String(backendMessage));
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -55,42 +72,53 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input 
-              id="email" 
-              type="email" 
-              placeholder="nhapemail@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+            <Label htmlFor="username">Tên đăng nhập</Label>
+            <Input
+              id="username"
+              type="text"
+              placeholder="Nhập tên đăng nhập"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="password">Mật khẩu</Label>
-            <Input 
-              id="password" 
-              type="password" 
-              placeholder="••••••••"
+            <Input
+              id="password"
+              type="password"
+              placeholder="Nhập mật khẩu"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+            <div className="text-sm text-gray-500">
+              Quên mật khẩu?{" "}
+              <Link to="/forgot-password" className="text-blue-600 hover:underline">
+                Khôi phục mật khẩu
+              </Link>
+            </div>
           </div>
 
-          <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
-            Đăng Nhập
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-blue-600 hover:bg-blue-700"
+          >
+            {isLoading ? "Đang xử lý..." : "Đăng Nhập"}
           </Button>
         </form>
 
         <div className="mt-6 text-center text-sm text-gray-500">
-          Chưa có tài khoản?{' '}
+          Chưa có tài khoản?{" "}
           <Link to="/register" className="text-blue-600 hover:underline">
             Đăng ký ngay
           </Link>
         </div>
+
         <div className="mt-2 text-center text-sm text-gray-500">
-          Về trang chủ?{' '}
+          Về trang chủ?{" "}
           <Link to="/" className="text-blue-600 hover:underline">
             Quay lại
           </Link>
