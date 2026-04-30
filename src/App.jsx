@@ -6,6 +6,7 @@ import StudentHome from "./pages/student/StudentHome";
 import Missions from "./pages/student/Missions";
 import Leaderboard from "./pages/student/Leaderboard";
 import StudentLayout from "./components/layout/student/StudentLayout";
+import ClassesPage from "./pages/student/Classes";
 import ParentLayout from "./components/layout/parent/ParentLayout";
 import ParentDashboard from "./pages/parent/ParentDashboard";
 import TeacherLayout from "./components/layout/teacher/TeacherLayout";
@@ -73,6 +74,7 @@ function App() {
           <Route element={<ProtectedRoute allowedRoles={["ROLE_STUDENT"]} />}>
             <Route element={<StudentLayout />}>
               <Route path="/student/home" element={<StudentHome />} />
+                <Route path="/student/classes" element={<ClassesPage />} />
               <Route path="/student/missions" element={<Missions />} />
               <Route path="/student/leaderboard" element={<Leaderboard />} />
               {/* Các trang khác của student ném hết vào đây */}

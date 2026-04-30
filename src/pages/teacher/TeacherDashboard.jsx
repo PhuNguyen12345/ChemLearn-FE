@@ -45,6 +45,9 @@ import {
   createTeacherAssignment,
   updateTeacherAssignment,
   deleteTeacherAssignment,
+  addChapterToClass,
+  removeChapterFromClass,
+  getTeacherClasses as apiGetTeacherClasses,
 } from '@/lib/api';
 import { formatInstantToLocale, instantToDatetimeLocal } from '@/lib/utils';
 import useAuthStore from '@/stores/useAuthStore';
@@ -78,6 +81,7 @@ const TeacherDashboard = ({ initialTab }) => {
   const [quizzes, setQuizzes] = useState([]);
   const [assignments, setAssignments] = useState([]);
   const [chapters, setChapters] = useState([]);
+  const [teacherClasses, setTeacherClasses] = useState([]);
   const [lessons, setLessons] = useState([]);
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [selectedQuizForQuestions, setSelectedQuizForQuestions] = useState('');
@@ -142,13 +146,14 @@ const TeacherDashboard = ({ initialTab }) => {
       setLoading(true);
       setError('');
 
-      const [summaryData, performanceData, submissionsData, quizzesData, assignmentsData, chaptersData, lessonsData] = await Promise.all([
+      const [summaryData, performanceData, submissionsData, quizzesData, assignmentsData, chaptersData, classesData, lessonsData] = await Promise.all([
         getTeacherSummary(),
         getTeacherStudentPerformance(),
         getTeacherSubmissions(),
         getTeacherQuizzes(),
         getTeacherAssignments(),
         getTeacherChapters(),
+        apiGetTeacherClasses(),
         getTeacherLessons(),
       ]);
 
@@ -157,6 +162,7 @@ const TeacherDashboard = ({ initialTab }) => {
       const normalizedQuizzes = toArray(quizzesData);
       const normalizedAssignments = toArray(assignmentsData);
       const normalizedChapters = toArray(chaptersData);
+      const normalizedClasses = toArray(classesData || []);
       const normalizedLessons = toArray(lessonsData);
 
       setSummary(summaryData);
@@ -165,6 +171,7 @@ const TeacherDashboard = ({ initialTab }) => {
       setQuizzes(normalizedQuizzes);
       setAssignments(normalizedAssignments);
       setChapters(normalizedChapters);
+      setTeacherClasses(normalizedClasses);
       setLessons(normalizedLessons);
 
       if (!keepQuestionSelection || !selectedQuizForQuestions) {
@@ -238,6 +245,22 @@ const TeacherDashboard = ({ initialTab }) => {
     }
 
     setShowChapterModal(true);
+  };
+
+  const toggleChapterAssignment = async (classId, chapterId, assigned) => {
+    try {
+      setSubmitting(true);
+      if (assigned) {
+        await removeChapterFromClass(classId, chapterId);
+      } else {
+        await addChapterToClass(classId, chapterId);
+      }
+      await loadData();
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Failed to update chapter assignment.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const submitChapter = async (event) => {
@@ -430,53 +453,6 @@ const TeacherDashboard = ({ initialTab }) => {
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const openQuizModal = (quiz = null) => {
-    if (quiz) {
-      setEditingQuiz(quiz);
-      setQuizForm({
-        title: quiz.title || '',
-        description: quiz.description || '',
-        quizType: quiz.quizType || 'FREE',
-        durationMinutes: quiz.durationMinutes || 30,
-      });
-    } else {
-      setEditingQuiz(null);
-      setQuizForm({
-        title: '',
-        description: '',
-        quizType: 'FREE',
-        durationMinutes: 30,
-      });
-    }
-    setShowQuizModal(true);
-  };
-
-  const openAssignmentModal = (assignment = null) => {
-    const defaultQuizId = quizzes[0]?.id ? String(quizzes[0].id) : '';
-    const defaultStudentId = studentOptions[0]?.id || '';
-
-    if (assignment) {
-      setEditingAssignment(assignment);
-      setAssignmentForm({
-        title: assignment.title || '',
-        description: assignment.description || '',
-        quizId: String(assignment.quizId || defaultQuizId),
-        studentId: String(assignment.studentId || defaultStudentId),
-        dueAt: instantToDatetimeLocal(assignment.dueAt),
-      });
-    } else {
-      setEditingAssignment(null);
-      setAssignmentForm({
-        title: '',
-        description: '',
-        quizId: defaultQuizId,
-        studentId: defaultStudentId,
-        dueAt: '',
-      });
-    }
-    setShowAssignmentModal(true);
   };
 
   const handleQuizModalOpen = (quiz = null) => {
@@ -889,6 +865,41 @@ const TeacherDashboard = ({ initialTab }) => {
                   </CardContent>
                 </Card>
               </div>
+              <Card className="rounded-2xl shadow-sm border-slate-200 mt-6">
+                <CardHeader className="flex items-center justify-between">
+                  <CardTitle className="text-lg">Assign Chapters to Classes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {chapters.length === 0 ? (
+                      <p className="text-sm text-slate-500">No chapters available.</p>
+                    ) : (
+                      chapters.map((chapter) => (
+                        <div key={chapter.id} className="flex items-center justify-between border-b border-slate-100 py-2">
+                          <div>
+                            <div className="font-semibold">{chapter.title}</div>
+                            <div className="text-xs text-slate-500">{chapter.description}</div>
+                          </div>
+                          <div className="flex gap-2">
+                            {(teacherClasses || []).map((c) => {
+                              const assigned = (c.chapters || []).some((ch) => String(ch.id) === String(chapter.id));
+                              return (
+                                <button
+                                  key={c.id}
+                                  onClick={() => toggleChapterAssignment(c.id, chapter.id, assigned)}
+                                  className={`px-3 py-1 rounded-full text-sm font-semibold ${assigned ? 'bg-indigo-600 text-white' : 'border border-slate-200 text-slate-700'}`}
+                                >
+                                  {c.name}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="quizzes" className="mt-6">

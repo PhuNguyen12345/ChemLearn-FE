@@ -8,6 +8,7 @@ import {
   Trophy,
   FlaskConical,
   LayoutDashboard,
+  Users,
   Sparkles,
 } from 'lucide-react';
 
@@ -18,6 +19,7 @@ const navItems = [
   { name: 'Quizzes',     icon: ClipboardList,     path: '/student/home', id: 'quizzes',      emoji: '❓' },
   { name: 'Missions',    icon: Target,            path: '/student/missions', id: 'missions', emoji: '🎯' },
   { name: 'Leaderboard', icon: Trophy,            path: '/student/leaderboard', id: 'leaderboard', emoji: '🏆' },
+  { name: 'Classes',     icon: Users,             path: '/student/home', id: 'classes',     emoji: '👥' },
 ];
 
 /* Colour accent per nav item for its active state */
@@ -28,6 +30,7 @@ const itemAccent = {
   quizzes:      { bg: 'bg-emerald-500', border: 'border-b-emerald-700', shadow: 'shadow-emerald-300/40' },
   missions:     { bg: 'bg-orange-500',  border: 'border-b-orange-700',  shadow: 'shadow-orange-300/40'  },
   leaderboard:  { bg: 'bg-amber-500',   border: 'border-b-amber-700',   shadow: 'shadow-amber-300/40'   },
+  classes:      { bg: 'bg-indigo-600',  border: 'border-b-indigo-800',  shadow: 'shadow-indigo-300/40'  },
 };
 
 const Sidebar = ({ className = '', activeTab, setActiveTab }) => {

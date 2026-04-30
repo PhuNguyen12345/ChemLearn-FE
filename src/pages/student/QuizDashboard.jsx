@@ -11,7 +11,7 @@ import {
   Star,
   LoaderCircle,
 } from 'lucide-react';
-import { getFreeQuizzes } from '../../lib/api';
+import { getStudentClassQuizzes } from '../../lib/api';
 
 const iconByIndex = [Atom, Beaker, Trophy, Star];
 const colorByIndex = [
@@ -47,7 +47,7 @@ const QuizDashboard = ({ onPlayQuiz }) => {
       try {
         setLoading(true);
         setError('');
-        const data = await getFreeQuizzes();
+        const data = await getStudentClassQuizzes();
         setQuizzes(data || []);
       } catch (err) {
         setError(err?.response?.data?.message || 'Failed to load quizzes.');
@@ -80,10 +80,10 @@ const QuizDashboard = ({ onPlayQuiz }) => {
             <span className="text-white/80 text-xs font-black uppercase tracking-widest">Knowledge Arena</span>
           </div>
           <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight drop-shadow-md">
-            Available Quizzes
+            Class Quizzes
           </h1>
           <p className="text-cyan-100 mt-3 font-semibold text-base md:text-lg leading-relaxed">
-            All quiz cards now come from backend data. Start any one to create an attempt and submit results.
+            These quizzes are limited to the classes you joined.
           </p>
 
           <div className="flex flex-wrap gap-4 mt-8">

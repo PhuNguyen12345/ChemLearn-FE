@@ -34,7 +34,14 @@ export const submitLessonMiniQuiz = async (lessonId, payload) => {
 };
 
 export const getFreeQuizzes = async () => {
-  const response = await api.get('/api/quizzes/free');
+  const response = await api.get('/api/student/classes/quizzes');
+  return response.data;
+};
+
+export const getStudentClassQuizzes = getFreeQuizzes;
+
+export const getStudentClassAssignments = async () => {
+  const response = await api.get('/api/student/classes/assignments');
   return response.data;
 };
 
@@ -93,8 +100,48 @@ export const getTeacherClasses = async () => {
   return response.data;
 };
 
+export const createTeacherClass = async (payload) => {
+  const response = await api.post('/api/teacher/classes', payload);
+  return response.data;
+};
+
+export const updateTeacherClass = async (classId, payload) => {
+  const response = await api.put(`/api/teacher/classes/${classId}`, payload);
+  return response.data;
+};
+
+export const deleteTeacherClass = async (classId) => {
+  const response = await api.delete(`/api/teacher/classes/${classId}`);
+  return response.data;
+};
+
 export const getTeacherStudentAccount = async (studentId) => {
   const response = await api.get(`/api/teacher/students/${studentId}`);
+  return response.data;
+};
+
+export const getStudentClasses = async () => {
+  const response = await api.get('/api/student/classes');
+  return response.data;
+};
+
+export const joinClassByCode = async (classCode) => {
+  const response = await api.post('/api/student/classes/join', { classCode });
+  return response.data;
+};
+
+export const getClassChapters = async (classId) => {
+  const response = await api.get(`/api/student/classes/${classId}/chapters`);
+  return response.data;
+};
+
+export const getClassQuizzes = async (classId) => {
+  const response = await api.get(`/api/student/classes/${classId}/quizzes`);
+  return response.data;
+};
+
+export const getClassAssignments = async (classId) => {
+  const response = await api.get(`/api/student/classes/${classId}/assignments`);
   return response.data;
 };
 
@@ -111,6 +158,16 @@ export const updateTeacherChapter = async (chapterId, payload) => {
 
 export const deleteTeacherChapter = async (chapterId) => {
   const response = await api.delete(`/api/teacher/chapters/${chapterId}`);
+  return response.data;
+};
+
+export const addChapterToClass = async (classId, chapterId) => {
+  const response = await api.post(`/api/teacher/classes/${classId}/chapters/${chapterId}`);
+  return response.data;
+};
+
+export const removeChapterFromClass = async (classId, chapterId) => {
+  const response = await api.delete(`/api/teacher/classes/${classId}/chapters/${chapterId}`);
   return response.data;
 };
 
