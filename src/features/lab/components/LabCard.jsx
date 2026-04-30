@@ -1,5 +1,6 @@
 import React from 'react';
-import { Beaker, MoreVertical, Edit2, Trash, Copy, CheckCircle2, Clock, CircleDashed } from 'lucide-react';
+import { Beaker, MoreVertical, Edit2, Trash, Copy, CheckCircle2, Clock, CircleDashed, Info } from 'lucide-react';
+import { LAB_THEMES } from '../data/theme';
 
 const LabCard = ({
   lab,
@@ -8,9 +9,45 @@ const LabCard = ({
   onOpen,
   onRename,
   onDuplicate,
-  onDelete
+  onDelete,
+  onViewDetails
 }) => {
   
+  const themeKey = lab.category || lab.type;
+  const theme = LAB_THEMES[themeKey] || LAB_THEMES.DEFAULT;
+  const ThemeIcon = theme.Icon || Beaker;
+
+  // Helper to render Difficulty Badge
+  const renderDifficultyBadge = () => {
+    if (!lab.difficulty) return null;
+    
+    let colorClass = "";
+    let label = "";
+    
+    switch (lab.difficulty) {
+      case 'EASY':
+        colorClass = "bg-emerald-500 text-white border-emerald-400 shadow-emerald-500/20";
+        label = "EASY";
+        break;
+      case 'MEDIUM':
+        colorClass = "bg-amber-500 text-white border-amber-400 shadow-amber-500/20";
+        label = "MEDIUM";
+        break;
+      case 'HARD':
+        colorClass = "bg-rose-500 text-white border-rose-400 shadow-rose-500/20";
+        label = "HARD";
+        break;
+      default:
+        return null;
+    }
+    
+    return (
+      <div className={`flex items-center px-2.5 py-0.5 border rounded-lg text-[10px] font-black absolute top-3 left-3 shadow-md z-10 ${colorClass}`}>
+        {label}
+      </div>
+    );
+  };
+
   // Helper to render Status Badge for Assignments
   const renderStatusBadge = () => {
     if (lab.type !== 'ASSIGNMENT') return null;
@@ -57,20 +94,23 @@ const LabCard = ({
       className={`group bg-white rounded-3xl border-2 border-slate-100 border-b-4 border-b-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-2 hover:border-indigo-200 hover:border-b-indigo-300 transition-all duration-300 cursor-pointer flex flex-col relative ${isMenuOpen ? 'z-50' : 'z-10'}`}
     >
       {/* ── Gradient Thumbnail ── */}
-      <div className={`w-full aspect-video rounded-t-[22px] bg-gradient-to-br ${lab.gradient} flex items-center justify-center relative overflow-hidden`}>
+      <div className={`w-full aspect-video rounded-t-[22px] bg-gradient-to-br ${theme.gradient} flex items-center justify-center relative overflow-hidden`}>
         {/* Inner gloss */}
         <div className="absolute inset-0 bg-white/10" />
         <div className="absolute inset-x-0 top-0 h-1/3 bg-white/10" />
 
-        <Beaker
-          className={`w-14 h-14 ${lab.iconColor} relative z-10 drop-shadow-lg group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300`}
+        <ThemeIcon
+          className={`w-14 h-14 ${theme.iconColor} relative z-10 drop-shadow-lg group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300`}
           strokeWidth={1.5}
         />
 
         {/* Tag badge on thumbnail */}
-        <span className="absolute bottom-2 left-2.5 text-[10px] font-black text-white bg-black/25 backdrop-blur-sm px-2 py-0.5 rounded-full border border-white/20 z-10">
-          {lab.tag}
+        <span className="absolute bottom-2 left-2.5 text-[13px] font-black text-white bg-black/25 backdrop-blur-sm px-2 py-0.5 rounded-full border border-white/20 z-10">
+          {theme.tag}
         </span>
+
+        {/* Difficulty Badge */}
+        {renderDifficultyBadge()}
 
         {/* Status Badge (For Assignments) */}
         {renderStatusBadge()}
@@ -103,6 +143,15 @@ const LabCard = ({
         {/* ── Popover menu ── */}
         {isMenuOpen && (
           <div className="absolute right-3 top-10 bg-white border border-slate-100 shadow-2xl rounded-2xl flex flex-col py-2 z-30 w-40 overflow-hidden">
+            <button
+              className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-700 text-left w-full transition-colors"
+              onClick={(e) => { e.stopPropagation(); onToggleMenu(); onViewDetails && onViewDetails(); }}
+            >
+              <div className="w-6 h-6 rounded-lg bg-slate-100 flex items-center justify-center">
+                <Info className="w-3.5 h-3.5 text-slate-600" />
+              </div>
+              Chi tiết
+            </button>
             <button
               className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 text-left w-full transition-colors"
               onClick={(e) => { e.stopPropagation(); onToggleMenu(); onRename(); }}

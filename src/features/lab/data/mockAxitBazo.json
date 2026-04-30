@@ -10,7 +10,14 @@
   },
   "config": {
     "sidebar_locked": false,
-    "allowed_types": ["CONTAINER", "EQUIPMENT", "CHEMICAL", "LIQUID", "SOLID", "GAS"],
+    "allowed_types": [
+      "CONTAINER",
+      "EQUIPMENT",
+      "CHEMICAL",
+      "LIQUID",
+      "SOLID",
+      "GAS"
+    ],
     "restricted_chemicals": []
   },
   "viewport": {

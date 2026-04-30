@@ -7,6 +7,7 @@ import {
 
 import { useLabData } from '../hooks/useLabData';
 import LabCard from './LabCard';
+import { LAB_THEMES } from '../data/theme';
 
 /* ─────────────────────────────────────────────────────────
    Main Component
@@ -15,6 +16,7 @@ const LabDashboard = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeMenuId, setActiveMenuId] = useState(null);
+  const [selectedLabDetails, setSelectedLabDetails] = useState(null);
   
   // Default to Discovery tab
   const [activeTab, setActiveTab] = useState('PREMADE');
@@ -187,6 +189,7 @@ const LabDashboard = () => {
               isMenuOpen={activeMenuId === lab.id}
               onToggleMenu={() => setActiveMenuId(activeMenuId === lab.id ? null : lab.id)}
               onOpen={() => navigate('/lab-workspace/' + lab.id)}
+              onViewDetails={() => setSelectedLabDetails(lab)}
               onRename={() => toast.info('Feature coming in the next update!')}
               onDuplicate={() => toast.info('Feature coming in the next update!')}
               onDelete={() => toast.error('Delete feature temporarily locked to protect core data.')}
@@ -208,6 +211,75 @@ const LabDashboard = () => {
           </div>
         )}
       </div>
+
+      {/* ══════════════════════════════════════════════
+          DETAILS MODAL
+      ══════════════════════════════════════════════ */}
+      {selectedLabDetails && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200" onClick={() => setSelectedLabDetails(null)}>
+          <div 
+            className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-300"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header: Gradient Banner */}
+            <div className={`w-full h-32 bg-gradient-to-br ${(LAB_THEMES[selectedLabDetails.category] || LAB_THEMES[selectedLabDetails.type] || LAB_THEMES.DEFAULT).gradient} relative flex items-center justify-center`}>
+               <div className="absolute inset-0 bg-white/10" />
+               <h2 className="relative z-10 text-2xl font-black text-white drop-shadow-md px-6 text-center">{selectedLabDetails.title}</h2>
+               {/* Close button */}
+               <button 
+                 onClick={() => setSelectedLabDetails(null)}
+                 className="absolute top-4 right-4 w-8 h-8 bg-black/20 hover:bg-black/40 text-white rounded-full flex items-center justify-center backdrop-blur-sm transition-colors z-20"
+               >
+                 ✕
+               </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 md:p-8 flex flex-col gap-5">
+              
+              {/* Badges */}
+              <div className="flex flex-wrap gap-2">
+                <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold border border-indigo-100">
+                  {(LAB_THEMES[selectedLabDetails.category] || LAB_THEMES[selectedLabDetails.type] || LAB_THEMES.DEFAULT).tag}
+                </span>
+                {selectedLabDetails.difficulty && (
+                   <span className={`px-3 py-1 rounded-lg text-xs font-bold border ${
+                     selectedLabDetails.difficulty === 'EASY' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                     selectedLabDetails.difficulty === 'MEDIUM' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                     'bg-rose-50 text-rose-600 border-rose-100'
+                   }`}>
+                     Độ khó: {selectedLabDetails.difficulty}
+                   </span>
+                )}
+                {selectedLabDetails.max_score && (
+                  <span className="px-3 py-1 bg-slate-50 text-slate-600 rounded-lg text-xs font-bold border border-slate-200">
+                    Max Score: {selectedLabDetails.max_score} EXP
+                  </span>
+                )}
+              </div>
+
+              {/* Description */}
+              <div>
+                <h4 className="text-sm font-bold text-slate-800 mb-2">Mô tả bài thực hành:</h4>
+                <p className="text-slate-600 text-sm leading-relaxed">
+                  {selectedLabDetails.description || 'Chưa có thông tin mô tả chi tiết cho bài lab này.'}
+                </p>
+              </div>
+
+              {/* Action Button */}
+              <button
+                onClick={() => {
+                  navigate('/lab-workspace/' + selectedLabDetails.id);
+                  setSelectedLabDetails(null);
+                }}
+                className="mt-2 w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl shadow-lg shadow-blue-500/30 transition-all active:scale-[0.98]"
+              >
+                Vào phòng thí nghiệm ngay 🚀
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

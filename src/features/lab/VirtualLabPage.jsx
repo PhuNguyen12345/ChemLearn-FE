@@ -545,15 +545,6 @@ export default function VirtualLabPage() {
         labId={id}
       />
       <div style={{ display: 'flex', height: '100%', backgroundColor: '#ecf0f1', overflow: 'hidden', position: 'relative' }} className="w-full flex-1">
-      <Toaster 
-        richColors 
-        toastOptions={{ 
-          classNames: { 
-            title: 'text-base font-bold', 
-            description: 'text-xl font-medium text-slate-600' 
-          } 
-        }} 
-      />
       <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         {/* ================= LEFT COLUMN ================= */}
         <div style={{ width: isLeftOpen ? '320px' : '0', transition: 'width 0.3s ease', backgroundColor: '#fff', borderRight: '2px solid #e2e8f0', position: 'relative', flexShrink: 0, zIndex: 50 }}>
