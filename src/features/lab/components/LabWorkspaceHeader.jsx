@@ -3,28 +3,14 @@ import { ArrowLeft, CheckCircle2, User, Edit3, Trash2, Save, RefreshCw, RotateCc
 import { Button } from '@/components/ui/button';
 import { useLabStore } from '../stores/useLabStore';
 
-const LabWorkspaceHeader = ({ onBack, titleText = "Untitled Experiment" }) => {
+const LabWorkspaceHeader = ({ onBack, titleText = "Untitled Experiment", saveState = 'idle', onSaveClick }) => {
   const [title, setTitle] = useState(titleText);
   const [isEditing, setIsEditing] = useState(false);
-  const [saveState, setSaveState] = useState('idle'); // 'idle' | 'saving' | 'saved'
   const { serializeLabState, clearWorkspace, resetToTemplate } = useLabStore();
   const score = useLabStore(state => state.progress?.score || 0);
   const maxScore = useLabStore(state => state.metadata?.max_score || 50);
   const percentage = Math.min((score / maxScore) * 100, 100);
   const isFinished = percentage === 100;
-
-  const handleSave = () => {
-    if (saveState !== 'idle') return;
-    setSaveState('saving');
-    // Fake API call delay
-    setTimeout(() => {
-      serializeLabState();
-      setSaveState('saved');
-      setTimeout(() => {
-        setSaveState('idle');
-      }, 1500);
-    }, 800);
-  };
 
   const handleTitleSubmit = (e) => {
     if (e.key === 'Enter') {
@@ -119,7 +105,7 @@ const LabWorkspaceHeader = ({ onBack, titleText = "Untitled Experiment" }) => {
               ? 'bg-emerald-500 hover:bg-emerald-600' 
               : 'bg-blue-600 hover:bg-blue-700'
           }`}
-          onClick={handleSave}
+          onClick={onSaveClick}
           disabled={saveState === 'saving'}
         >
           {saveState === 'saving' ? (

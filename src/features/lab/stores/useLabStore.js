@@ -50,6 +50,40 @@ export const useLabStore = create((set, get) => ({
     });
   },
 
+  loadLabProgress: (apiData, taskMockList) => {
+    // Phục hồi cấu hình cơ bản từ API
+    const config = apiData.config || {};
+    
+    // Khôi phục mảng tasks từ mock và áp dụng trạng thái completed
+    const apiCompletedActions = apiData.completedActions || [];
+    const restoredTasks = (taskMockList || []).map(task => ({
+      ...task,
+      isCompleted: apiCompletedActions.includes(task.action)
+    }));
+
+    set({
+      lab_id: apiData.labId,
+      version: "1.0",
+      metadata: { 
+        title: apiData.title, 
+        type: apiData.type,
+        max_score: 50 // Giả định
+      },
+      config: config,
+      viewport: apiData.viewport || { x: 0, y: 0, zoom_scale: 1.0 },
+      workspace: apiData.workspace || [],
+      progress: {
+        score: apiData.currentScore || 0,
+        percent: apiData.progressPercent || 0,
+        completed_actions: apiCompletedActions,
+        is_finished: apiData.status === 'COMPLETED'
+      },
+      tasks: restoredTasks,
+      _originalTemplate: null, // Bỏ qua original
+      reactionInfo: { equation: '-', condition: 'Progress Loaded', description: `Đã khôi phục tiến trình bài: ${apiData.title}` }
+    });
+  },
+
   resetToTemplate: () => {
     const original = get()._originalTemplate;
     if (original) {
@@ -107,12 +141,19 @@ export const useLabStore = create((set, get) => ({
       const totalCount = updatedTasks.length;
       const percent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
+      // Ensure the task action is also recorded in completed_actions
+      const currentCompletedActions = state.progress.completed_actions || [];
+      const newCompletedActions = currentCompletedActions.includes(actionName) 
+        ? currentCompletedActions 
+        : [...currentCompletedActions, actionName];
+
       return {
         tasks: updatedTasks,
         progress: {
           ...state.progress,
           score: updatedScore,
-          percent: percent
+          percent: percent,
+          completed_actions: newCompletedActions
         }
       };
     }

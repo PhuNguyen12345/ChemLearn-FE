@@ -17,6 +17,7 @@ import DragPreview from './components/DragPreview';
 import confetti from 'canvas-confetti';
 import { LAB_TASKS_MOCK } from './data/labTasksMock';
 import debounce from 'lodash/debounce';
+import { saveVirtualLabProgress, enterVirtualLab } from '@/lib/api';
 
 // ---------------------------------------------------------------------------
 // REACTION_MAP  –  Strategy Pattern / Data-Driven Lookup Dictionary
@@ -249,6 +250,8 @@ export default function VirtualLabPage() {
   const [inventory, setInventory] = useState(INITIAL_INVENTORY);
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarView, setSidebarView] = useState('grid');
+  const [saveState, setSaveState] = useState('idle');
+  const [isLoading, setIsLoading] = useState(true);
 
   const [showModal, setShowModal] = useState(false);
   const markAsFinished = useLabStore(state => state.markAsFinished);
@@ -281,27 +284,17 @@ export default function VirtualLabPage() {
   // New Free-form & Zoom State
   // Global CSLS State
   const { 
-    workspace: placedItems, 
-    viewport, 
-    reactionInfo,
-    initFromTemplate,
-    resetToTemplate,
-    clearWorkspace,
-    setWorkspace, 
-    setViewportScale,
-    setReactionInfo,
-    recordReaction,
-    serializeLabState,
-    tasks,
-    initTasks,
-    completeTask
+    initFromTemplate, loadLabProgress, workspace: placedItems, setWorkspace: setPlacedItems, removeWorkspaceItem, 
+    updateWorkspaceItem, addWorkspaceItem, reactionInfo, setReactionInfo,
+    progress: currentProgress, completeTask, tasks 
   } = useLabStore();
+  const viewport = useLabStore(state => state.viewport);
   const scale = viewport.zoom_scale;
 
   const [selectedItemId, setSelectedItemId] = useState(null);
 
   const handleDeleteItem = (id) => {
-    setWorkspace(prev => prev.filter(item => item.instanceId !== id));
+    setPlacedItems(prev => prev.filter(item => item.instanceId !== id));
     if (selectedItemId === id) setSelectedItemId(null);
   };
 
@@ -320,27 +313,51 @@ export default function VirtualLabPage() {
   // Drag state
   const [activeDragData, setActiveDragData] = useState(null);
 
-  // Khởi tạo bài học từ Template
+  // Khởi tạo bàn thí nghiệm
   useEffect(() => {
-    initFromTemplate(mockAxitBazo);
-    
-    // Nạp task từ mock theo category
-    const category = mockAxitBazo.metadata.category;
-    if (LAB_TASKS_MOCK[category]) {
-      initTasks(LAB_TASKS_MOCK[category]);
-    } else {
-      initTasks([]);
-    }
-  }, [initFromTemplate, initTasks]);
+    const fetchLab = async () => {
+      setIsLoading(true);
+      try {
+        if (id === 'new') {
+          initFromTemplate(mockAxitBazo);
+          useLabStore.getState().initTasks(LAB_TASKS_MOCK.AXIT_BAZO);
+        } else {
+          const data = await enterVirtualLab(id);
+          // TODO: Tùy theo category từ BE để chọn mock tương ứng. Tạm thời dùng AXIT_BAZO
+          loadLabProgress(data, LAB_TASKS_MOCK.AXIT_BAZO);
+        }
+      } catch (error) {
+        console.error("Lỗi khi tải bài lab:", error);
+        toast.error("Không thể tải bài thực hành. Vui lòng thử lại sau.", { position: 'bottom-right' });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchLab();
+
+    return () => {
+      useLabStore.getState().clearWorkspace();
+    };
+  }, [id, initFromTemplate, loadLabProgress]);
 
   // Auto-save với Debounce
   const debouncedSave = useMemo(
-    () => debounce((payload) => {
-      const isMockMode = id === 'new' || true; // Tạm thời dùng cờ này vì chưa nối API
+    () => debounce(async (payload) => {
+      const isMockMode = id === 'new';
       if (isMockMode) {
-        console.log('Saved data (Mock)', payload);
+        console.log('Saved data (Mock Sandbox)', payload);
       } else {
-        // Thực hiện call API saveProgress ở đây
+        setSaveState('saving');
+        try {
+          await saveVirtualLabProgress(id, payload);
+          setSaveState('saved');
+          setTimeout(() => setSaveState('idle'), 2000);
+        } catch (error) {
+          console.error("Lỗi khi lưu tiến trình lab:", error);
+          setSaveState('idle');
+          toast.error("Mất kết nối! Chưa thể lưu tiến trình lab.", { position: "bottom-right" });
+        }
       }
     }, 1500),
     [id]
@@ -348,22 +365,23 @@ export default function VirtualLabPage() {
 
   useEffect(() => {
     const payload = {
-      currentScore: score,
-      progressPercent: progress.percent,
-      status: progress.percent === 100 ? 'COMPLETED' : 'IN_PROGRESS',
+      currentScore: currentProgress.score,
+      progressPercent: currentProgress.percent,
+      status: currentProgress.percent === 100 ? 'COMPLETED' : 'IN_PROGRESS',
       currentWorkspace: placedItems,
-      viewport: viewport
+      viewport: viewport,
+      completedActions: currentProgress.completed_actions || []
     };
     debouncedSave(payload);
-  }, [score, progress.percent, placedItems, viewport, debouncedSave]);
+  }, [currentProgress.score, currentProgress.percent, placedItems, viewport, debouncedSave]);
 
   useEffect(() => {
     const handleClearDesk = () => {
-      clearWorkspace();
+      useLabStore.getState().clearWorkspace();
     };
     window.addEventListener('clear-lab-desk', handleClearDesk);
     return () => window.removeEventListener('clear-lab-desk', handleClearDesk);
-  }, [clearWorkspace]);
+  }, []);
 
   const activeDragItem = useMemo(() => {
     if (!activeDragData) return null;
@@ -445,7 +463,7 @@ export default function VirtualLabPage() {
         isHeated: false
       };
 
-      setWorkspace(prev => checkProximity([...prev, newItem]));
+      setPlacedItems(prev => checkProximity([...prev, newItem]));
       setReactionInfo({ equation: 'Adding ' + activeDragItem?.name, condition: 'Workspace setup', description: 'Vật phẩm đã được thêm vào bàn làm việc.' });
 
       // Ghi nhận Task chuẩn bị dụng cụ
@@ -457,7 +475,7 @@ export default function VirtualLabPage() {
     // 2. Reposition Canvas Item
     if (sourceData?.source === 'canvas') {
       const instanceId = sourceData.instanceId;
-      setWorkspace(prev => {
+      setPlacedItems(prev => {
         let updatedItems = prev.map(item => {
           if (item.instanceId === instanceId) {
             return { ...item, x: Math.max(0, item.x + adjustedDeltaX), y: Math.max(0, item.y + adjustedDeltaY) };
@@ -502,7 +520,7 @@ export default function VirtualLabPage() {
                   description: "Bạn nhận được EXP!",
                   position: 'bottom-right'
                 });
-                recordReaction(key);
+                useLabStore.getState().recordReaction(key);
                 completeTask(key);
               }
 
@@ -521,7 +539,7 @@ export default function VirtualLabPage() {
 
               if (reaction.clearStateAfter) {
                 setTimeout(() => {
-                  setWorkspace(curr =>
+                  setPlacedItems(curr =>
                     curr.map(it =>
                       it.instanceId === instanceToUpdate ? { ...it, reactionState: null, gasContent: null } : it
                     )
@@ -585,13 +603,34 @@ export default function VirtualLabPage() {
   const filtered = filteredInventory.filter(i => i.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
-    <div className="flex flex-col h-screen w-full overflow-hidden absolute inset-0 z-50">
-      <LabWorkspaceHeader 
-        onBack={() => navigate('/student/virtual-lab')} 
-        titleText={id === 'new' ? 'Untitled Experiment' : 'My Saved Lab'} 
-        labId={id}
-      />
-      <div style={{ display: 'flex', height: '100%', backgroundColor: '#ecf0f1', overflow: 'hidden', position: 'relative' }} className="w-full flex-1">
+      <div className="flex flex-col h-screen w-full overflow-hidden absolute inset-0 z-50">
+        {isLoading ? (
+          <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 gap-4">
+            <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-slate-500 font-medium">Đang tải bàn thí nghiệm...</p>
+          </div>
+        ) : (
+          <>
+            <LabWorkspaceHeader 
+              onBack={() => navigate('/student/virtual-lab')} 
+              titleText={id === 'new' ? 'Untitled Experiment' : useLabStore.getState().metadata?.title || 'My Saved Lab'} 
+              labId={id}
+              saveState={saveState}
+              onSaveClick={() => {
+                if (saveState !== 'idle') return;
+                const payload = {
+                  currentScore: currentProgress.score,
+                  progressPercent: currentProgress.percent,
+                  status: currentProgress.percent === 100 ? 'COMPLETED' : 'IN_PROGRESS',
+                  currentWorkspace: placedItems,
+                  viewport: viewport,
+                  completedActions: currentProgress.completed_actions || []
+                };
+                debouncedSave(payload);
+                debouncedSave.flush();
+              }}
+            />
+            <div style={{ display: 'flex', height: '100%', backgroundColor: '#ecf0f1', overflow: 'hidden', position: 'relative' }} className="w-full flex-1">
       <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         {/* ================= LEFT COLUMN ================= */}
         <div style={{ width: isLeftOpen ? '320px' : '0', transition: 'width 0.3s ease', backgroundColor: '#fff', borderRight: '2px solid #e2e8f0', position: 'relative', flexShrink: 0, zIndex: 50 }}>
@@ -648,7 +687,7 @@ export default function VirtualLabPage() {
           <CentralWorkspace
             placedItems={placedItems}
             scale={scale}
-            setScale={setViewportScale}
+            setScale={useLabStore.getState().setViewportScale}
             selectedItemId={selectedItemId}
             setSelectedItemId={setSelectedItemId}
             onDeleteItem={handleDeleteItem}
@@ -733,9 +772,6 @@ export default function VirtualLabPage() {
           </div>
         </div>
 
-        {/* <DragOverlay dropAnimation={null}>
-          {activeDragItem ? <DragPreview item={activeDragItem} /> : null}
-        </DragOverlay> */}
         <DragOverlay dropAnimation={null} modifiers={[snapCenterToCursor]}>
           {activeDragItem ? <DragPreview item={activeDragItem} /> : null}
         </DragOverlay>
@@ -777,6 +813,8 @@ export default function VirtualLabPage() {
       )}
 
       </div>
-    </div>
+    </>
+        )}
+      </div>
   );
 }

@@ -281,4 +281,14 @@ export const getVirtualLabs = async (params) => {
   return response.data;
 };
 
+export const enterVirtualLab = async (labId) => {
+  const response = await api.get(`/api/v1/student/virtual-labs/${labId}`);
+  return response.data;
+};
+
+export const saveVirtualLabProgress = async (labId, payload) => {
+  const response = await api.put(`/api/v1/student/virtual-labs/${labId}/progress`, payload);
+  return response.data;
+};
+
 export default api;
