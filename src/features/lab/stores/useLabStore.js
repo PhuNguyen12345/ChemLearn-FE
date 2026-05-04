@@ -24,8 +24,11 @@ export const useLabStore = create((set, get) => ({
     current_step: 1,
     completed_actions: [],
     is_finished: false,
-    score: 0
+    score: 0,
+    percent: 0
   },
+  tasks: [],
+
   
   // Internal UI State
   reactionInfo: { equation: '-', condition: '-', description: 'Bàn làm việc đã được dọn sạch.' },
@@ -76,8 +79,40 @@ export const useLabStore = create((set, get) => ({
       return {
         progress: {
           ...state.progress,
-          completed_actions: [...actions, reactionKey],
-          score: (state.progress.score || 0) + 10 // Cộng 10 điểm (EXP) cho mỗi phản ứng mới
+          completed_actions: [...actions, reactionKey]
+          // score is now handled by completeTask
+        }
+      };
+    }
+    return {};
+  }),
+
+  initTasks: (tasks) => set({ tasks: tasks }),
+
+  completeTask: (actionName) => set((state) => {
+    let updatedScore = state.progress.score || 0;
+    let isChanged = false;
+    
+    const updatedTasks = state.tasks.map(task => {
+      if (task.action === actionName && !task.isCompleted) {
+        updatedScore += task.points;
+        isChanged = true;
+        return { ...task, isCompleted: true };
+      }
+      return task;
+    });
+
+    if (isChanged) {
+      const completedCount = updatedTasks.filter(t => t.isCompleted).length;
+      const totalCount = updatedTasks.length;
+      const percent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+      return {
+        tasks: updatedTasks,
+        progress: {
+          ...state.progress,
+          score: updatedScore,
+          percent: percent
         }
       };
     }

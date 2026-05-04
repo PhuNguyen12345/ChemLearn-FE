@@ -8,6 +8,7 @@ import {
 import { useLabData } from '../hooks/useLabData';
 import LabCard from './LabCard';
 import { LAB_THEMES } from '../data/theme';
+import { LAB_TASKS_MOCK } from '../data/labTasksMock';
 
 /* ─────────────────────────────────────────────────────────
    Main Component
@@ -339,6 +340,21 @@ const LabDashboard = () => {
                   {selectedLabDetails.description || 'Chưa có thông tin mô tả chi tiết cho bài lab này.'}
                 </p>
               </div>
+
+              {/* Tasks List */}
+              {LAB_TASKS_MOCK[selectedLabDetails.category] && (
+                <div>
+                  <h4 className="text-sm font-bold text-slate-800 mb-2">Nhiệm vụ cần làm:</h4>
+                  <ul className="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    {LAB_TASKS_MOCK[selectedLabDetails.category].map(task => (
+                      <li key={task.id} className="flex items-start gap-2 text-sm text-slate-600">
+                        <span className="text-amber-500 font-bold shrink-0">⭐ {task.points}</span>
+                        <span>{task.desc}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {/* Action Button */}
               <button

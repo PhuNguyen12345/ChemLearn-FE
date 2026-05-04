@@ -15,6 +15,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import DraggableItem from './components/DraggableItem';
 import DragPreview from './components/DragPreview';
 import confetti from 'canvas-confetti';
+import { LAB_TASKS_MOCK } from './data/labTasksMock';
+import debounce from 'lodash/debounce';
 
 // ---------------------------------------------------------------------------
 // REACTION_MAP  –  Strategy Pattern / Data-Driven Lookup Dictionary
@@ -289,7 +291,10 @@ export default function VirtualLabPage() {
     setViewportScale,
     setReactionInfo,
     recordReaction,
-    serializeLabState
+    serializeLabState,
+    tasks,
+    initTasks,
+    completeTask
   } = useLabStore();
   const scale = viewport.zoom_scale;
 
@@ -318,7 +323,39 @@ export default function VirtualLabPage() {
   // Khởi tạo bài học từ Template
   useEffect(() => {
     initFromTemplate(mockAxitBazo);
-  }, [initFromTemplate]);
+    
+    // Nạp task từ mock theo category
+    const category = mockAxitBazo.metadata.category;
+    if (LAB_TASKS_MOCK[category]) {
+      initTasks(LAB_TASKS_MOCK[category]);
+    } else {
+      initTasks([]);
+    }
+  }, [initFromTemplate, initTasks]);
+
+  // Auto-save với Debounce
+  const debouncedSave = useMemo(
+    () => debounce((payload) => {
+      const isMockMode = id === 'new' || true; // Tạm thời dùng cờ này vì chưa nối API
+      if (isMockMode) {
+        console.log('Saved data (Mock)', payload);
+      } else {
+        // Thực hiện call API saveProgress ở đây
+      }
+    }, 1500),
+    [id]
+  );
+
+  useEffect(() => {
+    const payload = {
+      currentScore: score,
+      progressPercent: progress.percent,
+      status: progress.percent === 100 ? 'COMPLETED' : 'IN_PROGRESS',
+      currentWorkspace: placedItems,
+      viewport: viewport
+    };
+    debouncedSave(payload);
+  }, [score, progress.percent, placedItems, viewport, debouncedSave]);
 
   useEffect(() => {
     const handleClearDesk = () => {
@@ -410,6 +447,11 @@ export default function VirtualLabPage() {
 
       setWorkspace(prev => checkProximity([...prev, newItem]));
       setReactionInfo({ equation: 'Adding ' + activeDragItem?.name, condition: 'Workspace setup', description: 'Vật phẩm đã được thêm vào bàn làm việc.' });
+
+      // Ghi nhận Task chuẩn bị dụng cụ
+      if (sourceData.templateId === 'beaker' || sourceData.templateId === 'test_tube') {
+        completeTask('DRAG_FLASK_TO_WORKSPACE');
+      }
     }
 
     // 2. Reposition Canvas Item
@@ -457,10 +499,11 @@ export default function VirtualLabPage() {
               const previousActions = useLabStore.getState().progress.completed_actions;
               if (!previousActions.includes(key)) {
                 toast.success(`Phản ứng mới: ${reaction?.reactionInfo?.equation || key}`, {
-                  description: "Bạn nhận được +10 EXP!",
+                  description: "Bạn nhận được EXP!",
                   position: 'bottom-right'
                 });
                 recordReaction(key);
+                completeTask(key);
               }
 
               // Apply multi-layer content fields
@@ -509,6 +552,10 @@ export default function VirtualLabPage() {
                 condition: 'Mixing',
                 description: `${draggedContentName} đã được thêm vào dụng cụ.`,
               });
+
+              // Ghi nhận Task châm hóa chất đầu tiên
+              const actionName = `DRAG_${draggedContentName.toUpperCase()}_TO_FLASK`;
+              completeTask(actionName);
             }
             // else: container already has content and no matching reaction → ignore drop
 
@@ -552,6 +599,29 @@ export default function VirtualLabPage() {
             <h3 className="text-xl font-bold text-slate-800 border-b-2 border-blue-400 pb-3">📊 Phân tích Lab</h3>
 
             <div className="mt-6 space-y-4">
+              {/* Nhiệm vụ / Tasks */}
+              {tasks && tasks.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Nhiệm vụ cần làm:</h4>
+                  <ul className="space-y-2">
+                    {tasks.map(task => (
+                      <li key={task.id} className="flex items-start gap-2 text-sm bg-slate-50 p-3 rounded-xl border border-slate-100 shadow-sm">
+                        <span className="shrink-0 mt-0.5 text-base">
+                          {task.isCompleted ? (
+                            <span className="text-emerald-500 font-bold">☑</span>
+                          ) : (
+                            <span className="text-slate-300 font-bold">☐</span>
+                          )}
+                        </span>
+                        <span className={`text-slate-700 leading-snug ${task.isCompleted ? 'line-through opacity-50' : ''}`}>
+                          {task.desc}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               <div>
                 <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Trạng thái/Phản ứng:</h4>
                 <div className="p-4 bg-slate-50 border border-slate-100 font-mono text-sm text-red-500 rounded-xl shadow-inner">{reactionInfo.equation}</div>
