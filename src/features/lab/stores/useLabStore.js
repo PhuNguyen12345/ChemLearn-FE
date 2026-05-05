@@ -96,6 +96,20 @@ export const useLabStore = create((set, get) => ({
     }
   },
 
+  // Reset to blank state - called after Reset Lab API success
+  resetLabState: (freshTaskList) => set({
+    workspace: [],
+    viewport: { zoom_scale: 1.0, offset: { x: 0, y: 0 } },
+    progress: {
+      score: 0,
+      percent: 0,
+      completed_actions: [],
+      is_finished: false
+    },
+    tasks: (freshTaskList || []).map(t => ({ ...t, isCompleted: false })),
+    reactionInfo: { equation: '-', condition: 'Reset', description: 'Đã làm mới bài thí nghiệm.' }
+  }),
+
   clearWorkspace: () => set((state) => ({
     workspace: [],
     reactionInfo: { equation: '-', condition: 'Cleared', description: 'Bàn làm việc đã được dọn sạch.' }

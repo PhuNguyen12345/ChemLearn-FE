@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { DndContext, DragOverlay } from '@dnd-kit/core';
 import LabWorkspaceHeader from './components/LabWorkspaceHeader';
 import '/Lab2.css';
-import { Beaker, Box, Cloud, Droplet, Flame, Globe, Trash2 } from 'lucide-react';
+import { Beaker, Box, Cloud, Droplet, Flame, Globe, Trash2, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { snapCenterToCursor } from '@dnd-kit/modifiers';
 import { INITIAL_INVENTORY, ITEM_TYPE, PHYSICAL_STATE } from './data/constants';
@@ -17,7 +17,7 @@ import DragPreview from './components/DragPreview';
 import confetti from 'canvas-confetti';
 import { LAB_TASKS_MOCK } from './data/labTasksMock';
 import debounce from 'lodash/debounce';
-import { saveVirtualLabProgress, enterVirtualLab } from '@/lib/api';
+import { saveVirtualLabProgress, enterVirtualLab, resetVirtualLab } from '@/lib/api';
 
 // ---------------------------------------------------------------------------
 // REACTION_MAP  –  Strategy Pattern / Data-Driven Lookup Dictionary
@@ -252,6 +252,7 @@ export default function VirtualLabPage() {
   const [sidebarView, setSidebarView] = useState('grid');
   const [saveState, setSaveState] = useState('idle');
   const [isLoading, setIsLoading] = useState(true);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
   const markAsFinished = useLabStore(state => state.markAsFinished);
@@ -284,7 +285,7 @@ export default function VirtualLabPage() {
   // New Free-form & Zoom State
   // Global CSLS State
   const { 
-    initFromTemplate, loadLabProgress, workspace: placedItems, setWorkspace: setPlacedItems, removeWorkspaceItem, 
+    initFromTemplate, loadLabProgress, resetLabState, workspace: placedItems, setWorkspace: setPlacedItems, removeWorkspaceItem, 
     updateWorkspaceItem, addWorkspaceItem, reactionInfo, setReactionInfo,
     progress: currentProgress, completeTask, tasks 
   } = useLabStore();
@@ -340,6 +341,26 @@ export default function VirtualLabPage() {
       useLabStore.getState().clearWorkspace();
     };
   }, [id, initFromTemplate, loadLabProgress]);
+
+  // Reset Lab
+  const handleResetLab = async () => {
+    setShowResetConfirm(false);
+    // [FIX #1] Nạp động danh sách task theo category của bài Lab đang chạy
+    const currentCategory = useLabStore.getState().metadata?.category || 'AXIT_BAZO';
+    const freshTaskList = LAB_TASKS_MOCK[currentCategory] || [];
+
+    if (id === 'new') {
+      resetLabState(freshTaskList);
+      return;
+    }
+    try {
+      await resetVirtualLab(id);
+      resetLabState(freshTaskList);
+      toast.success('Đã làm mới bài thí nghiệm!', { position: 'bottom-right' });
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Không thể reset bài Lab.', { position: 'bottom-right' });
+    }
+  };
 
   // Auto-save với Debounce
   const debouncedSave = useMemo(
@@ -616,6 +637,7 @@ export default function VirtualLabPage() {
               titleText={id === 'new' ? 'Untitled Experiment' : useLabStore.getState().metadata?.title || 'My Saved Lab'} 
               labId={id}
               saveState={saveState}
+              onResetClick={() => setShowResetConfirm(true)}
               onSaveClick={() => {
                 if (saveState !== 'idle') return;
                 const payload = {
@@ -811,8 +833,38 @@ export default function VirtualLabPage() {
           </div>
         </div>
       )}
-
       </div>
+
+      {/* ====== RESET CONFIRM DIALOG ====== */}
+      {showResetConfirm && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 flex flex-col items-center gap-5">
+            <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center">
+              <RotateCcw className="w-7 h-7 text-red-500" />
+            </div>
+            <div className="text-center">
+              <h3 className="text-lg font-bold text-slate-800 mb-1">Làm lại từ đầu?</h3>
+              <p className="text-sm text-slate-500">Toàn bộ tiến trình, điểm số và bàn làm việc sẽ bị xóa vĩnh viễn. Hành động này không thể hoàn tác.</p>
+            </div>
+            <div className="flex gap-3 w-full">
+              <Button
+                variant="outline"
+                className="flex-1 h-11"
+                onClick={() => setShowResetConfirm(false)}
+              >
+                Huỷ
+              </Button>
+              <Button
+                className="flex-1 h-11 bg-red-500 hover:bg-red-600 text-white"
+                onClick={handleResetLab}
+              >
+                Xác nhận Reset
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </>
         )}
       </div>

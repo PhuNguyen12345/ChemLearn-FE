@@ -3,7 +3,7 @@ import { ArrowLeft, CheckCircle2, User, Edit3, Trash2, Save, RefreshCw, RotateCc
 import { Button } from '@/components/ui/button';
 import { useLabStore } from '../stores/useLabStore';
 
-const LabWorkspaceHeader = ({ onBack, titleText = "Untitled Experiment", saveState = 'idle', onSaveClick }) => {
+const LabWorkspaceHeader = ({ onBack, titleText = "Untitled Experiment", saveState = 'idle', onSaveClick, onResetClick }) => {
   const [title, setTitle] = useState(titleText);
   const [isEditing, setIsEditing] = useState(false);
   const { serializeLabState, clearWorkspace, resetToTemplate } = useLabStore();
@@ -93,7 +93,7 @@ const LabWorkspaceHeader = ({ onBack, titleText = "Untitled Experiment", saveSta
         <Button 
           variant="outline" 
           className="text-blue-600 hover:bg-blue-50 border-blue-200 h-9 px-3" 
-          onClick={resetToTemplate}
+          onClick={onResetClick}
         >
           <RotateCcw className="w-4 h-4 mr-2" /> Reset Lab
         </Button>

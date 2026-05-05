@@ -291,4 +291,9 @@ export const saveVirtualLabProgress = async (labId, payload) => {
   return response.data;
 };
 
+export const resetVirtualLab = async (labId) => {
+  const response = await api.delete(`/api/v1/student/virtual-labs/${labId}/reset`);
+  return response.data;
+};
+
 export default api;
