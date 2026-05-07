@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { DndContext, DragOverlay } from '@dnd-kit/core';
 import LabWorkspaceHeader from './components/LabWorkspaceHeader';
@@ -9,18 +9,14 @@ import { snapCenterToCursor } from '@dnd-kit/modifiers';
 import { INITIAL_INVENTORY, ITEM_TYPE, PHYSICAL_STATE } from './data/constants';
 import { Toaster, toast } from 'sonner';
 import { useLabStore } from './stores/useLabStore';
-import mockAxitBazo from './data/mockAxitBazo.json';
 import CentralWorkspace from './components/CentralWorkspace';
 import DragPreview from './components/DragPreview';
-import confetti from 'canvas-confetti';
-import { LAB_TASKS_MOCK } from './data/labTasksMock';
-import debounce from 'lodash/debounce';
-import { saveVirtualLabProgress, enterVirtualLab, resetVirtualLab } from '@/lib/api';
 import { REACTION_MAP, getReactionKey } from './data/reactionMap';
 import { TEMPLATE_TO_CONTENT, EMPTY_DROP_LIQUID_COLOR } from './data/chemicalMappings';
 import LabAnalysisPanel from './components/LabAnalysisPanel';
 import LabInventoryPanel from './components/LabInventoryPanel';
 import LabConfirmDialog from './components/LabConfirmDialog';
+import { useLabLifecycle } from './hooks/useLabLifecycle';
 
 
 
@@ -28,61 +24,52 @@ import LabConfirmDialog from './components/LabConfirmDialog';
 export default function VirtualLabPage() {
   const navigate = useNavigate();
   const { id } = useParams();
+
+  // ── Lifecycle: fetch, save, reset, modal ─────────────────────────────────
+  const {
+    isLoading,
+    saveState,
+    showResetConfirm,
+    setShowResetConfirm,
+    showModal,
+    setShowModal,
+    handleResetLab,
+    debouncedSave,
+  } = useLabLifecycle(id);
+
   const [inventory, setInventory] = useState(INITIAL_INVENTORY);
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarView, setSidebarView] = useState('grid');
-  const [saveState, setSaveState] = useState('idle');
-  const [isLoading, setIsLoading] = useState(true);
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
-
-  const [showModal, setShowModal] = useState(false);
-  const markAsFinished = useLabStore(state => state.markAsFinished);
-  const progress = useLabStore(state => state.progress);
-  const maxScore = useLabStore(state => state.metadata?.max_score) || 50;
-  const score = progress?.score || 0;
-
-  useEffect(() => {
-    if (score >= maxScore && maxScore > 0 && !progress.is_finished) {
-      confetti({
-        particleCount: 150,
-        spread: 80,
-        origin: { y: 0.6 },
-        colors: ['#2563eb', '#fbbf24', '#34d399', '#ef4444'],
-        zIndex: 1000
-      });
-      setShowModal(true);
-      markAsFinished();
-    }
-  }, [score, maxScore, progress.is_finished, markAsFinished]);
 
   const [isLeftOpen, setIsLeftOpen] = useState(true);
   const [isRightOpen, setIsRightOpen] = useState(true);
-
-  //for closing both filter and inventory 
-  const [isInventoryOpen, setIsInventoryOpen] = useState(true);
-  //saving current filter status 
   const [activeFilter, setActiveFilter] = useState('ALL');
 
-  // New Free-form & Zoom State
-  // Global CSLS State
+  // ── Store state ───────────────────────────────────────────────────────────
+  const progress = useLabStore(state => state.progress);
+  const maxScore = useLabStore(state => state.metadata?.max_score) || 50;
+  const score = progress?.score || 0;
   const { 
-    initFromTemplate, loadLabProgress, resetLabState, workspace: placedItems, setWorkspace: setPlacedItems, removeWorkspaceItem, 
-    updateWorkspaceItem, addWorkspaceItem, reactionInfo, setReactionInfo,
+    workspace: placedItems, setWorkspace: setPlacedItems,
+    reactionInfo, setReactionInfo,
     progress: currentProgress, completeTask, tasks 
   } = useLabStore();
   const viewport = useLabStore(state => state.viewport);
   const scale = viewport.zoom_scale;
 
+  // Drag state
+  const [activeDragData, setActiveDragData] = useState(null);
+
+  // Selection & keyboard delete state
   const [selectedItemId, setSelectedItemId] = useState(null);
 
-  const handleDeleteItem = (id) => {
-    setPlacedItems(prev => prev.filter(item => item.instanceId !== id));
-    if (selectedItemId === id) setSelectedItemId(null);
+  const handleDeleteItem = (itemId) => {
+    setPlacedItems(prev => prev.filter(item => item.instanceId !== itemId));
+    if (selectedItemId === itemId) setSelectedItemId(null);
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     const handleKeyDown = (e) => {
-      // Avoid deleting if user is typing in the search input
       if (document.activeElement.tagName === 'INPUT') return;
       if (selectedItemId && (e.key === 'Delete' || e.key === 'Backspace')) {
         handleDeleteItem(selectedItemId);
@@ -91,99 +78,6 @@ export default function VirtualLabPage() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedItemId]);
-
-  // Drag state
-  const [activeDragData, setActiveDragData] = useState(null);
-
-  // Khởi tạo bàn thí nghiệm
-  useEffect(() => {
-    const fetchLab = async () => {
-      setIsLoading(true);
-      try {
-        if (id === 'new') {
-          initFromTemplate(mockAxitBazo);
-          useLabStore.getState().initTasks(LAB_TASKS_MOCK.AXIT_BAZO);
-        } else {
-          const data = await enterVirtualLab(id);
-          // TODO: Tùy theo category từ BE để chọn mock tương ứng. Tạm thời dùng AXIT_BAZO
-          loadLabProgress(data, LAB_TASKS_MOCK.AXIT_BAZO);
-        }
-      } catch (error) {
-        console.error("Lỗi khi tải bài lab:", error);
-        toast.error("Không thể tải bài thực hành. Vui lòng thử lại sau.", { position: 'bottom-right' });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchLab();
-
-    return () => {
-      useLabStore.getState().clearWorkspace();
-    };
-  }, [id, initFromTemplate, loadLabProgress]);
-
-  // Reset Lab
-  const handleResetLab = async () => {
-    setShowResetConfirm(false);
-    // [FIX #1] Nạp động danh sách task theo category của bài Lab đang chạy
-    const currentCategory = useLabStore.getState().metadata?.category || 'AXIT_BAZO';
-    const freshTaskList = LAB_TASKS_MOCK[currentCategory] || [];
-
-    if (id === 'new') {
-      resetLabState(freshTaskList);
-      return;
-    }
-    try {
-      await resetVirtualLab(id);
-      resetLabState(freshTaskList);
-      toast.success('Đã làm mới bài thí nghiệm!', { position: 'bottom-right' });
-    } catch (error) {
-      toast.error(error?.response?.data?.message || 'Không thể reset bài Lab.', { position: 'bottom-right' });
-    }
-  };
-
-  // Auto-save với Debounce
-  const debouncedSave = useMemo(
-    () => debounce(async (payload) => {
-      const isMockMode = id === 'new';
-      if (isMockMode) {
-        console.log('Saved data (Mock Sandbox)', payload);
-      } else {
-        setSaveState('saving');
-        try {
-          await saveVirtualLabProgress(id, payload);
-          setSaveState('saved');
-          setTimeout(() => setSaveState('idle'), 2000);
-        } catch (error) {
-          console.error("Lỗi khi lưu tiến trình lab:", error);
-          setSaveState('idle');
-          toast.error("Mất kết nối! Chưa thể lưu tiến trình lab.", { position: "bottom-right" });
-        }
-      }
-    }, 1500),
-    [id]
-  );
-
-  useEffect(() => {
-    const payload = {
-      currentScore: currentProgress.score,
-      progressPercent: currentProgress.percent,
-      status: currentProgress.percent === 100 ? 'COMPLETED' : 'IN_PROGRESS',
-      currentWorkspace: placedItems,
-      viewport: viewport,
-      completedActions: currentProgress.completed_actions || []
-    };
-    debouncedSave(payload);
-  }, [currentProgress.score, currentProgress.percent, placedItems, viewport, debouncedSave]);
-
-  useEffect(() => {
-    const handleClearDesk = () => {
-      useLabStore.getState().clearWorkspace();
-    };
-    window.addEventListener('clear-lab-desk', handleClearDesk);
-    return () => window.removeEventListener('clear-lab-desk', handleClearDesk);
-  }, []);
 
   const activeDragItem = useMemo(() => {
     if (!activeDragData) return null;
