@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { DndContext, DragOverlay } from '@dnd-kit/core';
 import LabWorkspaceHeader from './components/LabWorkspaceHeader';
 import '/Lab2.css';
-import { Trash2, RotateCcw } from 'lucide-react';
+import { RotateCcw, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { snapCenterToCursor } from '@dnd-kit/modifiers';
 import { INITIAL_INVENTORY, ITEM_TYPE, PHYSICAL_STATE } from './data/constants';
@@ -11,15 +11,16 @@ import { Toaster, toast } from 'sonner';
 import { useLabStore } from './stores/useLabStore';
 import mockAxitBazo from './data/mockAxitBazo.json';
 import CentralWorkspace from './components/CentralWorkspace';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import DraggableItem from './components/DraggableItem';
 import DragPreview from './components/DragPreview';
 import confetti from 'canvas-confetti';
 import { LAB_TASKS_MOCK } from './data/labTasksMock';
 import debounce from 'lodash/debounce';
 import { saveVirtualLabProgress, enterVirtualLab, resetVirtualLab } from '@/lib/api';
 import { REACTION_MAP, getReactionKey } from './data/reactionMap';
-import { TEMPLATE_TO_CONTENT, EMPTY_DROP_LIQUID_COLOR, FILTER_TABS } from './data/chemicalMappings';
+import { TEMPLATE_TO_CONTENT, EMPTY_DROP_LIQUID_COLOR } from './data/chemicalMappings';
+import LabAnalysisPanel from './components/LabAnalysisPanel';
+import LabInventoryPanel from './components/LabInventoryPanel';
+import LabConfirmDialog from './components/LabConfirmDialog';
 
 
 
@@ -435,52 +436,12 @@ export default function VirtualLabPage() {
             <div style={{ display: 'flex', height: '100%', backgroundColor: '#ecf0f1', overflow: 'hidden', position: 'relative' }} className="w-full flex-1">
       <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         {/* ================= LEFT COLUMN ================= */}
-        <div style={{ width: isLeftOpen ? '320px' : '0', transition: 'width 0.3s ease', backgroundColor: '#fff', borderRight: '2px solid #e2e8f0', position: 'relative', flexShrink: 0, zIndex: 50 }}>
-          <div style={{ display: isLeftOpen ? 'block' : 'none', width: '320px', height: '100%', padding: '24px', boxSizing: 'border-box', overflowY: 'auto' }}>
-            <h3 className="text-xl font-bold text-slate-800 border-b-2 border-blue-400 pb-3">📊 Phân tích Lab</h3>
-
-            <div className="mt-6 space-y-4">
-              {/* Nhiệm vụ / Tasks */}
-              {tasks && tasks.length > 0 && (
-                <div>
-                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Nhiệm vụ cần làm:</h4>
-                  <ul className="space-y-2">
-                    {tasks.map(task => (
-                      <li key={task.id} className="flex items-start gap-2 text-sm bg-slate-50 p-3 rounded-xl border border-slate-100 shadow-sm">
-                        <span className="shrink-0 mt-0.5 text-base">
-                          {task.isCompleted ? (
-                            <span className="text-emerald-500 font-bold">☑</span>
-                          ) : (
-                            <span className="text-slate-300 font-bold">☐</span>
-                          )}
-                        </span>
-                        <span className={`text-slate-700 leading-snug ${task.isCompleted ? 'line-through opacity-50' : ''}`}>
-                          {task.desc}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              <div>
-                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Trạng thái/Phản ứng:</h4>
-                <div className="p-4 bg-slate-50 border border-slate-100 font-mono text-sm text-red-500 rounded-xl shadow-inner">{reactionInfo.equation}</div>
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Điều kiện môi trường:</h4>
-                <div className="p-3 bg-slate-50 border border-slate-100 text-sm text-slate-700 rounded-xl">{reactionInfo.condition}</div>
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Mô tả chi tiết:</h4>
-                <div className="p-4 bg-blue-50/50 border border-blue-100 text-sm leading-relaxed text-slate-700 rounded-xl">{reactionInfo.description}</div>
-              </div>
-            </div>
-          </div>
-          <button onClick={() => setIsLeftOpen(!isLeftOpen)} className="absolute -right-8 top-6 w-8 h-12 bg-white border border-slate-200 border-l-0 rounded-r-lg flex items-center justify-center cursor-pointer shadow-sm text-slate-500 hover:text-blue-500 z-50">
-            {isLeftOpen ? '◀' : '▶'}
-          </button>
-        </div>
+        <LabAnalysisPanel
+          tasks={tasks}
+          reactionInfo={reactionInfo}
+          isOpen={isLeftOpen}
+          onToggle={() => setIsLeftOpen(!isLeftOpen)}
+        />
 
         {/* ================= MIDDLE WORKSPACE ================= */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', transition: 'all 0.3s ease' }} className="p-8">
@@ -497,82 +458,17 @@ export default function VirtualLabPage() {
         </div>
 
         {/* ================= RIGHT COLUMN (INVENTORY) ================= */}
-        <div style={{ width: isRightOpen ? '450px' : '0', transition: 'width 0.3s ease', backgroundColor: '#f8fafc', borderLeft: '2px solid #e2e8f0', display: 'flex', position: 'relative', flexShrink: 0, zIndex: 50 }}>
-          <button onClick={() => setIsRightOpen(!isRightOpen)} className="absolute -left-8 top-6 w-8 h-12 bg-white border border-slate-200 border-r-0 rounded-l-lg flex items-center justify-center cursor-pointer shadow-sm text-slate-500 hover:text-blue-500 z-50">
-            {isRightOpen ? '▶' : '◀'}
-          </button>
-
-          <div style={{ display: isRightOpen ? 'flex' : 'none', width: '100%', height: '100%' }}>
-            {/* 2. THANH FILTER DỌC (DARK MODE) NẰM TRÁI */}
-            <div className="w-20 bg-white border-r border-slate-200 flex flex-col items-center py-4 gap-4 shrink-0 shadow-sm z-20">
-              <TooltipProvider delayDuration={100}>
-                {FILTER_TABS.map((tab) => (
-                  <Tooltip key={tab.id}>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setActiveFilter(tab.id)}
-                        className={`w-14 h-14 rounded-xl transition-all duration-200 ${activeFilter === tab.id
-                          ? 'bg-blue-600 text-white shadow-md shadow-blue-900/50 hover:bg-blue-500' // Trạng thái đang chọn
-                          : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100' // Trạng thái chưa chọn
-                          }`}
-                      >
-                        {tab.icon}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="left" className="font-semibold bg-white text-slate-800 border border-slate-200 shadow-sm text-base px-4 py-2.5">
-                      {tab.label}
-                    </TooltipContent>
-                  </Tooltip>
-                ))}
-              </TooltipProvider>
-            </div>
-
-            {/* BỔ SUNG THẺ BỌC Ở ĐÂY ĐỂ TRÁNH ITEMS NẰM NGANG */}
-            <div className="flex-1 bg-slate-50 flex flex-col h-full border-l-2 border-slate-200 overflow-hidden box-border">
-              <div className="p-5 border-b border-slate-200 bg-white shadow-sm z-10">
-                <div className="flex gap-2">
-                  <input type="text" placeholder="Tìm kiếm dụng cụ..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm" />
-                  <button onClick={() => setSidebarView(sidebarView === 'grid' ? 'list' : 'grid')} className="p-2 aspect-square bg-slate-50 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-100">
-                    {sidebarView === 'grid' ? '☰' : '▦'}
-                  </button>
-                </div>
-              </div>
-
-              <div style={{ flex: 1, overflowY: 'auto', padding: '20px', boxSizing: 'border-box' }} className="space-y-6">
-                <div>
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Bình phản ứng</h4>
-                  <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                    {filtered.filter(i => i.type === ITEM_TYPE.CONTAINER).map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Dụng cụ</h4>
-                  <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                    {filtered.filter(i => i.type === ITEM_TYPE.EQUIPMENT).map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Chất lỏng</h4>
-                  <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                    {filtered.filter(i => i.state === PHYSICAL_STATE.LIQUID).map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Chất rắn</h4>
-                  <div style={{ display: sidebarView === 'grid' ? 'grid' : 'flex', flexDirection: sidebarView === 'list' ? 'column' : 'row', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                    {filtered.filter(i => i.state === PHYSICAL_STATE.SOLID).map(item => <DraggableItem key={item.id} item={item} viewMode={sidebarView} />)}
-                  </div>
-                </div>
-              </div>
-
-            </div> {/* ĐÓNG THẺ BỌC KHO ĐỒ */}
-          </div>
-        </div>
+        <LabInventoryPanel
+          filtered={filtered}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          sidebarView={sidebarView}
+          onViewToggle={() => setSidebarView(sidebarView === 'grid' ? 'list' : 'grid')}
+          activeFilter={activeFilter}
+          onFilterChange={setActiveFilter}
+          isOpen={isRightOpen}
+          onToggle={() => setIsRightOpen(!isRightOpen)}
+        />
 
         <DragOverlay dropAnimation={null} modifiers={[snapCenterToCursor]}>
           {activeDragItem ? <DragPreview item={activeDragItem} /> : null}
@@ -616,34 +512,18 @@ export default function VirtualLabPage() {
       </div>
 
       {/* ====== RESET CONFIRM DIALOG ====== */}
-      {showResetConfirm && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 flex flex-col items-center gap-5">
-            <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center">
-              <RotateCcw className="w-7 h-7 text-red-500" />
-            </div>
-            <div className="text-center">
-              <h3 className="text-lg font-bold text-slate-800 mb-1">Làm lại từ đầu?</h3>
-              <p className="text-sm text-slate-500">Toàn bộ tiến trình, điểm số và bàn làm việc sẽ bị xóa vĩnh viễn. Hành động này không thể hoàn tác.</p>
-            </div>
-            <div className="flex gap-3 w-full">
-              <Button
-                variant="outline"
-                className="flex-1 h-11"
-                onClick={() => setShowResetConfirm(false)}
-              >
-                Huỷ
-              </Button>
-              <Button
-                className="flex-1 h-11 bg-red-500 hover:bg-red-600 text-white"
-                onClick={handleResetLab}
-              >
-                Xác nhận Reset
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <LabConfirmDialog
+        isOpen={showResetConfirm}
+        icon={<RotateCcw className="w-7 h-7" />}
+        iconBgColor="bg-red-100"
+        iconColor="text-red-500"
+        title="Làm lại từ đầu?"
+        message="Toàn bộ tiến trình, điểm số và bàn làm việc sẽ bị xóa vĩnh viễn. Hành động này không thể hoàn tác."
+        confirmLabel="Xác nhận Reset"
+        confirmClassName="bg-red-500 hover:bg-red-600 text-white"
+        onConfirm={handleResetLab}
+        onCancel={() => setShowResetConfirm(false)}
+      />
 
     </>
         )}
