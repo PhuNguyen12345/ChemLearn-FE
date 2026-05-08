@@ -6,7 +6,8 @@ import StudentHome from "./pages/student/StudentHome";
 import Missions from "./pages/student/Missions";
 import Leaderboard from "./pages/student/Leaderboard";
 import StudentLayout from "./components/layout/student/StudentLayout";
-import ClassesPage from "./pages/student/Classes";
+import ClassesLanding from "./pages/student/ClassesLanding";
+import ClassDetail from "./pages/student/ClassDetail";
 import ParentLayout from "./components/layout/parent/ParentLayout";
 import ParentDashboard from "./pages/parent/ParentDashboard";
 import TeacherLayout from "./components/layout/teacher/TeacherLayout";
@@ -21,6 +22,7 @@ import AuthLayout from "./components/layout/auth/AuthLayout";
 import Login from "./pages/auth/LoginPage";
 import Register from "./pages/auth/RegisterPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminStudyZone from "./pages/admin/AdminStudyZone";
 import AdminClassManagement from "./pages/admin/AdminClassManagement";
 import AdminUserManagement from "./pages/admin/AdminUserManagement";
 import VirtualLabPage from "./features/lab/VirtualLabPage";
@@ -74,7 +76,8 @@ function App() {
           <Route element={<ProtectedRoute allowedRoles={["ROLE_STUDENT"]} />}>
             <Route element={<StudentLayout />}>
               <Route path="/student/home" element={<StudentHome />} />
-                <Route path="/student/classes" element={<ClassesPage />} />
+              <Route path="/student/classes" element={<ClassesLanding />} />
+              <Route path="/student/class/:classId" element={<ClassDetail />} />
               <Route path="/student/missions" element={<Missions />} />
               <Route path="/student/leaderboard" element={<Leaderboard />} />
               {/* Các trang khác của student ném hết vào đây */}
@@ -101,6 +104,7 @@ function App() {
           <Route element={<ProtectedRoute allowedRoles={["ROLE_ADMIN"]} />}>
             <Route element={<AdminLayout />}>
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/study" element={<AdminStudyZone />} />
               <Route path="/admin/classes" element={<AdminClassManagement />} />
               <Route path="/admin/users" element={<AdminUserManagement />} />
               {/* Các trang khác của admin ném hết vào đây */}

@@ -332,4 +332,62 @@ export const getParentChildAssessments = async (childId) => {
   return response.data;
 };
 
+// Admin Study Zone content endpoints
+export const getAdminChapters = async () => {
+  const response = await api.get('/api/admin/content/chapters');
+  return response.data;
+};
+
+export const createAdminChapter = async (payload) => {
+  const response = await api.post('/api/admin/content/chapters', payload);
+  return response.data;
+};
+
+export const updateAdminChapter = async (chapterId, payload) => {
+  const response = await api.put(`/api/admin/content/chapters/${chapterId}`, payload);
+  return response.data;
+};
+
+export const deleteAdminChapter = async (chapterId) => {
+  const response = await api.delete(`/api/admin/content/chapters/${chapterId}`);
+  return response.data;
+};
+
+// Admin lessons
+export const getAdminLesson = async (lessonId) => {
+  const response = await api.get(`/api/admin/content/lessons/${lessonId}`);
+  return response.data;
+};
+
+export const createAdminLesson = async (payload) => {
+  const response = await api.post('/api/admin/content/lessons', payload);
+  return response.data;
+};
+
+export const updateAdminLesson = async (lessonId, payload) => {
+  const response = await api.put(`/api/admin/content/lessons/${lessonId}`, payload);
+  return response.data;
+};
+
+export const deleteAdminLesson = async (lessonId) => {
+  const response = await api.delete(`/api/admin/content/lessons/${lessonId}`);
+  return response.data;
+};
+
+// Mini-quiz questions (admin)
+export const addMiniQuizQuestion = async (lessonId, payload) => {
+  const response = await api.post(`/api/admin/content/lessons/${lessonId}/mini-quiz-questions`, payload);
+  return response.data;
+};
+
+export const updateMiniQuizQuestion = async (questionId, payload) => {
+  const response = await api.put(`/api/admin/content/mini-quiz-questions/${questionId}`, payload);
+  return response.data;
+};
+
+export const deleteMiniQuizQuestion = async (questionId) => {
+  const response = await api.delete(`/api/admin/content/mini-quiz-questions/${questionId}`);
+  return response.data;
+};
+
 export default api;

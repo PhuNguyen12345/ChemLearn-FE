@@ -4,9 +4,6 @@ import Sidebar from './Sidebar';
 import Header from './Header';
 import Footer from '../shared/Footer';
 import StudyZone from '../../../pages/student/StudyZone';
-import ClassesPage from '../../../pages/student/Classes';
-import QuizDashboard from '../../../pages/student/QuizDashboard';
-import QuizPlayer from '../../../pages/student/QuizPlayer';
 import LabDashboard from '../../../features/lab/components/LabDashboard';
 import LabWorkspaceHeader from '../../../features/lab/components/LabWorkspaceHeader';
 import VirtualLabPage from '../../../features/lab/VirtualLabPage'; 
@@ -19,9 +16,6 @@ const STUDENT_HOME_TAB_KEY = 'chemlearn_student_home_tab';
 const allowedHomeTabs = new Set([
   'dashboard',
   'studyZone',
-  'classes',
-  'quizzes',
-  'quizPlayer',
   'labDashboard',
   'labWorkspace',
   'fireQuiz',
@@ -39,8 +33,6 @@ const readStoredHomeTab = () => {
 const StudentLayout = () => {
   const [activeTab, setActiveTab] = useState(readStoredHomeTab);
   const [activeLabId, setActiveLabId] = useState(null);
-  const [activeQuizId, setActiveQuizId] = useState(null);
-  const [selectedStudyClass, setSelectedStudyClass] = useState(null);
   const location = useLocation();
 
   React.useEffect(() => {
@@ -92,32 +84,7 @@ const StudentLayout = () => {
               <>
                 {activeTab === 'dashboard' && <Outlet context={{ setActiveTab }} />}
                 {activeTab === 'studyZone' && (
-                  <StudyZone
-                    activeClass={selectedStudyClass}
-                    onOpenClass={setSelectedStudyClass}
-                  />
-                )}
-                {activeTab === 'classes' && (
-                  <ClassesPage
-                    onOpenClass={(classRoom) => {
-                      setSelectedStudyClass(classRoom);
-                      setActiveTab('studyZone');
-                    }}
-                  />
-                )}
-                {activeTab === 'quizzes' && (
-                  <QuizDashboard 
-                    onPlayQuiz={(id) => { 
-                      setActiveQuizId(id); 
-                      setActiveTab('quizPlayer'); 
-                    }} 
-                  />
-                )}
-                {activeTab === 'quizPlayer' && (
-                  <QuizPlayer 
-                    quizId={activeQuizId} 
-                    onBack={() => setActiveTab('quizzes')} 
-                  />
+                  <StudyZone />
                 )}
                 {activeTab === 'labDashboard' && (
                   <LabDashboard 

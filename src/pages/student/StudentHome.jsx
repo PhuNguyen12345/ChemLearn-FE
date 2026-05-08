@@ -192,14 +192,14 @@ const StudentHome = () => {
 
           {/* Portal 2 — Quick Quiz */}
           <button
-            onClick={() => setActiveTab && setActiveTab('quizzes')}
+            onClick={() => setActiveTab && setActiveTab('classes')}
             className="group flex flex-col items-center justify-center gap-3 p-7 rounded-[1.5rem] bg-white border-2 border-emerald-200 border-b-[6px] border-b-emerald-400 text-emerald-700 hover:bg-emerald-50 hover:border-b-emerald-500 active:border-b-2 active:translate-y-1 transition-all duration-150 shadow-sm cursor-pointer"
           >
             <div className="w-16 h-16 rounded-[1rem] bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-300/50 group-hover:scale-110 transition-transform duration-200">
               <HelpCircle className="w-8 h-8 text-white" />
             </div>
-            <span className="font-black text-base tracking-tight">❓ Quick Quiz</span>
-            <span className="text-xs font-bold text-emerald-400">Test Your Skills</span>
+            <span className="font-black text-base tracking-tight">❓ Class Work</span>
+            <span className="text-xs font-bold text-emerald-400">Open class quizzes and tasks</span>
           </button>
 
           {/* Portal 3 — Boss Raid */}

@@ -54,7 +54,7 @@ export default function RegisterPage() {
       const backendMessage =
         err?.response?.data?.message ||
         err?.response?.data ||
-        'Dang ky that bai. Kiem tra username, email va dieu kien mat khau.';
+        'Đăng ký thất bại. Kiểm tra username, email và điều kiện mật khẩu.';
 
       setError(String(backendMessage));
     } finally {
