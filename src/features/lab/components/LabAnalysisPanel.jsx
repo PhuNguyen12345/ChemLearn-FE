@@ -9,7 +9,7 @@ import React from 'react';
  *   isOpen       – whether the panel is expanded
  *   onToggle     – callback to toggle open/closed
  */
-const LabAnalysisPanel = ({ tasks = [], reactionInfo = {}, isOpen, onToggle }) => {
+const LabAnalysisPanel = ({ tasks = [], reactionInfo = {}, isOpen, onToggle, labType = 'PREMADE' }) => {
   return (
     <div style={{ width: isOpen ? '320px' : '0', transition: 'width 0.3s ease', backgroundColor: '#fff', borderRight: '2px solid #e2e8f0', position: 'relative', flexShrink: 0, zIndex: 50 }}>
       <div style={{ display: isOpen ? 'block' : 'none', width: '320px', height: '100%', padding: '24px', boxSizing: 'border-box', overflowY: 'auto' }}>
@@ -17,22 +17,30 @@ const LabAnalysisPanel = ({ tasks = [], reactionInfo = {}, isOpen, onToggle }) =
 
         <div className="mt-6 space-y-4">
           {/* Nhiệm vụ / Tasks */}
-          {tasks && tasks.length > 0 && (
+          {labType !== 'SANDBOX' && tasks && tasks.length > 0 && (
             <div>
               <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Nhiệm vụ cần làm:</h4>
               <ul className="space-y-2">
                 {tasks.map(task => (
                   <li key={task.id} className="flex items-start gap-2 text-sm bg-slate-50 p-3 rounded-xl border border-slate-100 shadow-sm">
-                    <span className="shrink-0 mt-0.5 text-base">
-                      {task.isCompleted ? (
-                        <span className="text-emerald-500 font-bold">☑</span>
-                      ) : (
-                        <span className="text-slate-300 font-bold">☐</span>
-                      )}
-                    </span>
-                    <span className={`text-slate-700 leading-snug ${task.isCompleted ? 'line-through opacity-50' : ''}`}>
-                      {task.desc}
-                    </span>
+                    {labType === 'PREMADE' ? (
+                      <>
+                        <span className="shrink-0 mt-0.5 text-base">
+                          {task.isCompleted ? (
+                            <span className="text-emerald-500 font-bold">☑</span>
+                          ) : (
+                            <span className="text-slate-300 font-bold">☐</span>
+                          )}
+                        </span>
+                        <span className={`text-slate-700 leading-snug ${task.isCompleted ? 'line-through opacity-50' : ''}`}>
+                          {task.desc}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-slate-700 leading-snug font-medium">
+                        • {task.desc}
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>

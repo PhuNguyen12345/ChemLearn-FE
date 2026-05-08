@@ -3,7 +3,16 @@ import { ArrowLeft, CheckCircle2, User, Edit3, Trash2, Save, RefreshCw, RotateCc
 import { Button } from '@/components/ui/button';
 import { useLabStore } from '../stores/useLabStore';
 
-const LabWorkspaceHeader = ({ onBack, titleText = "Untitled Experiment", saveState = 'idle', onSaveClick, onResetClick }) => {
+const LabWorkspaceHeader = ({ 
+  onBack, 
+  titleText = "Untitled Experiment", 
+  saveState = 'idle', 
+  onSaveClick, 
+  onResetClick,
+  labType = 'PREMADE',
+  formattedTime = null,
+  onSubmitClick
+}) => {
   const [title, setTitle] = useState(titleText);
   const [isEditing, setIsEditing] = useState(false);
   const { serializeLabState, clearWorkspace, resetToTemplate } = useLabStore();
@@ -55,29 +64,38 @@ const LabWorkspaceHeader = ({ onBack, titleText = "Untitled Experiment", saveSta
         </div>
       </div>
 
-      {/* Center: EXP Progress Bar */}
+      {/* Center: Dynamic Content based on labType */}
       <div className="flex items-center justify-center w-1/3">
-        <div className="w-full max-w-sm flex flex-col items-center gap-1">
-          <div className="flex items-center justify-between w-full text-xs font-bold text-slate-500">
-            <span className="uppercase tracking-wider">Tiến độ Lab</span>
-            <span className={`transition-colors duration-300 ${isFinished ? "text-amber-500" : "text-blue-600"} flex items-center gap-1`}>
-              {isFinished && "⭐"} {score}/{maxScore} EXP
-            </span>
-          </div>
-          <div className="h-3.5 w-full bg-slate-200 rounded-full p-0.5 shadow-inner relative overflow-hidden">
-            <div 
-              className={`h-full rounded-full transition-all duration-500 ease-out relative ${
-                isFinished 
-                  ? 'bg-gradient-to-b from-amber-300 to-amber-500 shadow-[0_0_10px_rgba(251,191,36,0.8)]' 
-                  : 'bg-gradient-to-b from-blue-400 to-blue-600'
-              }`}
-              style={{ width: `${percentage}%`, minWidth: percentage > 0 ? '1.5rem' : '0' }}
-            >
-              {/* Glossy Jelly Highlight overlay */}
-              <div className="absolute top-0 left-0 right-0 h-1/2 bg-white/30 rounded-t-full" />
+        {labType === 'PREMADE' && (
+          <div className="w-full max-w-sm flex flex-col items-center gap-1">
+            <div className="flex items-center justify-between w-full text-xs font-bold text-slate-500">
+              <span className="uppercase tracking-wider">Tiến độ Lab</span>
+              <span className={`transition-colors duration-300 ${isFinished ? "text-amber-500" : "text-blue-600"} flex items-center gap-1`}>
+                {isFinished && "⭐"} {score}/{maxScore} EXP
+              </span>
+            </div>
+            <div className="h-3.5 w-full bg-slate-200 rounded-full p-0.5 shadow-inner relative overflow-hidden">
+              <div 
+                className={`h-full rounded-full transition-all duration-500 ease-out relative ${
+                  isFinished 
+                    ? 'bg-gradient-to-b from-amber-300 to-amber-500 shadow-[0_0_10px_rgba(251,191,36,0.8)]' 
+                    : 'bg-gradient-to-b from-blue-400 to-blue-600'
+                }`}
+                style={{ width: `${percentage}%`, minWidth: percentage > 0 ? '1.5rem' : '0' }}
+              >
+                {/* Glossy Jelly Highlight overlay */}
+                <div className="absolute top-0 left-0 right-0 h-1/2 bg-white/30 rounded-t-full" />
+              </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {labType === 'ASSIGNMENT' && formattedTime && (
+          <div className="flex flex-col items-center justify-center bg-red-50 border border-red-200 px-4 py-1.5 rounded-lg shadow-sm">
+            <span className="text-xs font-bold text-red-500 uppercase tracking-widest mb-0.5">Thời gian</span>
+            <span className="text-xl font-mono font-bold text-red-600 leading-none">{formattedTime}</span>
+          </div>
+        )}
       </div>
 
       {/* Right: Actions, Cloud Save & Avatar */}
@@ -92,36 +110,58 @@ const LabWorkspaceHeader = ({ onBack, titleText = "Untitled Experiment", saveSta
 
         <Button 
           variant="outline" 
-          className="text-blue-600 hover:bg-blue-50 border-blue-200 h-9 px-3" 
+          className="text-blue-600 hover:bg-blue-50 border-blue-200 h-9 px-3 hidden md:flex" 
           onClick={onResetClick}
         >
           <RotateCcw className="w-4 h-4 mr-2" /> Reset Lab
         </Button>
 
-        <Button
-          variant="default"
-          className={`h-9 px-4 transition-all duration-300 min-w-[100px] ${
-            saveState === 'saved' 
-              ? 'bg-emerald-500 hover:bg-emerald-600' 
-              : 'bg-blue-600 hover:bg-blue-700'
-          }`}
-          onClick={onSaveClick}
-          disabled={saveState === 'saving'}
-        >
-          {saveState === 'saving' ? (
-            <>
-              <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Saving...
-            </>
-          ) : saveState === 'saved' ? (
-            <>
-              <CheckCircle2 className="w-4 h-4 mr-2" /> Saved
-            </>
-          ) : (
-            <>
-              <Save className="w-4 h-4 mr-2" /> Save
-            </>
+        <div className="flex items-center gap-2 border-l pl-3 ml-1 border-slate-200">
+          {/* Auto-save indicator for ASSIGNMENT mode */}
+          {labType === 'ASSIGNMENT' && (
+            <div className="text-xs font-medium min-w-[70px] text-right hidden sm:block">
+              {saveState === 'saving' && <span className="text-slate-500 animate-pulse">Đang lưu...</span>}
+              {saveState === 'saved' && <span className="text-emerald-600">Đã lưu</span>}
+            </div>
           )}
-        </Button>
+
+          {labType === 'ASSIGNMENT' ? (
+            <Button
+              variant="default"
+              className="h-9 px-6 bg-red-600 hover:bg-red-700 text-white font-bold transition-colors shadow-sm min-w-[120px]"
+              onClick={onSubmitClick}
+              disabled={saveState === 'saving'}
+            >
+              <CheckCircle2 className="w-4 h-4 mr-2" />
+              Nộp bài
+            </Button>
+          ) : (
+            <Button
+              variant="default"
+              className={`h-9 px-4 transition-all duration-300 min-w-[100px] ${
+                saveState === 'saved' 
+                  ? 'bg-emerald-500 hover:bg-emerald-600' 
+                  : 'bg-blue-600 hover:bg-blue-700'
+              }`}
+              onClick={onSaveClick}
+              disabled={saveState === 'saving'}
+            >
+              {saveState === 'saving' ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Saving...
+                </>
+              ) : saveState === 'saved' ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4 mr-2" /> Saved
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" /> Save
+                </>
+              )}
+            </Button>
+          )}
+        </div>
         
         <div className="w-8 h-8 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-600 font-bold overflow-hidden shadow-inner cursor-pointer hover:ring-2 hover:ring-indigo-300 transition-all">
           {/* Mock Avatar */}

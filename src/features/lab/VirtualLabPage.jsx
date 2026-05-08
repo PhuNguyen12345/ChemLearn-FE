@@ -16,6 +16,7 @@ import LabInventoryPanel from './components/LabInventoryPanel';
 import LabConfirmDialog from './components/LabConfirmDialog';
 import { useLabLifecycle } from './hooks/useLabLifecycle';
 import { useLabDragDrop } from './hooks/useLabDragDrop';
+import { useLabTimer } from './hooks/useLabTimer';
 
 
 
@@ -34,7 +35,25 @@ export default function VirtualLabPage() {
     setShowModal,
     handleResetLab,
     debouncedSave,
+    handleSubmitAssignment,
   } = useLabLifecycle(id);
+
+  const durationMinutes = useLabStore(state => state.durationMinutes);
+  const labType = useLabStore(state => state.labType);
+
+  // Auto-submit when time is up
+  const handleTimeUp = async () => {
+    const success = await handleSubmitAssignment();
+    if (success) {
+      setTimeout(() => navigate('/student/virtual-lab'), 1500);
+    }
+  };
+
+  const { formattedTime } = useLabTimer(
+    durationMinutes, 
+    handleTimeUp, 
+    labType === 'ASSIGNMENT' && !isLoading
+  );
 
   const [inventory, setInventory] = useState(INITIAL_INVENTORY);
   const [searchQuery, setSearchQuery] = useState('');
@@ -102,10 +121,18 @@ export default function VirtualLabPage() {
           <>
             <LabWorkspaceHeader 
               onBack={() => navigate('/student/virtual-lab')} 
-              titleText={id === 'new' ? 'Untitled Experiment' : useLabStore.getState().metadata?.title || 'My Saved Lab'} 
+              titleText={useLabStore.getState().metadata?.title || 'My Saved Lab'} 
               labId={id}
               saveState={saveState}
+              labType={labType}
+              formattedTime={formattedTime}
               onResetClick={() => setShowResetConfirm(true)}
+              onSubmitClick={async () => {
+                const success = await handleSubmitAssignment();
+                if (success) {
+                  setTimeout(() => navigate('/student/virtual-lab'), 1500);
+                }
+              }}
               onSaveClick={() => {
                 if (saveState !== 'idle') return;
                 const payload = {
@@ -128,6 +155,7 @@ export default function VirtualLabPage() {
           reactionInfo={reactionInfo}
           isOpen={isLeftOpen}
           onToggle={() => setIsLeftOpen(!isLeftOpen)}
+          labType={labType}
         />
 
         {/* ================= MIDDLE WORKSPACE ================= */}

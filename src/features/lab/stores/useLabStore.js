@@ -3,6 +3,8 @@ import { create } from 'zustand';
 export const useLabStore = create((set, get) => ({
   // Core CSLS State
   lab_id: null,
+  labType: 'PREMADE', // 'PREMADE' | 'ASSIGNMENT' | 'SANDBOX'
+  durationMinutes: 0,
   version: "1.0",
   metadata: {
     title: "",
@@ -54,6 +56,28 @@ export const useLabStore = create((set, get) => ({
     // Phục hồi cấu hình cơ bản từ API
     const config = apiData.config || {};
     
+    // Parse durationMinutes từ JSON config một cách an toàn
+    let duration = 0;
+    try {
+      // 1. Thử lấy từ labConfiguration.config
+      let rawConfig = null;
+      if (apiData.labConfiguration && apiData.labConfiguration.config) {
+        rawConfig = apiData.labConfiguration.config;
+      } 
+      // 2. Thử lấy từ apiData.config (phòng hờ BE trả về thẳng)
+      else if (apiData.config) {
+        rawConfig = apiData.config;
+      }
+
+      if (rawConfig) {
+        const parsedConfig = typeof rawConfig === 'object' ? rawConfig : JSON.parse(rawConfig);
+        duration = parseInt(parsedConfig?.durationMinutes) || 0;
+        console.log("Parsed durationMinutes:", duration, "from:", parsedConfig);
+      }
+    } catch (e) {
+      console.warn("Could not parse lab config for duration", e);
+    }
+    
     // Khôi phục mảng tasks từ mock và áp dụng trạng thái completed
     const apiCompletedActions = apiData.completedActions || [];
     const restoredTasks = (taskMockList || []).map(task => ({
@@ -63,6 +87,8 @@ export const useLabStore = create((set, get) => ({
 
     set({
       lab_id: apiData.labId,
+      labType: apiData.type || 'PREMADE',
+      durationMinutes: duration,
       version: "1.0",
       metadata: { 
         title: apiData.title, 

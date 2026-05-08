@@ -30,6 +30,7 @@ export function useLabDragDrop({ scale, inventory }) {
     setWorkspace: setPlacedItems,
     setReactionInfo,
     completeTask,
+    labType,
   } = useLabStore();
 
   // ─── Active drag item for DragOverlay preview ───────────────────────────────
@@ -158,10 +159,16 @@ export function useLabDragDrop({ scale, inventory }) {
               // ── REACTION FOUND ────────────────────────────────────────────
               const previousActions = useLabStore.getState().progress.completed_actions;
               if (!previousActions.includes(key)) {
-                toast.success(`Phản ứng mới: ${reaction?.reactionInfo?.equation || key}`, {
-                  description: 'Bạn nhận được EXP!',
-                  position: 'bottom-right',
-                });
+                if (labType === 'PREMADE') {
+                  toast.success(`Phản ứng mới: ${reaction?.reactionInfo?.equation || key}`, {
+                    description: 'Bạn nhận được EXP!',
+                    position: 'bottom-right',
+                  });
+                } else if (labType === 'SANDBOX') {
+                  toast.success(`Phản ứng mới: ${reaction?.reactionInfo?.equation || key}`, {
+                    position: 'bottom-right',
+                  });
+                }
                 useLabStore.getState().recordReaction(key);
                 completeTask(key);
               }

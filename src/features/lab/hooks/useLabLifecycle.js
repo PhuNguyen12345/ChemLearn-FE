@@ -5,7 +5,6 @@ import confetti from 'canvas-confetti';
 import { useLabStore } from '../stores/useLabStore';
 import { LAB_TASKS_MOCK } from '../data/labTasksMock';
 import { saveVirtualLabProgress, enterVirtualLab, resetVirtualLab } from '@/lib/api';
-import mockAxitBazo from '../data/mockAxitBazo.json';
 
 /**
  * useLabLifecycle
@@ -41,14 +40,9 @@ export function useLabLifecycle(labId) {
     const fetchLab = async () => {
       setIsLoading(true);
       try {
-        if (labId === 'new') {
-          initFromTemplate(mockAxitBazo);
-          useLabStore.getState().initTasks(LAB_TASKS_MOCK.AXIT_BAZO);
-        } else {
-          const data = await enterVirtualLab(labId);
-          // TODO: select task list by category from BE. Using AXIT_BAZO for now.
-          loadLabProgress(data, LAB_TASKS_MOCK.AXIT_BAZO);
-        }
+        const data = await enterVirtualLab(labId);
+        // TODO: select task list by category from BE. Using AXIT_BAZO for now.
+        loadLabProgress(data, LAB_TASKS_MOCK.AXIT_BAZO);
       } catch (error) {
         console.error('Lỗi khi tải bài lab:', error);
         toast.error('Không thể tải bài thực hành. Vui lòng thử lại sau.', { position: 'bottom-right' });
@@ -82,20 +76,15 @@ export function useLabLifecycle(labId) {
   // ─── 3. Auto-save debounce ──────────────────────────────────────────────────
   const debouncedSave = useMemo(
     () => debounce(async (payload) => {
-      const isMockMode = labId === 'new';
-      if (isMockMode) {
-        console.log('Saved data (Mock Sandbox)', payload);
-      } else {
-        setSaveState('saving');
-        try {
-          await saveVirtualLabProgress(labId, payload);
-          setSaveState('saved');
-          setTimeout(() => setSaveState('idle'), 2000);
-        } catch (error) {
-          console.error('Lỗi khi lưu tiến trình lab:', error);
-          setSaveState('idle');
-          toast.error('Mất kết nối! Chưa thể lưu tiến trình lab.', { position: 'bottom-right' });
-        }
+      setSaveState('saving');
+      try {
+        await saveVirtualLabProgress(labId, payload);
+        setSaveState('saved');
+        setTimeout(() => setSaveState('idle'), 2000);
+      } catch (error) {
+        console.error('Lỗi khi lưu tiến trình lab:', error);
+        setSaveState('idle');
+        toast.error('Mất kết nối! Chưa thể lưu tiến trình lab.', { position: 'bottom-right' });
       }
     }, 1500),
     [labId]
@@ -130,16 +119,36 @@ export function useLabLifecycle(labId) {
     const currentCategory = useLabStore.getState().metadata?.category || 'AXIT_BAZO';
     const freshTaskList = LAB_TASKS_MOCK[currentCategory] || [];
 
-    if (labId === 'new') {
-      resetLabState(freshTaskList);
-      return;
-    }
     try {
       await resetVirtualLab(labId);
       resetLabState(freshTaskList);
       toast.success('Đã làm mới bài thí nghiệm!', { position: 'bottom-right' });
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Không thể reset bài Lab.', { position: 'bottom-right' });
+    }
+  };
+
+  // ─── 7. Submit Assignment ──────────────────────────────────────────────────
+  const handleSubmitAssignment = async () => {
+    setSaveState('saving');
+    try {
+      const payload = {
+        currentScore: currentProgress.score,
+        progressPercent: currentProgress.percent,
+        status: 'SUBMITTED',
+        currentWorkspace: useLabStore.getState().workspace,
+        viewport: useLabStore.getState().viewport,
+        completedActions: currentProgress.completed_actions || []
+      };
+      await saveVirtualLabProgress(labId, payload);
+      setSaveState('saved');
+      toast.success('Đã nộp bài thành công!', { position: 'bottom-right' });
+      return true; // Indicate success
+    } catch (error) {
+      console.error('Lỗi khi nộp bài:', error);
+      setSaveState('idle');
+      toast.error('Có lỗi xảy ra khi nộp bài. Vui lòng thử lại.', { position: 'bottom-right' });
+      return false; // Indicate failure
     }
   };
 
@@ -152,5 +161,6 @@ export function useLabLifecycle(labId) {
     setShowModal,
     handleResetLab,
     debouncedSave,
+    handleSubmitAssignment,
   };
 }
