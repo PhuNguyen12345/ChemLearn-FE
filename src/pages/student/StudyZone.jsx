@@ -1,64 +1,41 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  BookOpen,
-  PlayCircle,
-  CheckCircle2,
-  ChevronRight,
-  Sparkles,
-  Zap,
-  Lock,
-  Target,
   LoaderCircle,
-  Users,
-  Link as LinkIcon,
+  BookOpen,
 } from 'lucide-react';
 import {
   getStudyChapters,
   getStudyLesson,
-  submitLessonMiniQuiz,
 } from '../../lib/api';
 
 import ChapterSidebar from '../../components/student/study/ChapterSidebar';
 import LessonContent from '../../components/student/study/LessonContent';
-import MiniQuizSection from '../../components/student/study/MiniQuizSection';
-
-const stripeStyle = {
-  backgroundImage:
-    'repeating-linear-gradient(-45deg, rgba(255,255,255,0.15) 0px, rgba(255,255,255,0.15) 6px, transparent 6px, transparent 12px)',
-};
 
 const StudyZone = () => {
   const [chapters, setChapters] = useState([]);
   const [activeLessonId, setActiveLessonId] = useState(null);
   const [lessonDetail, setLessonDetail] = useState(null);
-  const [loadingChapters, setLoadingChapters] = useState(true);
   const [loadingLesson, setLoadingLesson] = useState(false);
-  const [submittingQuiz, setSubmittingQuiz] = useState(false);
   const [error, setError] = useState('');
+  const hasLessons = chapters.some((chapter) => (chapter.lessons || []).length > 0);
 
   useEffect(() => {
     const loadChapters = async () => {
       try {
-        setLoadingChapters(true);
         setError('');
         const data = await getStudyChapters();
         setChapters(data || []);
 
-        const firstLesson = data?.[0]?.lessons?.[0];
+        const firstLesson = data?.flatMap((chapter) => chapter?.lessons || [])?.[0];
         if (firstLesson) {
           setActiveLessonId(firstLesson.id);
         }
       } catch (err) {
         setError(err?.response?.data?.message || 'Failed to load study chapters.');
-      } finally {
-        setLoadingChapters(false);
       }
     };
 
     loadChapters();
-  }, []);
-
-  useEffect(() => {
   }, []);
 
   useEffect(() => {
@@ -79,15 +56,6 @@ const StudyZone = () => {
     loadLesson();
   }, [activeLessonId]);
 
-  const flatLessons = useMemo(() => chapters.flatMap((chapter) => chapter.lessons || []), [chapters]);
-  const progressPct = flatLessons.length ? Math.round((0 / flatLessons.length) * 100) : 0;
-
-  const handleQuizSubmit = async () => {
-    // Mini-quiz is stubbed; will be enabled later
-  };
-
-  // join class removed from Study Zone - handled in Classes tab
-
   return (
     <div className="flex h-full w-full bg-slate-50 flex-col md:flex-row overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
       <ChapterSidebar chapters={chapters} activeLessonId={activeLessonId} onSelectLesson={setActiveLessonId} />
@@ -107,6 +75,24 @@ const StudyZone = () => {
 
         {!loadingLesson && lessonDetail && (
           <LessonContent lessonDetail={lessonDetail} />
+        )}
+
+        {!loadingLesson && !lessonDetail && (
+          <div className="flex flex-1 items-center justify-center p-8">
+            <div className="max-w-xl rounded-3xl border border-slate-200 bg-slate-50 p-8 text-center shadow-sm">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-200">
+                <BookOpen className="h-8 w-8" />
+              </div>
+              <h3 className="text-2xl font-black text-slate-900">
+                {hasLessons ? 'Choose a lesson to start reading' : 'No study lessons available yet'}
+              </h3>
+              <p className="mt-3 text-sm leading-6 text-slate-600">
+                {hasLessons
+                  ? 'Pick a lesson from the chapter list on the left. The lesson detail panel will load here.'
+                  : 'This class does not have any published lessons yet. Check back later or ask your teacher to publish content.'}
+              </p>
+            </div>
+          </div>
         )}
       </div>
     </div>

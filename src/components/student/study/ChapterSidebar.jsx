@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ChapterSidebar = ({ chapters = [], activeLessonId, onSelectLesson, expandedChapterId, onToggleChapter }) => {
+const ChapterSidebar = ({ chapters = [], activeLessonId, onSelectLesson }) => {
   return (
     <div className="w-full md:w-80 bg-white border-b md:border-b-0 md:border-r border-slate-100 flex flex-col h-full overflow-y-auto shrink-0">
       <div className="p-5 border-b border-slate-100 sticky top-0 bg-white z-10">

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getStudentClasses, joinClassByCode } from '../../lib/api';
+import { getStudentClasses, joinClassByCode, leaveClass } from '../../lib/api';
 import { Loader, AlertCircle, Lock, Users, Calendar, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 
@@ -11,12 +11,15 @@ export default function ClassesLanding() {
   const [error, setError] = useState(null);
   const [classCode, setClassCode] = useState('');
   const [joiningClass, setJoiningClass] = useState(false);
+  const [leavingClassId, setLeavingClassId] = useState(null);
+  const [leaveConfirmClass, setLeaveConfirmClass] = useState(null);
+  const [leaveAcknowledged, setLeaveAcknowledged] = useState(false);
 
   const normalizeClasses = (payload) => {
     if (!Array.isArray(payload)) return [];
 
     return payload.map((cls) => ({
-      id: cls.id,
+      id: cls.id || cls.classId || null,
       name: cls.name || 'Untitled class',
       description: cls.description || `Class code: ${cls.classCode || 'N/A'}`,
       status: cls.status || 'active',
@@ -26,42 +29,78 @@ export default function ClassesLanding() {
     }));
   };
 
-  useEffect(() => {
-    fetchClasses();
-  }, []);
-
-  const fetchClasses = async () => {
+  const fetchClasses = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       const response = await getStudentClasses();
       setClasses(normalizeClasses(response));
     } catch (err) {
-      console.error('Failed to fetch classes:', err);
       setError(err.response?.data?.message || 'Failed to load classes');
       setClasses([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchClasses();
+  }, [fetchClasses]);
 
   const handleJoinClass = async (e) => {
     e.preventDefault();
     if (!classCode.trim()) {
-      alert('Please enter a class code');
+      setError('Please enter a class code');
       return;
     }
 
     try {
       setJoiningClass(true);
+      setError(null);
       await joinClassByCode(classCode.trim());
       setClassCode('');
       await fetchClasses();
     } catch (err) {
-      console.error('Failed to join class:', err);
-      alert('Failed to join class: ' + (err.response?.data?.message || 'Unknown error'));
+      setError(err.response?.data?.message || 'Failed to join class');
     } finally {
       setJoiningClass(false);
+    }
+  };
+
+  const openLeaveConfirmation = (e, classId) => {
+    e.stopPropagation();
+    const normalizedClassId = String(classId || '').trim();
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidPattern.test(normalizedClassId)) {
+      setError('Cannot leave this class because the class id is invalid. Please refresh and try again.');
+      return;
+    }
+
+    setError(null);
+    setLeaveConfirmClass(normalizedClassId);
+    setLeaveAcknowledged(false);
+  };
+
+  const closeLeaveConfirmation = () => {
+    setLeaveConfirmClass(null);
+    setLeaveAcknowledged(false);
+  };
+
+  const handleLeaveClass = async () => {
+    if (!leaveConfirmClass || !leaveAcknowledged) {
+      return;
+    }
+
+    try {
+      setLeavingClassId(leaveConfirmClass);
+      setError(null);
+      await leaveClass(leaveConfirmClass);
+      setClasses((previous) => previous.filter((cls) => cls.id !== leaveConfirmClass));
+      closeLeaveConfirmation();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to leave class');
+    } finally {
+      setLeavingClassId(null);
     }
   };
 
@@ -164,7 +203,7 @@ export default function ClassesLanding() {
               <Card
                 key={cls.id}
                 className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:border-blue-300 overflow-hidden group"
-                onClick={() => navigate(`/student/class/${cls.id}`)}
+                onClick={() => cls.id && navigate(`/student/class/${cls.id}`)}
               >
                 {/* Color bar at top */}
                 <div className="h-1 bg-gradient-to-r from-blue-500 to-indigo-500 group-hover:from-blue-600 group-hover:to-indigo-600" />
@@ -214,7 +253,14 @@ export default function ClassesLanding() {
                   {/* Click to expand indicator */}
                   <div className="pt-2 flex items-center justify-between">
                     <span className="text-xs text-blue-600 font-semibold">Click to view content</span>
-                    <span className="text-lg group-hover:translate-x-1 transition-transform">→</span>
+                    <button
+                      type="button"
+                      onClick={(e) => openLeaveConfirmation(e, cls.id)}
+                      disabled={leavingClassId === cls.id || !cls.id}
+                      className="text-xs px-3 py-1.5 rounded-md border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-60"
+                    >
+                      {leavingClassId === cls.id ? 'Leaving...' : 'Leave class'}
+                    </button>
                   </div>
                 </CardContent>
               </Card>
@@ -222,6 +268,47 @@ export default function ClassesLanding() {
           </div>
         )}
       </div>
+
+      {leaveConfirmClass && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4" role="dialog" aria-modal="true" aria-labelledby="leave-class-title">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5">
+            <div className="mb-4">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-red-600">Confirm leave</p>
+              <h2 id="leave-class-title" className="mt-2 text-2xl font-bold text-slate-900">Are you sure?</h2>
+              <p className="mt-2 text-sm text-slate-600">Leaving this class will remove it from your class list. You can rejoin later only if you have the class code again.</p>
+            </div>
+
+            <label className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                checked={leaveAcknowledged}
+                onChange={(event) => setLeaveAcknowledged(event.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-slate-300 text-red-600 focus:ring-red-500"
+              />
+              <span>I want to leave this class</span>
+            </label>
+
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={closeLeaveConfirmation}
+                disabled={leavingClassId === leaveConfirmClass}
+                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+              >
+                No
+              </button>
+              <button
+                type="button"
+                onClick={handleLeaveClass}
+                disabled={!leaveAcknowledged || leavingClassId === leaveConfirmClass}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300"
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

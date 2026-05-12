@@ -1,6 +1,6 @@
 import React from 'react';
 
-const MiniQuizSection = ({ lessonId, questions = [], isStub = true }) => {
+const MiniQuizSection = ({ questions = [] }) => {
   if (!questions.length) return null;
 
   return (

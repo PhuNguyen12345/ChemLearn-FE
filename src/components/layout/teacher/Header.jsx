@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Menu, User, Settings, LogOut, FlaskConical, Bell, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,12 +17,29 @@ import LanguageSwitcher from '../shared/LanguageSwitcher';
 import useLanguageStore from '@/stores/useLanguageStore';
 import { useLogout } from '@/stores/useLogout';
 import { translations } from '@/lib/translations';
+import useAuthStore from '@/stores/useAuthStore';
 
 const Header = () => {
   const [open, setOpen] = useState(false);
   const { language } = useLanguageStore();
   const t = translations[language] || translations['vi'];
   const logout = useLogout();
+  const { user } = useAuthStore();
+
+  const teacherName = user?.fullName || user?.username || 'Teacher';
+  const teacherRole = user?.specialization || 'Chemistry Dept Head';
+  const avatarSrc = user?.avatarUrl || '/teacher-avatar.png';
+  const avatarFallback = useMemo(() => {
+    const initials = teacherName
+      .split(' ')
+      .filter(Boolean)
+      .map((part) => part[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
+
+    return initials || 'TR';
+  }, [teacherName]);
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -66,22 +84,24 @@ const Header = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full border border-border">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="/teacher-avatar.png" alt="@teacher" />
-                  <AvatarFallback className="bg-primary/20 text-primary text-xs font-semibold">TR</AvatarFallback>
+                  <AvatarImage src={avatarSrc} alt={`@${teacherName}`} />
+                  <AvatarFallback className="bg-primary/20 text-primary text-xs font-semibold">{avatarFallback}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">Mr. Smith</p>
-                  <p className="text-xs leading-none text-muted-foreground">Chemistry Dept Head</p>
+                  <p className="text-sm font-medium leading-none">{teacherName}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{teacherRole}</p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer">
-                <User className="mr-2 h-4 w-4" />
-                <span>{t.profile || 'My Profile'}</span>
+              <DropdownMenuItem asChild className="cursor-pointer">
+                <Link to="/teacher/profile">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>{t.profile || 'My Profile'}</span>
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer">
                 <Settings className="mr-2 h-4 w-4" />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { Heart, ArrowLeft, ShoppingBag } from 'lucide-react';
 import { useStudentStore } from '../stores/useStudentStore';
 import bgImage from '../assets/quiz-background.png';
@@ -79,8 +79,8 @@ export default function FireQuizGame({ onBack, onGoShop }) {
         osc.start(ctx.currentTime);
         osc.stop(ctx.currentTime + 0.3);
       }
-    } catch (e) {
-      console.log(e);
+    } catch {
+      // Audio can fail in restricted browser contexts; gameplay should continue.
     }
   };
 

@@ -11,7 +11,6 @@ import api from '@/lib/api';
 export const useLogout = () => {
   const navigate = useNavigate();
   const storeLogout = useAuthStore((state) => state.logout);
-  const token = useAuthStore((state) => state.token);
 
   const logout = async () => {
     try {

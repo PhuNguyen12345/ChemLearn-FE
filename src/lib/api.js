@@ -18,6 +18,15 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+const normalizeListResponse = (data) => {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.content)) return data.content;
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.data)) return data.data;
+  if (Array.isArray(data?.results)) return data.results;
+  return [];
+};
+
 export const getStudyChapters = async () => {
   const response = await api.get('/api/study/chapters');
   return response.data;
@@ -35,14 +44,14 @@ export const submitLessonMiniQuiz = async (lessonId, payload) => {
 
 export const getFreeQuizzes = async () => {
   const response = await api.get('/api/student/classes/quizzes');
-  return response.data;
+  return normalizeListResponse(response.data);
 };
 
 export const getStudentClassQuizzes = getFreeQuizzes;
 
 export const getStudentClassAssignments = async () => {
   const response = await api.get('/api/student/classes/assignments');
-  return response.data;
+  return normalizeListResponse(response.data);
 };
 
 export const getQuizDetail = async (quizId) => {
@@ -51,7 +60,7 @@ export const getQuizDetail = async (quizId) => {
 };
 
 export const startQuizAttempt = async (quizId) => {
-  const response = await api.post(`/api/quizzes/${quizId}/attempts`);
+  const response = await api.post(`/api/quizzes/${quizId}/attempts`, {});
   return response.data;
 };
 
@@ -67,37 +76,37 @@ export const getTeacherSummary = async () => {
 
 export const getTeacherStudentPerformance = async () => {
   const response = await api.get('/api/teacher/analytics/students');
-  return response.data;
+  return normalizeListResponse(response.data);
 };
 
 export const getTeacherSubmissions = async () => {
   const response = await api.get('/api/teacher/submissions');
-  return response.data;
+  return normalizeListResponse(response.data);
 };
 
 export const getTeacherQuizzes = async () => {
   const response = await api.get('/api/teacher/quizzes');
-  return response.data;
+  return normalizeListResponse(response.data);
 };
 
 export const getTeacherAssignments = async () => {
   const response = await api.get('/api/teacher/assignments');
-  return response.data;
+  return normalizeListResponse(response.data);
 };
 
 export const getTeacherChapters = async () => {
   const response = await api.get('/api/teacher/chapters');
-  return response.data;
+  return normalizeListResponse(response.data);
 };
 
 export const getTeacherLessons = async () => {
   const response = await api.get('/api/teacher/lessons');
-  return response.data;
+  return normalizeListResponse(response.data);
 };
 
 export const getTeacherClasses = async () => {
   const response = await api.get('/api/teacher/classes');
-  return response.data;
+  return normalizeListResponse(response.data);
 };
 
 export const createTeacherClass = async (payload) => {
@@ -122,7 +131,7 @@ export const getTeacherStudentAccount = async (studentId) => {
 
 export const getStudentClasses = async () => {
   const response = await api.get('/api/student/classes');
-  return response.data;
+  return normalizeListResponse(response.data);
 };
 
 export const joinClassByCode = async (classCode) => {
@@ -130,19 +139,33 @@ export const joinClassByCode = async (classCode) => {
   return response.data;
 };
 
+export const leaveClass = async (classId) => {
+  await api.delete(`/api/student/classes/${classId}/leave`);
+};
+
 export const getClassChapters = async (classId) => {
   const response = await api.get(`/api/student/classes/${classId}/chapters`);
+  return normalizeListResponse(response.data);
+};
+
+export const getClassChapterLessons = async (classId, chapterId) => {
+  const response = await api.get(`/api/student/classes/${classId}/chapters/${chapterId}/lessons`);
+  return normalizeListResponse(response.data);
+};
+
+export const getClassLessonDetail = async (classId, lessonId) => {
+  const response = await api.get(`/api/student/classes/${classId}/lessons/${lessonId}`);
   return response.data;
 };
 
 export const getClassQuizzes = async (classId) => {
   const response = await api.get(`/api/student/classes/${classId}/quizzes`);
-  return response.data;
+  return normalizeListResponse(response.data);
 };
 
 export const getClassAssignments = async (classId) => {
   const response = await api.get(`/api/student/classes/${classId}/assignments`);
-  return response.data;
+  return normalizeListResponse(response.data);
 };
 
 // Teacher chapter operations
@@ -162,7 +185,7 @@ export const deleteTeacherChapter = async (chapterId) => {
 };
 
 export const addChapterToClass = async (classId, chapterId) => {
-  const response = await api.post(`/api/teacher/classes/${classId}/chapters/${chapterId}`);
+  const response = await api.post(`/api/teacher/classes/${classId}/chapters/${chapterId}`, {});
   return response.data;
 };
 
@@ -206,7 +229,7 @@ export const deleteTeacherQuiz = async (quizId) => {
 // Teacher quiz question operations
 export const getTeacherQuizQuestions = async (quizId) => {
   const response = await api.get(`/api/teacher/quizzes/${quizId}/questions`);
-  return response.data;
+  return normalizeListResponse(response.data);
 };
 
 export const createTeacherQuizQuestion = async (quizId, payload) => {
@@ -245,7 +268,7 @@ export const deleteTeacherQuestionBankItem = async (bankQuestionId) => {
 };
 
 export const addQuestionFromBankToQuiz = async (quizId, bankQuestionId) => {
-  const response = await api.post(`/api/teacher/quizzes/${quizId}/questions/from-bank/${bankQuestionId}`);
+  const response = await api.post(`/api/teacher/quizzes/${quizId}/questions/from-bank/${bankQuestionId}`, {});
   return response.data;
 };
 
@@ -288,7 +311,7 @@ export const updateUser = async (userId, payload) => {
 };
 
 export const deactivateUser = async (userId) => {
-  const response = await api.patch(`/api/users/${userId}/deactivate`);
+  const response = await api.patch(`/api/users/${userId}/deactivate`, {});
   return response.data;
 };
 
@@ -338,6 +361,11 @@ export const getAdminChapters = async () => {
   return response.data;
 };
 
+export const getAdminChapter = async (chapterId) => {
+  const response = await api.get(`/api/admin/content/chapters/${chapterId}`);
+  return response.data;
+};
+
 export const createAdminChapter = async (payload) => {
   const response = await api.post('/api/admin/content/chapters', payload);
   return response.data;
@@ -356,6 +384,11 @@ export const deleteAdminChapter = async (chapterId) => {
 // Admin lessons
 export const getAdminLesson = async (lessonId) => {
   const response = await api.get(`/api/admin/content/lessons/${lessonId}`);
+  return response.data;
+};
+
+export const getAdminLessonsByChapter = async (chapterId) => {
+  const response = await api.get(`/api/admin/content/chapters/${chapterId}/lessons`);
   return response.data;
 };
 
@@ -387,6 +420,16 @@ export const updateMiniQuizQuestion = async (questionId, payload) => {
 
 export const deleteMiniQuizQuestion = async (questionId) => {
   const response = await api.delete(`/api/admin/content/mini-quiz-questions/${questionId}`);
+  return response.data;
+};
+
+export const getTeacherSubmissionDetail = async (attemptId) => {
+  const response = await api.get(`/api/teacher/submissions/${attemptId}`);
+  return response.data;
+};
+
+export const gradeTeacherSubmission = async (attemptId, payload) => {
+  const response = await api.post(`/api/teacher/submissions/${attemptId}/grade`, payload);
   return response.data;
 };
 

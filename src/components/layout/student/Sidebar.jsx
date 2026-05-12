@@ -14,12 +14,12 @@ import {
 import { useSidebarStore } from '../../../stores/useSidebarStore';
 
 const navItems = [
-  { name: 'Dashboard',   icon: LayoutDashboard, path: '/student/home', id: 'dashboard',    emoji: '🏠' },
-  { name: 'Study Zone',  icon: BookOpen,         path: '/student/home', id: 'studyZone',    emoji: '📚' },
-  { name: 'Virtual Lab', icon: Microscope,        path: '/student/home', id: 'labDashboard', emoji: '🧪' },
-  { name: 'Missions',    icon: Target,            path: '/student/missions', id: 'missions', emoji: '🎯' },
-  { name: 'Leaderboard', icon: Trophy,            path: '/student/leaderboard', id: 'leaderboard', emoji: '🏆' },
-  { name: 'Classes',     icon: Users,             path: '/student/classes', id: 'classes',  emoji: '👥' },
+  { name: 'Dashboard',   icon: LayoutDashboard, path: '/student/home', id: 'dashboard' },
+  { name: 'Study Zone',  icon: BookOpen,        path: '/student/home', id: 'studyZone' },
+  { name: 'Virtual Lab', icon: Microscope,      path: '/student/home', id: 'labDashboard' },
+  { name: 'Missions',    icon: Target,          path: '/student/missions', id: 'missions' },
+  { name: 'Leaderboard', icon: Trophy,          path: '/student/leaderboard', id: 'leaderboard' },
+  { name: 'Classes',     icon: Users,           path: '/student/classes', id: 'classes' },
 ];
 
 /* Colour accent per nav item for its active state */

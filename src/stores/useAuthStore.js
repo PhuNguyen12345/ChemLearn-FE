@@ -18,8 +18,20 @@ const useAuthStore = create((set) => ({
   user: storedUser,
   isAuthenticated: !!storedToken,
 
-  login: ({ token, id, username, email, role }) => {
-    const user = { id: id || null, username, email, role };
+  login: ({ token, id, username, email, role, fullName, avatarUrl, isActive, bio, specialization, degree, workplace }) => {
+    const user = {
+      id: id || null,
+      username,
+      email,
+      role,
+      fullName,
+      avatarUrl,
+      isActive,
+      bio,
+      specialization,
+      degree,
+      workplace,
+    };
 
     localStorage.setItem('auth_token', token);
     localStorage.setItem('auth_user', JSON.stringify(user));
@@ -28,6 +40,23 @@ const useAuthStore = create((set) => ({
       token,
       user,
       isAuthenticated: true,
+    });
+  },
+
+  updateProfile: (updates) => {
+    set((state) => {
+      if (!state.user) {
+        return state;
+      }
+
+      const user = {
+        ...state.user,
+        ...updates,
+      };
+
+      localStorage.setItem('auth_user', JSON.stringify(user));
+
+      return { user };
     });
   },
 
