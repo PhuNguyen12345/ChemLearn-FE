@@ -14,12 +14,16 @@ import StudentShop from '../../../pages/student/StudentShop';
 import StudentIsland from '../../../pages/student/StudentIsland';
 import StudentProfile from '../../../pages/student/StudentProfile';
 import ProgressMap from '../../../pages/student/ProgressMap';
+import PvpLobbyPage from '../../../pages/student/pvp/PvpLobbyPage';
 
 const StudentLayout = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [activeLabId, setActiveLabId] = useState(null);
-  const [activeQuizId, setActiveQuizId] = useState(null);
-  const location = useLocation();
+  const [activeTab, setActiveTabInternal] = useState('dashboard');
+  const [previousTab, setPreviousTab] = useState('dashboard');
+  
+  const setActiveTab = (tab) => {
+    setPreviousTab(activeTab);
+    setActiveTabInternal(tab);
+  };
 
   // If we're on the main student home route, we intercept to allow internal tabs
   const isHomeRoute = location.pathname === '/student/home';
@@ -55,7 +59,7 @@ const StudentLayout = () => {
 
       {/* Main Content Area */}
       <div className="flex flex-col flex-1 h-full min-w-0">
-        <Header />
+        <Header setActiveTab={setActiveTab} />
         
         {/* Router Outlet content scrolls */}
         <main className="flex-1 overflow-x-hidden overflow-y-auto w-full bg-muted/30">
@@ -89,7 +93,7 @@ const StudentLayout = () => {
                 {activeTab === 'fireQuiz' && (
                   <div className="absolute inset-0 z-50">
                     <FireQuizGame 
-                      onBack={() => setActiveTab('dashboard')} 
+                      onBack={() => setActiveTab(previousTab)} 
                       onGoShop={() => setActiveTab('shop')}
                     />
                   </div>
@@ -111,6 +115,9 @@ const StudentLayout = () => {
                   <div className="absolute inset-0 z-50 bg-[#0a0e27] flex flex-col">
                     <ProgressMap onBack={() => setActiveTab('dashboard')} setActiveTab={setActiveTab} />
                   </div>
+                )}
+                {activeTab === 'pvp' && (
+                  <PvpLobbyPage onBack={() => setActiveTab('dashboard')} />
                 )}
               </>
             ) : (

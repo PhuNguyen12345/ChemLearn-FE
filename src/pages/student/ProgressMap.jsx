@@ -1,17 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Lock, Star, Sparkles, Zap, FlaskConical, BookOpen, Flame, Droplets, Building2, Atom } from 'lucide-react';
+import { getProgressMap } from '../../api/studentApi';
 
 /* ═══════════════════════════════════════════════════════════
    ISLAND DATA — 6 floating islands from the Elemental Archipelago
 ═══════════════════════════════════════════════════════════ */
-const ISLANDS = [
+const ISLAND_STYLES = [
   {
-    id: 1,
-    name: 'Đảo Chất',
-    subtitle: 'Substance Island',
-    mission: 'Giải mã Mật mã Nguyên tử',
-    fragment: 'Nguyên tố Nền tảng',
     icon: FlaskConical,
     emoji: '🧪',
     color: 'from-blue-500 to-cyan-400',
@@ -19,17 +15,9 @@ const ISLANDS = [
     neonBorder: 'border-blue-400',
     neonShadow: 'shadow-blue-500/50',
     bgGradient: 'from-blue-600/20 to-cyan-500/10',
-    unlocked: true,
-    completed: true,
-    stars: 3,
-    tabTarget: 'studyZone',
+    tabTarget: 'fireQuiz',
   },
   {
-    id: 2,
-    name: 'Đảo Rừng Ký Hiệu',
-    subtitle: 'Symbol Forest',
-    mission: 'Ghép đúng hóa trị',
-    fragment: 'Hóa trị Ổn định',
     icon: BookOpen,
     emoji: '🌿',
     color: 'from-emerald-500 to-green-400',
@@ -37,17 +25,9 @@ const ISLANDS = [
     neonBorder: 'border-emerald-400',
     neonShadow: 'shadow-emerald-500/50',
     bgGradient: 'from-emerald-600/20 to-green-500/10',
-    unlocked: true,
-    completed: true,
-    stars: 2,
-    tabTarget: 'quizzes',
+    tabTarget: 'fireQuiz',
   },
   {
-    id: 3,
-    name: 'Đảo Biến Đổi',
-    subtitle: 'Transformation Island',
-    mission: 'Cân bằng Phương trình',
-    fragment: 'Phản ứng Hoàn chỉnh',
     icon: Atom,
     emoji: '⚗️',
     color: 'from-orange-500 to-red-400',
@@ -55,17 +35,9 @@ const ISLANDS = [
     neonBorder: 'border-orange-400',
     neonShadow: 'shadow-orange-500/50',
     bgGradient: 'from-orange-600/20 to-red-500/10',
-    unlocked: true,
-    completed: false,
-    stars: 0,
-    tabTarget: 'labDashboard',
+    tabTarget: 'fireQuiz',
   },
   {
-    id: 4,
-    name: 'Đảo Núi Lửa Oxy',
-    subtitle: 'Oxygen Volcano',
-    mission: 'Kiểm soát sự cháy',
-    fragment: 'Sức mạnh Oxy',
     icon: Flame,
     emoji: '🌋',
     color: 'from-red-600 to-orange-500',
@@ -73,17 +45,9 @@ const ISLANDS = [
     neonBorder: 'border-red-400',
     neonShadow: 'shadow-red-500/50',
     bgGradient: 'from-red-600/20 to-orange-500/10',
-    unlocked: true,
-    completed: false,
-    stars: 0,
     tabTarget: 'fireQuiz',
   },
   {
-    id: 5,
-    name: 'Đảo Đầm Lầy Hydro',
-    subtitle: 'Hydrogen Swamp',
-    mission: 'Lấy kim loại từ quặng',
-    fragment: 'Khí Hydro Tinh khiết',
     icon: Droplets,
     emoji: '💧',
     color: 'from-sky-500 to-blue-400',
@@ -91,17 +55,9 @@ const ISLANDS = [
     neonBorder: 'border-sky-400',
     neonShadow: 'shadow-sky-500/50',
     bgGradient: 'from-sky-600/20 to-blue-500/10',
-    unlocked: false,
-    completed: false,
-    stars: 0,
-    tabTarget: 'studyZone',
+    tabTarget: 'fireQuiz',
   },
   {
-    id: 6,
-    name: 'Thành Phố Ionic',
-    subtitle: 'Ionic City',
-    mission: 'Trung hòa Axit/Bazơ',
-    fragment: 'Cân bằng Ionic',
     icon: Building2,
     emoji: '🏙️',
     color: 'from-purple-500 to-pink-500',
@@ -109,10 +65,7 @@ const ISLANDS = [
     neonBorder: 'border-purple-400',
     neonShadow: 'shadow-purple-500/50',
     bgGradient: 'from-purple-600/20 to-pink-500/10',
-    unlocked: false,
-    completed: false,
-    stars: 0,
-    tabTarget: 'labDashboard',
+    tabTarget: 'fireQuiz',
   },
 ];
 
@@ -393,9 +346,13 @@ const IslandDetailPanel = ({ island, onClose, onNavigate }) => {
 export default function ProgressMap({ onBack, setActiveTab }) {
   const [selectedIsland, setSelectedIsland] = useState(null);
   const [bgParticles, setBgParticles] = useState([]);
+  const [islands, setIslands] = useState([]);
+  const [mapData, setMapData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Generate random background particles once
   useEffect(() => {
+    fetchMapData();
     const particles = [];
     for (let i = 0; i < 40; i++) {
       particles.push({
@@ -409,6 +366,42 @@ export default function ProgressMap({ onBack, setActiveTab }) {
     }
     setBgParticles(particles);
   }, []);
+
+  const fetchMapData = async () => {
+    try {
+      setIsLoading(true);
+      const data = await getProgressMap();
+      setMapData(data);
+      
+      const mappedIslands = data.islands.map((apiIsland, index) => {
+        const style = ISLAND_STYLES[index % ISLAND_STYLES.length];
+        
+        const totalNodes = apiIsland.nodes.length;
+        const completedNodes = apiIsland.nodes.filter(n => n.isCompleted).length;
+        const isCompleted = totalNodes > 0 && totalNodes === completedNodes;
+        const stars = apiIsland.nodes.reduce((sum, n) => sum + (n.stars || 0), 0);
+        
+        return {
+          id: apiIsland.islandId,
+          name: apiIsland.name,
+          subtitle: `Level yêu cầu: ${apiIsland.requiredLevel}`,
+          mission: apiIsland.nodes.length > 0 ? apiIsland.nodes[0].name : 'Đang cập nhật',
+          fragment: `${completedNodes}/${totalNodes} Ải`,
+          ...style,
+          unlocked: !apiIsland.isLocked,
+          completed: isCompleted,
+          stars: stars,
+          nodes: apiIsland.nodes
+        };
+      });
+      
+      setIslands(mappedIslands);
+    } catch (error) {
+      console.error('Lỗi khi tải bản đồ:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   /* Island positions — a gentle zigzag path left → right */
   const islandPositions = [
@@ -426,6 +419,14 @@ export default function ProgressMap({ onBack, setActiveTab }) {
       setActiveTab(tabTarget);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[600px] items-center justify-center bg-slate-900 rounded-[2rem]">
+        <div className="w-10 h-10 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full h-full min-h-[600px] overflow-hidden rounded-[2rem] select-none">
@@ -490,15 +491,15 @@ export default function ProgressMap({ onBack, setActiveTab }) {
         {/* Progress pill */}
         <div className="hidden sm:flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
           <Sparkles className="w-4 h-4 text-yellow-400" />
-          <span className="text-sm font-black text-white">2 / 6</span>
+          <span className="text-sm font-black text-white">{islands.filter(i => i.completed).length} / {islands.length}</span>
           <span className="text-xs text-slate-400 font-semibold">Islands</span>
         </div>
       </div>
 
       {/* === GLOWING PATHS BETWEEN ISLANDS === */}
-      {islandPositions.slice(0, -1).map((pos, i) => {
+      {islandPositions.slice(0, Math.min(islandPositions.length, islands.length) - 1).map((pos, i) => {
         const next = islandPositions[i + 1];
-        const isActive = ISLANDS[i].completed;
+        const isActive = islands[i]?.completed;
         return (
           <GlowingPath
             key={`path-${i}`}
@@ -512,16 +513,19 @@ export default function ProgressMap({ onBack, setActiveTab }) {
       })}
 
       {/* === ISLAND NODES === */}
-      {ISLANDS.map((island, i) => (
-        <IslandNode
-          key={island.id}
-          island={island}
-          posX={islandPositions[i].x}
-          posY={islandPositions[i].y}
-          onClick={setSelectedIsland}
-          isSelected={selectedIsland?.id === island.id}
-        />
-      ))}
+      {islands.map((island, i) => {
+        if (i >= islandPositions.length) return null;
+        return (
+          <IslandNode
+            key={island.id}
+            island={island}
+            posX={islandPositions[i].x}
+            posY={islandPositions[i].y}
+            onClick={setSelectedIsland}
+            isSelected={selectedIsland?.id === island.id}
+          />
+        );
+      })}
 
       {/* === DETAIL PANEL (slide-in) === */}
       <AnimatePresence>

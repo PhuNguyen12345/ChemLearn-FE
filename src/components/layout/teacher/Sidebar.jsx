@@ -3,10 +3,10 @@ import { NavLink } from 'react-router-dom';
 import { BookOpenCheck, Library, PenTool, LayoutTemplate, FlaskConical } from 'lucide-react';
 
 const navItems = [
-  { name: 'Class Management', icon: LayoutTemplate, path: '/teacher/classes' },
-  { name: 'Question Bank', icon: Library, path: '/teacher/questions' },
-  { name: 'Grading', icon: PenTool, path: '/teacher/grading' },
-  { name: 'Reports', icon: BookOpenCheck, path: '/teacher/reports' },
+  { name: 'Tổng quan', icon: LayoutTemplate, path: '/teacher/dashboard' },
+  { name: 'Quản lý lớp học', icon: BookOpenCheck, path: '/teacher/classes' },
+  { name: 'Bài tập', icon: PenTool, path: '/teacher/assignments' },
+  { name: 'Ngân hàng câu hỏi', icon: Library, path: '/teacher/questions' },
 ];
 
 const Sidebar = ({ className = '' }) => {

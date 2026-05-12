@@ -10,7 +10,9 @@ import {
   LayoutDashboard,
   Sparkles,
   Map,
+  Swords,
 } from 'lucide-react';
+import { useStudentStore } from '../../../stores/useStudentStore';
 
 const navItems = [
   { name: 'Dashboard',   icon: LayoutDashboard, path: '/student/home', id: 'dashboard',    emoji: '🏠' },
@@ -18,9 +20,9 @@ const navItems = [
   { name: 'Study Zone',  icon: BookOpen,         path: '/student/home', id: 'studyZone',    emoji: '📚' },
   { name: 'Virtual Lab', icon: Microscope,        path: '/student/home', id: 'labDashboard', emoji: '🧪' },
   { name: 'Quizzes',     icon: ClipboardList,     path: '/student/home', id: 'quizzes',      emoji: '❓' },
+  { name: 'PVP Battle',  icon: Swords,            path: '/student/home', id: 'pvp',          emoji: '⚔️' },
   { name: 'Missions',    icon: Target,            path: '/student/missions', id: 'missions', emoji: '🎯' },
   { name: 'Leaderboard', icon: Trophy,            path: '/student/leaderboard', id: 'leaderboard', emoji: '🏆' },
-  { name: 'Profile', icon: Target,            path: '/student/home', id: 'profile', emoji: '👤' },
 ];
 
 /* Colour accent per nav item for its active state */
@@ -32,15 +34,17 @@ const itemAccent = {
   quizzes:      { bg: 'bg-emerald-500', border: 'border-b-emerald-700', shadow: 'shadow-emerald-300/40' },
   missions:     { bg: 'bg-orange-500',  border: 'border-b-orange-700',  shadow: 'shadow-orange-300/40'  },
   leaderboard:  { bg: 'bg-amber-500',   border: 'border-b-amber-700',   shadow: 'shadow-amber-300/40'   },
-  profile:  { bg: 'bg-pink-500',   border: 'border-b-pink-700',   shadow: 'shadow-pink-300/40'   },
+  profile:      { bg: 'bg-pink-500',    border: 'border-b-pink-700',    shadow: 'shadow-pink-300/40'    },
+  pvp:          { bg: 'bg-rose-600',    border: 'border-b-rose-800',    shadow: 'shadow-rose-300/40'    },
 };
 
 const Sidebar = ({ className = '', activeTab, setActiveTab }) => {
   const navigate  = useNavigate();
   const location  = useLocation();
+  const { experience, level } = useStudentStore();
 
   const handleNavClick = (e, item) => {
-    if (['dashboard', 'studyZone', 'labDashboard', 'quizzes', 'profile', 'progressMap'].includes(item.id)) {
+    if (['dashboard', 'studyZone', 'labDashboard', 'quizzes', 'profile', 'progressMap', 'pvp'].includes(item.id)) {
       e.preventDefault();
       if (location.pathname !== '/student/home') navigate('/student/home');
       if (setActiveTab) setActiveTab(item.id);
@@ -114,13 +118,13 @@ const Sidebar = ({ className = '', activeTab, setActiveTab }) => {
           <p className="text-[10px] font-black uppercase tracking-widest text-indigo-200 mb-1">⚡ Your Progress</p>
           {/* XP bar */}
           <div className="h-2.5 w-full bg-white/20 rounded-full overflow-hidden mb-1.5">
-            <div className="h-full bg-yellow-300 rounded-full" style={{ width: '82%' }}>
+            <div className="h-full bg-yellow-300 rounded-full" style={{ width: `${(experience % 1000) / 10}%` }}>
               <div className="h-full w-full bg-white/20 rounded-full" />
             </div>
           </div>
           <div className="flex justify-between text-[11px] font-black">
-            <span>2,450 XP</span>
-            <span className="text-indigo-200">Lv.8 → 3,000</span>
+            <span>{experience.toLocaleString()} XP</span>
+            <span className="text-indigo-200">Lv.{level + 1} → {level * 1000}</span>
           </div>
         </div>
       </div>
