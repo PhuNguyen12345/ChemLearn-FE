@@ -1,12 +1,11 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { BookOpenCheck, Library, PenTool, LayoutTemplate, FlaskConical } from 'lucide-react';
+import { LayoutDashboard, Library, LayoutTemplate, FlaskConical } from 'lucide-react';
 
 const navItems = [
-  { name: 'Tổng quan', icon: LayoutTemplate, path: '/teacher/dashboard' },
-  { name: 'Quản lý lớp học', icon: BookOpenCheck, path: '/teacher/classes' },
-  { name: 'Bài tập', icon: PenTool, path: '/teacher/assignments' },
-  { name: 'Ngân hàng câu hỏi', icon: Library, path: '/teacher/questions' },
+  { name: 'Dashboard', icon: LayoutDashboard, path: '/teacher/dashboard' },
+  { name: 'Class Management', icon: LayoutTemplate, path: '/teacher/classes' },
+  { name: 'Question Bank', icon: Library, path: '/teacher/questions' },
 ];
 
 const Sidebar = ({ className = '' }) => {
@@ -25,10 +24,9 @@ const Sidebar = ({ className = '' }) => {
             key={item.name}
             to={item.path}
             className={({ isActive }) =>
-              `flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-colors ${
-                isActive
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              `flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-colors ${isActive
+                ? 'bg-primary/10 text-primary'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               }`
             }
           >

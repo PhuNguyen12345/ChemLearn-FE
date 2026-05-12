@@ -130,15 +130,15 @@ const LandingPage = () => {
             <Link to="/" className="rounded-full px-4 py-1.5 bg-blue-500 text-white hover:bg-blue-600 transition-colors shadow-sm shadow-blue-200">
               {t.nav.home}
             </Link>
-            <Link to="#lessons" className="rounded-full px-4 py-1.5 bg-green-500 text-white hover:bg-green-600 transition-colors shadow-sm shadow-green-200">
+            <a href="#features" className="rounded-full px-4 py-1.5 bg-green-500 text-white hover:bg-green-600 transition-colors shadow-sm shadow-green-200">
               {t.nav.lessons}
-            </Link>
-            <Link to="/lab1" className="rounded-full px-4 py-1.5 bg-yellow-400 text-white hover:bg-yellow-500 transition-colors shadow-sm shadow-yellow-200">
+            </a>
+            <Link to="/lab" className="rounded-full px-4 py-1.5 bg-yellow-400 text-white hover:bg-yellow-500 transition-colors shadow-sm shadow-yellow-200">
               {t.nav.virtualLab}
             </Link>
-            <Link to="#quizzes" className="rounded-full px-4 py-1.5 bg-orange-400 text-white hover:bg-orange-500 transition-colors shadow-sm shadow-orange-200">
+            <a href="#showcase" className="rounded-full px-4 py-1.5 bg-orange-400 text-white hover:bg-orange-500 transition-colors shadow-sm shadow-orange-200">
               {t.nav.quizzes}
-            </Link>
+            </a>
             <Link to="/teacher/dashboard" className="rounded-full px-4 py-1.5 bg-purple-500 text-white hover:bg-purple-600 transition-colors shadow-sm shadow-purple-200">
               {t.nav.teacherPortal}
             </Link>
@@ -163,12 +163,12 @@ const LandingPage = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button variant="ghost" className="rounded-full text-slate-600 hover:text-cyan-600 hover:bg-cyan-50 font-bold px-6">
+            <Link to="/login" variant="ghost" className="rounded-full text-slate-600 hover:text-cyan-600 hover:bg-cyan-50 font-bold px-6">
               {t.nav.login}
-            </Button>
-            <Button className="rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600 text-white font-bold px-6 shadow-md shadow-cyan-200">
+            </Link>
+            <Link to="/register" className="rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600 text-white font-bold px-6 shadow-md shadow-cyan-200">
               {t.nav.signUp}
-            </Button>
+            </Link>
           </div>
         </div>
       </nav>
@@ -220,21 +220,20 @@ const LandingPage = () => {
                 </p>
 
                 <div className="pt-4 flex flex-col sm:flex-row gap-4">
-                  <Button
-                    size="lg"
-                    className="rounded-3xl bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white font-extrabold shadow-lg shadow-orange-500/50 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-orange-500/60 px-8 h-14 text-base group"
+                  <Link
+                    to="/register"
+                    className="inline-flex items-center justify-center rounded-3xl bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white font-extrabold shadow-lg shadow-orange-500/50 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-orange-500/60 px-8 h-14 text-base group"
                   >
                     {t.hero.btnGetStarted}
                     <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="rounded-3xl border-2 border-purple-400/30 hover:bg-white/5 text-black px-8 h-14 text-base group shadow-sm backdrop-blur-sm font-bold"
+                  </Link>
+                  <a
+                    href="#showcase"
+                    className="inline-flex items-center justify-center rounded-3xl border-2 border-purple-400/30 hover:bg-white/5 text-white px-8 h-14 text-base group shadow-sm backdrop-blur-sm font-bold"
                   >
                     <MonitorPlay className="mr-2 w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" />
                     {t.hero.btnWatchDemo}
-                  </Button>
+                  </a>
                 </div>
               </div>
 
@@ -618,20 +617,20 @@ const LandingPage = () => {
             <div>
               <h4 className="text-white font-extrabold mb-6 text-lg">{t.footer.platformHeading}</h4>
               <ul className="space-y-4 text-sm font-medium text-purple-100">
-                <li><Link to="#features" className="hover:text-white transition-colors">{t.footer.features}</Link></li>
-                <li><Link to="/lab1" className="hover:text-white transition-colors">{t.footer.virtualLab}</Link></li>
-                <li><Link to="#" className="hover:text-white transition-colors">{t.footer.pricing}</Link></li>
-                <li><Link to="#" className="hover:text-white transition-colors">{t.footer.forSchools}</Link></li>
+                <li><a href="#features" className="hover:text-white transition-colors">{t.footer.features}</a></li>
+                <li><Link to="/lab" className="hover:text-white transition-colors">{t.footer.virtualLab}</Link></li>
+                <li><a href="#" className="hover:text-white transition-colors">{t.footer.pricing}</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">{t.footer.forSchools}</a></li>
               </ul>
             </div>
 
             <div>
               <h4 className="text-white font-extrabold mb-6 text-lg">{t.footer.companyHeading}</h4>
               <ul className="space-y-4 text-sm font-medium text-purple-100">
-                <li><Link to="#" className="hover:text-white transition-colors">{t.footer.about}</Link></li>
-                <li><Link to="#" className="hover:text-white transition-colors">{t.footer.contact}</Link></li>
-                <li><Link to="#" className="hover:text-white transition-colors">{t.footer.privacy}</Link></li>
-                <li><Link to="#" className="hover:text-white transition-colors">{t.footer.terms}</Link></li>
+                <li><a href="#" className="hover:text-white transition-colors">{t.footer.about}</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">{t.footer.contact}</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">{t.footer.privacy}</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">{t.footer.terms}</a></li>
               </ul>
             </div>
           </div>
@@ -639,8 +638,8 @@ const LandingPage = () => {
           <div className="border-t border-purple-400 pt-8 flex flex-col md:flex-row items-center justify-between text-sm font-medium text-purple-100">
             <p>{t.footer.copyright}</p>
             <div className="flex space-x-8 mt-4 md:mt-0">
-              <Link to="#" className="hover:text-white transition-colors">{t.footer.support}</Link>
-              <Link to="#" className="hover:text-white transition-colors">{t.footer.faq}</Link>
+              <a href="#" className="hover:text-white transition-colors">{t.footer.support}</a>
+              <a href="#" className="hover:text-white transition-colors">{t.footer.faq}</a>
             </div>
           </div>
         </div>

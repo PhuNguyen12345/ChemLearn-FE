@@ -14,6 +14,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/s
 import Sidebar from './Sidebar';
 import LanguageSwitcher from '../shared/LanguageSwitcher';
 import useLanguageStore from '@/stores/useLanguageStore';
+import { useLogout } from '@/stores/useLogout';
 import { translations } from '@/lib/translations';
 import { useStudentStore } from '../../../stores/useStudentStore';
 
@@ -22,6 +23,7 @@ const Header = ({ setActiveTab }) => {
   const { language } = useLanguageStore();
   const t = translations[language] || translations['vi'];
   const { experience, currentStreak, level } = useStudentStore();
+  const logout = useLogout();
 
   return (
     <header className="sticky top-0 z-40 w-full border-b-2 border-slate-100 bg-white/80 backdrop-blur-md supports-[backdrop-filter]:bg-white/80 shadow-sm shadow-slate-100/60">
@@ -113,7 +115,7 @@ const Header = ({ setActiveTab }) => {
 
               <DropdownMenuSeparator className="my-1.5 bg-slate-100" />
 
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={() => { if (setActiveTab) setActiveTab('profile'); }}
                 className="cursor-pointer rounded-xl px-3 py-2.5 hover:bg-indigo-50 focus:bg-indigo-50 font-semibold"
               >
@@ -127,7 +129,7 @@ const Header = ({ setActiveTab }) => {
 
               <DropdownMenuSeparator className="my-1.5 bg-slate-100" />
 
-              <DropdownMenuItem className="cursor-pointer rounded-xl px-3 py-2.5 text-red-500 hover:bg-red-50 focus:bg-red-50 focus:text-red-600 font-bold">
+              <DropdownMenuItem onClick={logout} className="cursor-pointer rounded-xl px-3 py-2.5 text-red-500 hover:bg-red-50 focus:bg-red-50 focus:text-red-600 font-bold">
                 <LogOut className="mr-2.5 h-4 w-4" />
                 <span>{t.logout || 'Log out'}</span>
               </DropdownMenuItem>

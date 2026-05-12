@@ -14,12 +14,14 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/s
 import Sidebar from './Sidebar';
 import LanguageSwitcher from '../shared/LanguageSwitcher';
 import useLanguageStore from '@/stores/useLanguageStore';
+import { useLogout } from '@/stores/useLogout';
 import { translations } from '@/lib/translations';
 
 const Header = () => {
   const [open, setOpen] = useState(false);
   const { language } = useLanguageStore();
   const t = translations[language] || translations['vi'];
+  const logout = useLogout();
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -86,7 +88,7 @@ const Header = () => {
                 <span>{t.settings || 'Settings'}</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive">
+              <DropdownMenuItem onClick={logout} className="cursor-pointer text-destructive focus:text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>{t.logout || 'Log out'}</span>
               </DropdownMenuItem>

@@ -1,48 +1,64 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import useAuthStore from '../../stores/useAuthStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import api from '@/lib/api';
+
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_.]).{8,32}$/;
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
-    name: '',
+    username: '',
+    fullName: '',
     email: '',
     password: '',
-    role: 'STUDENT',
+    confirmPassword: '',
   });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const logout = useAuthStore((state) => state.logout);
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    try {
-      // Check if email exists
-      const checkRes = await fetch(`http://localhost:5000/users?email=${formData.email}`);
-      const existingUsers = await checkRes.json();
-      
-      if (existingUsers.length > 0) {
-        setError('Email này đã được sử dụng.');
-        return;
-      }
+    setError('');
+    setSuccess('');
 
-      // Create new user
-      const response = await fetch('http://localhost:5000/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          createdAt: new Date().toISOString()
-        })
+    if (formData.password !== formData.confirmPassword) {
+      setError('Mat khau xac nhan khong khop.');
+      return;
+    }
+
+    if (!PASSWORD_REGEX.test(formData.password)) {
+      setError('Mật khẩu phải 8-32 ký tự, có chữ hoa, chữ thường, số và ký tự đặc biệt.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      await api.post('/api/auth/register', {
+        username: formData.username,
+        email: formData.email,
+        fullName: formData.fullName,
+        password: formData.password,
       });
 
-      if (response.ok) {
-        navigate('/login');
-      } else {
-        setError('Đã có lỗi xảy ra khi đăng ký.');
-      }
+      logout();
+      setSuccess('Đăng kí thành công. Chuyển sang trang đăng nhập...');
+      setTimeout(() => navigate('/login', { replace: true }), 800);
     } catch (err) {
-      setError('Lỗi kết nối đến máy chủ.');
+      const backendMessage =
+        err?.response?.data?.message ||
+        err?.response?.data ||
+        'Đăng ký thất bại. Kiểm tra username, email và điều kiện mật khẩu.';
+
+      setError(String(backendMessage));
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -60,64 +76,103 @@ export default function RegisterPage() {
           </div>
         )}
 
+        {success && (
+          <div className="bg-emerald-50 text-emerald-600 p-3 rounded-lg mb-4 text-sm text-center">
+            {success}
+          </div>
+        )}
+
         <form onSubmit={handleRegister} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Họ và tên</Label>
-            <Input 
-              id="name" 
-              type="text" 
-              placeholder="Nguyễn Văn A"
-              value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
+            <Label htmlFor="username">Tên đăng nhập</Label>
+            <Input
+              id="username"
+              type="text"
+              placeholder="Nhập tên đăng nhập"
+              value={formData.username}
+              onChange={(e) =>
+                setFormData({ ...formData, username: e.target.value })
+              }
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="fullName">Tên đầy đủ</Label>
+            <Input
+              id="fullName"
+              type="text"
+              placeholder="Nhập tên đầy đủ"
+              value={formData.fullName}
+              onChange={(e) =>
+                setFormData({ ...formData, fullName: e.target.value })
+              }
               required
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input 
-              id="email" 
-              type="email" 
-              placeholder="nhapemail@example.com"
+            <Input
+              id="email"
+              type="email"
+              placeholder="Nhập email"
               value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
               required
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="password">Mật khẩu</Label>
-            <Input 
-              id="password" 
-              type="password" 
-              placeholder="••••••••"
+            <Input
+              id="password"
+              type="password"
+              placeholder="Nhập mật khẩu"
               value={formData.password}
-              onChange={(e) => setFormData({...formData, password: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="role">Vai trò</Label>
-            <select
-              id="role"
-              className="w-full flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-              value={formData.role}
-              onChange={(e) => setFormData({...formData, role: e.target.value})}
-            >
-              <option value="STUDENT">Học sinh</option>
-              <option value="TEACHER">Giáo viên</option>
-              <option value="PARENT">Phụ huynh</option>
-            </select>
+            <Label htmlFor="confirmPassword">Xác nhận mật khẩu</Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              placeholder="Nhập lại mật khẩu"
+              value={formData.confirmPassword}
+              onChange={(e) =>
+                setFormData({ ...formData, confirmPassword: e.target.value })
+              }
+              required
+            />
           </div>
 
-          <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 mt-6">
-            Đăng Ký
+          <p className="text-xs text-gray-500">
+            Mật khẩu phải 8-32 ký tự, có chữ hoa, chữ thường, số và ký tự đặc
+            biệt.
+          </p>
+
+          <p className="text-xs text-gray-500">
+            Tài khoản đăng ký mới hiện tại được gán mặc định vai trò học sinh.
+          </p>
+
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-blue-600 hover:bg-blue-700 mt-6"
+          >
+            {isLoading ? "Đang xử lý..." : "Đăng Ký"}
           </Button>
         </form>
 
         <div className="mt-6 text-center text-sm text-gray-500">
-          Đã có tài khoản?{' '}
+          Đã có tài khoản?{" "}
           <Link to="/login" className="text-blue-600 hover:underline">
             Đăng nhập
           </Link>
