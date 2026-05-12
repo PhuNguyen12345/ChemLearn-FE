@@ -4,7 +4,7 @@ import debounce from 'lodash/debounce';
 import confetti from 'canvas-confetti';
 import { useLabStore } from '../stores/useLabStore';
 import { LAB_TASKS_MOCK } from '../data/labTasksMock';
-import { saveVirtualLabProgress, enterVirtualLab, resetVirtualLab } from '@/lib/api';
+import { saveVirtualLabProgress, enterVirtualLab, resetVirtualLab, renameVirtualLab } from '@/lib/api';
 
 /**
  * useLabLifecycle
@@ -60,7 +60,8 @@ export function useLabLifecycle(labId) {
 
   // ─── 2. Completion confetti & modal ────────────────────────────────────────
   useEffect(() => {
-    if (score >= maxScore && maxScore > 0 && !progress.is_finished) {
+    const labType = useLabStore.getState().labType;
+    if (labType === 'PREMADE' && score >= maxScore && maxScore > 0 && !progress.is_finished) {
       confetti({
         particleCount: 150,
         spread: 80,
@@ -152,6 +153,25 @@ export function useLabLifecycle(labId) {
     }
   };
 
+  // ─── 8. Rename Lab ──────────────────────────────────────────────────────────
+  const handleRenameLab = async (newTitle) => {
+    // Lưu tạm tên cũ để rollback nếu lỗi
+    const oldTitle = useLabStore.getState().metadata?.title;
+    
+    // Optimistic update trên UI
+    useLabStore.getState().updateTitle(newTitle);
+
+    try {
+      await renameVirtualLab(labId, newTitle);
+      toast.success('Đã lưu tên bài lab thành công!', { position: 'bottom-right' });
+    } catch (error) {
+      console.error('Lỗi khi đổi tên:', error);
+      // Rollback
+      useLabStore.getState().updateTitle(oldTitle);
+      toast.error('Không thể đổi tên bài lab lúc này.', { position: 'bottom-right' });
+    }
+  };
+
   return {
     isLoading,
     saveState,
@@ -162,5 +182,6 @@ export function useLabLifecycle(labId) {
     handleResetLab,
     debouncedSave,
     handleSubmitAssignment,
+    handleRenameLab,
   };
 }

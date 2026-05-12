@@ -286,8 +286,20 @@ export const enterVirtualLab = async (labId) => {
   return response.data;
 };
 
+export const createSandboxLab = async () => {
+  const response = await api.post('/api/v1/student/virtual-labs/sandbox');
+  return response.data;
+};
+
 export const saveVirtualLabProgress = async (labId, payload) => {
   const response = await api.put(`/api/v1/student/virtual-labs/${labId}/progress`, payload);
+  return response.data;
+};
+
+export const renameVirtualLab = async (labId, newTitle) => {
+  const response = await api.patch(`/api/v1/student/virtual-labs/${labId}/rename`, null, {
+    params: { newTitle }
+  });
   return response.data;
 };
 

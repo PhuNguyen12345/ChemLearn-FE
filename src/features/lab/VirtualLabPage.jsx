@@ -36,10 +36,12 @@ export default function VirtualLabPage() {
     handleResetLab,
     debouncedSave,
     handleSubmitAssignment,
+    handleRenameLab,
   } = useLabLifecycle(id);
 
   const durationMinutes = useLabStore(state => state.durationMinutes);
   const labType = useLabStore(state => state.labType);
+  const labTitle = useLabStore(state => state.metadata?.title);
 
   // Auto-submit when time is up
   const handleTimeUp = async () => {
@@ -121,7 +123,8 @@ export default function VirtualLabPage() {
           <>
             <LabWorkspaceHeader 
               onBack={() => navigate('/student/virtual-lab')} 
-              titleText={useLabStore.getState().metadata?.title || 'My Saved Lab'} 
+              titleText={labTitle || 'My Saved Lab'} 
+              onTitleChange={handleRenameLab}
               labId={id}
               saveState={saveState}
               labType={labType}

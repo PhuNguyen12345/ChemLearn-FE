@@ -141,6 +141,10 @@ export const useLabStore = create((set, get) => ({
     reactionInfo: { equation: '-', condition: 'Cleared', description: 'Bàn làm việc đã được dọn sạch.' }
   })),
 
+  updateTitle: (newTitle) => set((state) => ({
+    metadata: { ...state.metadata, title: newTitle }
+  })),
+
   // Viewport action
   setViewportScale: (scale) => set((state) => ({
     viewport: { ...state.viewport, zoom_scale: scale }

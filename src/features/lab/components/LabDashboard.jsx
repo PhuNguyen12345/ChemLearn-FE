@@ -9,6 +9,7 @@ import { useLabData } from '../hooks/useLabData';
 import LabCard from './LabCard';
 import { LAB_THEMES } from '../data/theme';
 import { LAB_TASKS_MOCK } from '../data/labTasksMock';
+import { createSandboxLab } from '@/lib/api';
 
 /* ─────────────────────────────────────────────────────────
    Main Component
@@ -23,6 +24,21 @@ const LabDashboard = () => {
   const [activeTab, setActiveTab] = useState('PREMADE');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [currentPage, setCurrentPage] = useState(0);
+  const [isCreating, setIsCreating] = useState(false);
+
+  const handleCreateSandbox = async () => {
+    if (isCreating) return;
+    setIsCreating(true);
+    try {
+      const data = await createSandboxLab();
+      toast.success("Tạo phòng thí nghiệm thành công!");
+      navigate(`/lab-workspace/${data.labId}`);
+    } catch (error) {
+      console.error(error);
+      toast.error("Không thể tạo phòng thí nghiệm lúc này.");
+      setIsCreating(false);
+    }
+  };
 
   // Custom hook for logic
   const { filteredLabs, totalPages, isLoading, hasUncompletedAssignment } = useLabData(activeTab, searchQuery, selectedCategory, currentPage);
@@ -144,17 +160,6 @@ const LabDashboard = () => {
                 <option key={c.value} value={c.value}>{c.label}</option>
               ))}
             </select>
-
-            {/* Create button — Emerald tactile */}
-            <div className={`transition-all duration-300 ${activeTab === 'SANDBOX' ? 'opacity-100 scale-100 w-auto' : 'opacity-0 scale-95 w-0 overflow-hidden absolute pointer-events-none'}`}>
-              <button
-                onClick={() => navigate('/lab-workspace/new')}
-                className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-400 hover:bg-emerald-500 text-white font-black rounded-2xl border-b-4 border-emerald-700 hover:border-emerald-800 active:border-b active:translate-y-1 shadow-lg shadow-emerald-500/30 shrink-0 text-sm whitespace-nowrap"
-              >
-                <Plus className="w-5 h-5" />
-                Create New Lab
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -212,14 +217,22 @@ const LabDashboard = () => {
           {/* ── CREATE NEW card (Only show when in SANDBOX tab) ── */}
           {activeTab === 'SANDBOX' && (
             <div
-              onClick={() => navigate('/lab-workspace/new')}
-              className="group bg-indigo-50 rounded-3xl border-4 border-dashed border-indigo-300 hover:border-indigo-500 hover:bg-indigo-100/70 hover:-translate-y-2 hover:shadow-[0_10px_28px_rgba(99,102,241,0.3)] transition-all duration-300 flex flex-col items-center justify-center p-8 cursor-pointer aspect-[4/3] min-h-[200px]"
+              onClick={handleCreateSandbox}
+              className={`group bg-indigo-50 rounded-3xl border-4 border-dashed border-indigo-300 transition-all duration-300 flex flex-col items-center justify-center p-8 aspect-[4/3] min-h-[200px] ${
+                isCreating 
+                  ? 'opacity-70 pointer-events-none' 
+                  : 'hover:border-indigo-500 hover:bg-indigo-100/70 hover:-translate-y-2 hover:shadow-[0_10px_28px_rgba(99,102,241,0.3)] cursor-pointer'
+              }`}
             >
               <div className="w-20 h-20 rounded-3xl bg-indigo-200 group-hover:bg-indigo-300 flex items-center justify-center mb-4 transition-all duration-300 shadow-inner shadow-indigo-300/50 group-hover:scale-110 group-hover:rotate-3">
-                <Plus className="w-10 h-10 text-indigo-600 group-hover:text-indigo-700" />
+                {isCreating ? (
+                   <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                   <Plus className="w-10 h-10 text-indigo-600 group-hover:text-indigo-700" />
+                )}
               </div>
               <h3 className="font-black text-indigo-600 group-hover:text-indigo-700 text-base text-center">
-                New Experiment
+                {isCreating ? 'Đang tạo...' : 'New Experiment'}
               </h3>
               <p className="text-indigo-400 text-xs font-semibold mt-1 text-center">Start from scratch</p>
             </div>

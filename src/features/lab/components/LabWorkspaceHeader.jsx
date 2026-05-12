@@ -11,9 +11,14 @@ const LabWorkspaceHeader = ({
   onResetClick,
   labType = 'PREMADE',
   formattedTime = null,
-  onSubmitClick
+  onSubmitClick,
+  onTitleChange
 }) => {
   const [title, setTitle] = useState(titleText);
+  
+  React.useEffect(() => {
+    setTitle(titleText);
+  }, [titleText]);
   const [isEditing, setIsEditing] = useState(false);
   const { serializeLabState, clearWorkspace, resetToTemplate } = useLabStore();
   const score = useLabStore(state => state.progress?.score || 0);
@@ -24,6 +29,16 @@ const LabWorkspaceHeader = ({
   const handleTitleSubmit = (e) => {
     if (e.key === 'Enter') {
       setIsEditing(false);
+      if (title !== titleText && onTitleChange) {
+        onTitleChange(title);
+      }
+    }
+  };
+
+  const handleBlur = () => {
+    setIsEditing(false);
+    if (title !== titleText && onTitleChange) {
+      onTitleChange(title);
     }
   };
 
@@ -42,23 +57,27 @@ const LabWorkspaceHeader = ({
         </button>
         <div className="h-6 w-[2px] bg-slate-200 mx-1 rounded-full hidden sm:block"></div>
         <div className="flex items-center">
-          {isEditing ? (
+          {isEditing && labType === 'SANDBOX' ? (
             <input
               autoFocus
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              onBlur={() => setIsEditing(false)}
+              onBlur={handleBlur}
               onKeyDown={handleTitleSubmit}
               className="text-base sm:text-lg font-bold text-slate-800 bg-slate-50 border-b-2 border-indigo-500 focus:outline-none px-2 py-0.5 rounded-t-md min-w-[200px]"
             />
           ) : (
             <div 
-              onClick={() => setIsEditing(true)}
-              className="group flex items-center gap-2 cursor-pointer px-3 py-1 rounded-md hover:bg-slate-100 transition-colors"
+              onClick={() => {
+                if (labType === 'SANDBOX') setIsEditing(true);
+              }}
+              className={`group flex items-center gap-2 px-3 py-1 rounded-md transition-colors ${labType === 'SANDBOX' ? 'cursor-pointer hover:bg-slate-100' : ''}`}
             >
               <h2 className="text-base sm:text-lg font-bold text-slate-800 truncate max-w-[200px] xl:max-w-[300px]">{title}</h2>
-              <Edit3 className="w-4 h-4 text-slate-400 group-hover:text-indigo-500 transition-colors opacity-0 group-hover:opacity-100" />
+              {labType === 'SANDBOX' && (
+                <Edit3 className="w-4 h-4 text-slate-400 group-hover:text-indigo-500 transition-colors opacity-0 group-hover:opacity-100" />
+              )}
             </div>
           )}
         </div>
