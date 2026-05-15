@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
   getTeacherClasses,
-  getTeacherSubmissions
+  getTeacherSubmissions,
+  removeStudentFromTeacherClass
 } from '@/lib/api';
 import { 
   ChevronLeft, 
@@ -12,7 +13,8 @@ import {
   ExternalLink,
   LoaderCircle,
   GraduationCap,
-  Trophy
+  Trophy,
+  UserMinus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -50,6 +52,22 @@ const TeacherClassStudents = () => {
   useEffect(() => {
     loadData();
   }, [classId]);
+
+  const handleRemoveStudent = async (studentId, studentName) => {
+    if (window.confirm(`Are you sure you want to remove ${studentName} from this class?`)) {
+      try {
+        await removeStudentFromTeacherClass(classId, studentId);
+        // Remove from local state
+        setTargetClass(prev => ({
+          ...prev,
+          students: prev.students.filter(s => s.id !== studentId)
+        }));
+      } catch (err) {
+        console.error('Failed to remove student:', err);
+        alert('Failed to remove student. Please try again.');
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -197,12 +215,23 @@ const TeacherClassStudents = () => {
                           </div>
                         </td>
                         <td className="px-8 py-5 text-right">
-                          <Link to={`/teacher/students/${student.id}`}>
-                            <Button variant="outline" size="sm" className="rounded-xl border-slate-200 hover:border-indigo-200 hover:bg-indigo-50 gap-2 font-bold h-9">
-                              View Profile
-                              <ExternalLink className="h-3 w-3" />
+                          <div className="flex justify-end gap-2">
+                            <Link to={`/teacher/students/${student.id}`}>
+                              <Button variant="outline" size="sm" className="rounded-xl border-slate-200 hover:border-indigo-200 hover:bg-indigo-50 gap-2 font-bold h-9">
+                                View Profile
+                                <ExternalLink className="h-3 w-3" />
+                              </Button>
+                            </Link>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => handleRemoveStudent(student.id, student.username)}
+                              className="rounded-xl border-slate-200 text-rose-500 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 gap-2 font-bold h-9"
+                            >
+                              Remove
+                              <UserMinus className="h-3 w-3" />
                             </Button>
-                          </Link>
+                          </div>
                         </td>
                       </tr>
                     );

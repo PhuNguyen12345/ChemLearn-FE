@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   getQuizDetail, 
   startQuizAttempt, 
-  submitQuizAttempt 
+  submitQuizAttempt,
+  getQuizAttemptHistory
 } from '../../lib/api';
 import { 
   LoaderCircle, 
@@ -38,6 +39,8 @@ const QuizTakingPage = () => {
   const [quiz, setQuiz] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [attemptId, setAttemptId] = useState(null);
+  const [attemptHistory, setAttemptHistory] = useState([]);
+  const [started, setStarted] = useState(false);
   
   // UI state
   const [loading, setLoading] = useState(true);
@@ -63,14 +66,20 @@ const QuizTakingPage = () => {
         setQuiz(quizData);
         setQuestions(quizData.questions || []);
 
-        // 2. Start attempt
-        const attemptData = await startQuizAttempt(quizId);
-        setAttemptId(attemptData.attemptId);
+        // 2. Load attempt history and decide whether to resume or let user start
+        const history = await getQuizAttemptHistory(quizId);
+        setAttemptHistory(history || []);
 
-        // 3. Initialize timer if quiz has duration
-        if (quizData.durationMinutes > 0) {
-          // If attempt already started, we might need to adjust timeLeft
-          // For now, simple initialization:
+        const active = (history || []).find(h => h.status === 'IN_PROGRESS');
+        if (active) {
+          // Resume existing attempt
+          const attemptData = await startQuizAttempt(quizId);
+          setAttemptId(attemptData.attemptId);
+          setStarted(true);
+        }
+
+        // 3. Initialize timer if quiz has duration (only when started)
+        if (quizData.durationMinutes > 0 && active) {
           setTimeLeft(quizData.durationMinutes * 60);
         }
 
@@ -195,6 +204,56 @@ const QuizTakingPage = () => {
     );
   }
 
+  if (!started) {
+    const canStart = attemptHistory.length === 0 || attemptHistory.some(h => h.canRetake === true);
+
+    return (
+      <div className="max-w-3xl mx-auto py-12">
+        <Card className="border-slate-200 shadow-md">
+          <CardHeader>
+            <CardTitle className="text-lg font-black">{quiz?.title}</CardTitle>
+            <CardDescription className="text-sm">Attempts history</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {attemptHistory.length === 0 ? (
+              <p className="text-sm text-slate-500 font-bold">No previous attempts. You may start the quiz.</p>
+            ) : (
+              <div className="space-y-3">
+                {attemptHistory.map((a) => (
+                  <div key={a.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <div className="font-black">{a.status}</div>
+                      <div className="text-xs text-slate-500">Score: {a.score ?? '-'} • {a.correctAnswers}/{a.totalQuestions}</div>
+                    </div>
+                    <div className="text-xs text-slate-400">{a.startedAt ? new Date(a.startedAt).toLocaleString() : ''}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+          <CardFooter className="flex gap-3">
+            <Button onClick={async () => {
+              try {
+                setLoading(true);
+                const attemptData = await startQuizAttempt(quizId);
+                setAttemptId(attemptData.attemptId);
+                setStarted(true);
+                if (quiz?.durationMinutes > 0) setTimeLeft(quiz.durationMinutes * 60);
+              } catch (err) {
+                setError(err?.response?.data?.message || 'Failed to start attempt');
+              } finally {
+                setLoading(false);
+              }
+            }} disabled={!canStart} className="rounded-xl font-black">
+              {canStart ? 'Start Quiz' : 'Cannot Retake'}
+            </Button>
+            <Button variant="outline" onClick={() => navigate(-1)}>Back</Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+
   const currentQuestion = questions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
 
@@ -250,13 +309,16 @@ const QuizTakingPage = () => {
 
             <CardContent className="p-6">
               <div className="space-y-3">
-                {currentQuestion && currentQuestion.questionType !== 'ESSAY' && ['optionA', 'optionB', 'optionC', 'optionD'].map((key) => {
+                {currentQuestion && currentQuestion.questionType !== 'ESSAY' && (
+                  currentQuestion.questionType === 'TRUE_FALSE'
+                    ? ['optionA', 'optionB']
+                    : ['optionA', 'optionB', 'optionC', 'optionD']
+                ).map((key) => {
                   const optionValue = currentQuestion[key];
-                  if (!optionValue) return null;
+                  if (!optionValue || optionValue === 'N/A') return null;
                   
                   const optionLetter = key.slice(-1);
                   const isSelected = (answers[currentQuestion.id] || '').split(',').includes(optionLetter);
-                  const isMultiple = currentQuestion.questionType === 'MULTIPLE_CHOICE';
 
                   return (
                     <button
@@ -390,12 +452,16 @@ const QuizResultView = ({ results, quiz, onBack }) => {
   const isExcellent = score >= 80;
   const isGood = score >= 50;
 
+  const isPending = results?.status === 'NEEDS_GRADING';
+
   return (
     <div className="max-w-2xl mx-auto py-12 px-4">
       <Card className="border-slate-200 shadow-xl overflow-hidden border-t-8 border-t-indigo-500">
         <CardContent className="p-10 text-center space-y-6">
           <div className="mx-auto w-24 h-24 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-            {isExcellent ? (
+            {isPending ? (
+              <Clock className="h-12 w-12 text-blue-500" />
+            ) : isExcellent ? (
               <Trophy className="h-12 w-12 text-amber-500" />
             ) : isGood ? (
               <CheckCircle2 className="h-12 w-12 text-emerald-500" />
@@ -406,28 +472,36 @@ const QuizResultView = ({ results, quiz, onBack }) => {
 
           <div className="space-y-2">
             <h2 className="text-3xl font-black text-slate-800">
-              {isExcellent ? 'Outstanding!' : isGood ? 'Good Job!' : 'Keep Practicing!'}
+              {isPending ? 'Submission Success!' : isExcellent ? 'Outstanding!' : isGood ? 'Good Job!' : 'Keep Practicing!'}
             </h2>
             <p className="text-slate-500 font-bold">
               You've completed <span className="text-indigo-600">{quiz?.title}</span>
             </p>
           </div>
 
-          <div className="bg-slate-50 rounded-3xl p-8 border border-slate-100 grid grid-cols-2 gap-4">
-            <div className="text-center">
-              <div className="text-3xl font-black text-indigo-600">{score}%</div>
-              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Final Score</div>
+          {isPending ? (
+            <div className="p-6 rounded-2xl bg-blue-50 border border-blue-200 text-blue-700 text-sm font-bold flex flex-col items-center gap-3">
+              <span className="text-xl font-black">{results?.message || 'Please wait for your teacher to grade.'}</span>
+              <p className="text-blue-600/80 font-semibold leading-relaxed">
+                Your multiple-choice questions have been auto-calculated, but the essay portion requires manual review before your final score is released.
+              </p>
+              <div className="mt-2 pt-4 border-t border-blue-100 w-full flex justify-around">
+                <div className="text-center">
+                  <div className="text-2xl font-black text-blue-700">{results?.correctAnswers} / {results?.totalQuestions}</div>
+                  <div className="text-[10px] font-black text-blue-400 uppercase tracking-widest mt-1">MCQ Progress</div>
+                </div>
+              </div>
             </div>
-            <div className="text-center border-l border-slate-200">
-              <div className="text-3xl font-black text-slate-700">{results?.correctAnswers} / {results?.totalQuestions}</div>
-              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Correct Answers</div>
-            </div>
-          </div>
-
-          {results?.status === 'NEEDS_GRADING' && (
-            <div className="p-4 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-sm font-bold flex items-center gap-3">
-              <AlertCircle className="h-5 w-5" />
-              Some questions (Essay) require manual grading by your teacher.
+          ) : (
+            <div className="bg-slate-50 rounded-3xl p-8 border border-slate-100 grid grid-cols-2 gap-4">
+              <div className="text-center">
+                <div className="text-3xl font-black text-indigo-600">{score}%</div>
+                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Final Score</div>
+              </div>
+              <div className="text-center border-l border-slate-200">
+                <div className="text-3xl font-black text-slate-700">{results?.correctAnswers} / {results?.totalQuestions}</div>
+                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Correct Answers</div>
+              </div>
             </div>
           )}
 

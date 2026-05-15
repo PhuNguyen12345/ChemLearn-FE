@@ -69,6 +69,11 @@ export const submitQuizAttempt = async (attemptId, payload) => {
   return response.data;
 };
 
+export const getQuizAttemptHistory = async (quizId) => {
+  const response = await api.get(`/api/quizzes/${quizId}/history`);
+  return normalizeListResponse(response.data);
+};
+
 export const getTeacherSummary = async () => {
   const response = await api.get('/api/teacher/summary');
   return response.data;
@@ -121,6 +126,11 @@ export const updateTeacherClass = async (classId, payload) => {
 
 export const deleteTeacherClass = async (classId) => {
   const response = await api.delete(`/api/teacher/classes/${classId}`);
+  return response.data;
+};
+
+export const removeStudentFromTeacherClass = async (classId, studentId) => {
+  const response = await api.delete(`/api/teacher/classes/${classId}/students/${studentId}`);
   return response.data;
 };
 

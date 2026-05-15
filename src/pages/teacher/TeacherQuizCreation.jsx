@@ -68,6 +68,7 @@ const TeacherQuizCreation = () => {
     correctOptions: [],
     questionType: 'SINGLE_CHOICE',
     explanation: '',
+    pointValue: 1,
     orderIndex: 0,
   });
 
@@ -93,7 +94,7 @@ const TeacherQuizCreation = () => {
       ]);
       setQuizzes(quizzesData || []);
       setClasses(classesData || []);
-    } catch (err) {
+    } catch {
       setError('Failed to load initial data.');
     } finally {
       setLoading(false);
@@ -204,7 +205,7 @@ const TeacherQuizCreation = () => {
           setSelectedQuiz(null);
         }
         await loadInitialData();
-      } catch (err) {
+      } catch {
         alert('Failed to delete quiz');
       } finally {
         setSubmitting(false);
@@ -225,6 +226,7 @@ const TeacherQuizCreation = () => {
         correctOptions: question.questionType === 'MULTIPLE_CHOICE' ? (question.correctOption?.split(',').map(o=>o.trim()).filter(Boolean) || []) : [],
         questionType: question.questionType || 'SINGLE_CHOICE',
         explanation: question.explanation || '',
+        pointValue: question.pointValue ?? 1,
         orderIndex: question.displayOrder ?? question.orderIndex ?? 0,
       });
     } else {
@@ -239,6 +241,7 @@ const TeacherQuizCreation = () => {
         correctOptions: [],
         questionType: 'SINGLE_CHOICE',
         explanation: '',
+        pointValue: 1,
         orderIndex: 0,
       });
     }
@@ -252,6 +255,12 @@ const TeacherQuizCreation = () => {
     try {
       setSubmitting(true);
       const payload = { ...questionForm };
+      const pointValue = Number(payload.pointValue);
+      if (!Number.isFinite(pointValue) || pointValue <= 0) {
+        alert('Point value must be greater than 0');
+        setSubmitting(false);
+        return;
+      }
       
       if (questionForm.questionType === 'MULTIPLE_CHOICE') {
         if (!payload.correctOptions || payload.correctOptions.length === 0) {
@@ -278,6 +287,7 @@ const TeacherQuizCreation = () => {
         optionD: payload.optionD,
         correctOption: String(payload.correctOption || 'A').toUpperCase(),
         explanation: payload.explanation,
+        pointValue,
         displayOrder: Number.isFinite(Number(payload.orderIndex)) ? Number(payload.orderIndex) : 0,
         questionType: payload.questionType || 'SINGLE_CHOICE',
       };
@@ -304,7 +314,7 @@ const TeacherQuizCreation = () => {
         if (selectedQuiz) {
           await loadQuizQuestions(selectedQuiz.id);
         }
-      } catch (err) {
+      } catch {
         alert('Failed to delete question');
       } finally {
         setSubmitting(false);
@@ -427,6 +437,9 @@ const TeacherQuizCreation = () => {
                               <span className="font-semibold text-slate-700">Q{index + 1}.</span>
                               <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-200 border-none">
                                 {questionTypeLabelMap[question.questionType] || question.questionType}
+                              </Badge>
+                              <Badge variant="outline" className="border-indigo-100 bg-indigo-50 text-indigo-700 hover:bg-indigo-50">
+                                {Number(question.pointValue ?? 1)} pts
                               </Badge>
                             </div>
                             <p className="text-slate-900 font-medium whitespace-pre-wrap">{question.prompt}</p>
@@ -649,7 +662,7 @@ const TeacherQuizCreation = () => {
                 ))}
               </div>
 
-              <div className="grid gap-4 md:grid-cols-3 pt-2">
+              <div className="grid gap-4 md:grid-cols-4 pt-2">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Question Type</label>
                   <select
@@ -734,7 +747,7 @@ const TeacherQuizCreation = () => {
                       <option value="B">Correct: False (B)</option>
                     </select>
                   ) : questionForm.questionType === 'ESSAY' ? (
-                    <div className="text-sm text-slate-500 pt-2">Essay — no correct option</div>
+                    <div className="text-sm text-slate-500 pt-2">Essay - no correct option</div>
                   ) : (
                     <select
                       value={questionForm.correctOption}
@@ -755,6 +768,18 @@ const TeacherQuizCreation = () => {
                     type="number"
                     value={questionForm.orderIndex}
                     onChange={(e) => setQuestionForm({ ...questionForm, orderIndex: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    disabled={submitting}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Points</label>
+                  <input
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    value={questionForm.pointValue}
+                    onChange={(e) => setQuestionForm({ ...questionForm, pointValue: e.target.value })}
                     className="w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     disabled={submitting}
                   />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   getTeacherSubmissions, 
@@ -20,8 +20,35 @@ import {
   ClipboardList
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+
+const formatScore = (score) => (typeof score === 'number' ? `${Math.round(score)}%` : 'Pending');
+const numberOrZero = (value) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const calculateProjectedScore = (submission, essayGrades) => {
+  const answers = submission?.answers || [];
+  const totalPoints = answers.reduce((sum, ans) => sum + numberOrZero(ans.pointValue ?? 1), 0);
+  if (totalPoints <= 0) return null;
+
+  let hasMissingEssay = false;
+  const awardedPoints = answers.reduce((sum, ans) => {
+    if (ans.questionType === 'ESSAY') {
+      const rawValue = essayGrades[ans.questionId];
+      if (rawValue === '' || rawValue === undefined || rawValue === null) {
+        hasMissingEssay = true;
+        return sum;
+      }
+      return sum + numberOrZero(rawValue);
+    }
+    return sum + numberOrZero(ans.awardedPoints);
+  }, 0);
+
+  return hasMissingEssay ? null : Math.round((awardedPoints * 100) / totalPoints);
+};
 
 const TeacherQuizSubmissions = () => {
   const { classId, quizId } = useParams();
@@ -38,8 +65,9 @@ const TeacherQuizSubmissions = () => {
   const [detailLoading, setDetailLoading] = useState(false);
   const [gradingScore, setGradingScore] = useState('');
   const [submittingGrade, setSubmittingGrade] = useState(false);
+  const [essayGrades, setEssayGrades] = useState({});
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const [subs, quizzes, classes] = await Promise.all([
@@ -65,19 +93,27 @@ const TeacherQuizSubmissions = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [classId, quizId]);
 
   useEffect(() => {
     loadData();
-  }, [quizId]);
+  }, [loadData]);
 
   const handleViewDetail = async (submission) => {
     try {
       setDetailLoading(true);
       const detail = await getTeacherSubmissionDetail(submission.attemptId);
       setSelectedSubmission(detail);
-      setGradingScore(detail.score || '');
-    } catch (err) {
+      setGradingScore(typeof detail.score === 'number' ? String(detail.score) : '');
+
+      const initialEssayGrades = {};
+      detail.answers?.forEach(ans => {
+        if (ans.questionType === 'ESSAY') {
+          initialEssayGrades[ans.questionId] = ans.awardedPoints ?? '';
+        }
+      });
+      setEssayGrades(initialEssayGrades);
+    } catch {
       alert('Failed to load submission details');
     } finally {
       setDetailLoading(false);
@@ -86,19 +122,51 @@ const TeacherQuizSubmissions = () => {
 
   const handleGrade = async () => {
     if (!selectedSubmission) return;
+    const essayAnswers = selectedSubmission.answers?.filter(ans => ans.questionType === 'ESSAY') || [];
+    for (const ans of essayAnswers) {
+      const rawValue = essayGrades[ans.questionId];
+      const awardedPoints = Number(rawValue);
+      const maxPoints = numberOrZero(ans.pointValue ?? 1);
+      if (rawValue === '' || rawValue === undefined || rawValue === null || !Number.isFinite(awardedPoints)) {
+        alert('Please enter points for every essay question.');
+        return;
+      }
+      if (awardedPoints < 0 || awardedPoints > maxPoints) {
+        alert(`Essay points must be between 0 and ${maxPoints}.`);
+        return;
+      }
+    }
+
+    const payload = {
+      essayGrades: essayAnswers.map((ans) => ({
+        questionId: ans.questionId,
+        awardedPoints: Number(essayGrades[ans.questionId])
+      }))
+    };
+
+    if (!essayAnswers.length && gradingScore) {
+      payload.finalScore = parseInt(gradingScore);
+    }
+
+    if (!essayAnswers.length && !payload.finalScore) {
+      alert('No essay answers found to grade.');
+      return;
+    }
+
     try {
       setSubmittingGrade(true);
-      await gradeTeacherSubmission(selectedSubmission.attemptId, {
-        finalScore: parseInt(gradingScore)
-      });
+
+      await gradeTeacherSubmission(selectedSubmission.attemptId, payload);
       setSelectedSubmission(null);
       await loadData();
     } catch (err) {
-      alert('Failed to submit grade');
+      alert(err?.response?.data?.message || 'Failed to submit grade');
     } finally {
       setSubmittingGrade(false);
     }
   };
+
+  const projectedScore = calculateProjectedScore(selectedSubmission, essayGrades);
 
   if (loading) {
     return (
@@ -178,7 +246,9 @@ const TeacherQuizSubmissions = () => {
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <div className="text-sm font-black text-slate-700">{sub.score}%</div>
+                      <div className={`text-sm font-black ${sub.score == null ? 'text-amber-600' : 'text-slate-700'}`}>
+                        {formatScore(sub.score)}
+                      </div>
                     </div>
                     <ChevronRight className={`h-4 w-4 transition-transform ${selectedSubmission?.attemptId === sub.attemptId ? 'translate-x-1 text-indigo-500' : 'text-slate-300'}`} />
                   </div>
@@ -208,8 +278,10 @@ const TeacherQuizSubmissions = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-black text-indigo-600">{selectedSubmission.score}%</div>
-                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Current Score</div>
+                    <div className={`text-2xl font-black ${selectedSubmission.score == null ? 'text-amber-600' : 'text-indigo-600'}`}>
+                      {formatScore(selectedSubmission.score)}
+                    </div>
+                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Published Score</div>
                   </div>
                 </div>
               </CardHeader>
@@ -225,8 +297,30 @@ const TeacherQuizSubmissions = () => {
                         <div className="font-bold text-slate-700 leading-relaxed mb-2">{ans.prompt}</div>
                         
                         {ans.questionType === 'ESSAY' ? (
-                          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 italic text-slate-600 text-sm whitespace-pre-wrap">
-                            {ans.selectedOption || <span className="text-slate-300 font-bold">No answer provided.</span>}
+                          <div className="space-y-3">
+                            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 italic text-slate-600 text-sm whitespace-pre-wrap">
+                              {ans.selectedOption || <span className="text-slate-300 font-bold">No answer provided.</span>}
+                            </div>
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4">
+                              <div>
+                                <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Essay Points</span>
+                                <div className="mt-1 text-xs font-bold text-slate-500">
+                                  Award 0 to {Number(ans.pointValue ?? 1)} points for this response.
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max={Number(ans.pointValue ?? 1)}
+                                  step="0.01"
+                                  value={essayGrades[ans.questionId] ?? ''}
+                                  onChange={(e) => setEssayGrades(prev => ({ ...prev, [ans.questionId]: e.target.value }))}
+                                  className="h-10 w-28 rounded-xl border-2 border-indigo-100 bg-white px-3 text-sm font-black text-indigo-700 outline-none transition focus:border-indigo-500"
+                                />
+                                <span className="text-sm font-black text-slate-500">/ {Number(ans.pointValue ?? 1)}</span>
+                              </div>
+                            </div>
                           </div>
                         ) : (
                           <div className="grid grid-cols-2 gap-2">
@@ -235,6 +329,9 @@ const TeacherQuizSubmissions = () => {
                             </div>
                             <div className={`p-2 rounded-lg border text-[11px] font-bold ${ans.isCorrect ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-rose-50 border-rose-100 text-rose-700'}`}>
                               Answered: {ans.selectedOption}
+                            </div>
+                            <div className="col-span-2 p-2 rounded-lg bg-slate-50 border border-slate-100 text-[11px] font-bold text-slate-500">
+                              Points: {Number(ans.awardedPoints ?? 0)} / {Number(ans.pointValue ?? 1)}
                             </div>
                           </div>
                         )}
@@ -247,16 +344,11 @@ const TeacherQuizSubmissions = () => {
               <CardFooter className="bg-slate-50 p-6 border-t border-slate-100">
                 <div className="w-full space-y-4">
                   <div className="flex items-end gap-4">
-                    <div className="flex-1 space-y-1.5">
-                      <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Update Final Score (0-100)</label>
-                      <input 
-                        type="number" 
-                        min="0" 
-                        max="100"
-                        className="w-full rounded-xl border-2 border-slate-200 p-2.5 text-sm font-black text-indigo-600 focus:border-indigo-500 transition outline-none"
-                        value={gradingScore}
-                        onChange={(e) => setGradingScore(e.target.value)}
-                      />
+                    <div className="flex-1 rounded-2xl border border-slate-100 bg-white p-4">
+                      <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Projected Final Score</div>
+                      <div className={`mt-1 text-2xl font-black ${projectedScore == null ? 'text-slate-400' : 'text-indigo-600'}`}>
+                        {projectedScore == null ? 'Complete essay points' : `${projectedScore}%`}
+                      </div>
                     </div>
                     <Button 
                       onClick={handleGrade}
@@ -269,7 +361,7 @@ const TeacherQuizSubmissions = () => {
                   </div>
                   <div className="flex items-start gap-2 text-[10px] font-bold text-slate-400 bg-white p-3 rounded-xl border border-slate-100">
                     <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                    Updating the score will mark the submission as COMPLETED. Make sure to review all essay questions before saving.
+                    Saving essay points will calculate the weighted final score and publish it to the student.
                   </div>
                 </div>
               </CardFooter>

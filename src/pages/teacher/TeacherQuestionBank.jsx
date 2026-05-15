@@ -20,6 +20,7 @@ const emptyForm = {
   correctOptions: [],
   questionType: 'SINGLE_CHOICE',
   explanation: '',
+  pointValue: 1,
 };
 
 const questionTypeLabelMap = {
@@ -195,6 +196,7 @@ const TeacherQuestionBank = () => {
       correctOptions: item.correctOption && item.questionType === 'MULTIPLE_CHOICE' ? item.correctOption.split(',') : (item.correctOptions || (item.correctOption ? [item.correctOption] : [])),
       questionType: item.questionType || 'SINGLE_CHOICE',
       explanation: item.explanation || '',
+      pointValue: item.pointValue ?? 1,
     });
     setShowModal(true);
   };
@@ -260,6 +262,12 @@ const TeacherQuestionBank = () => {
       }
     }
 
+    const pointValue = Number(form.pointValue);
+    if (!Number.isFinite(pointValue) || pointValue <= 0) {
+      setError('Point value must be greater than 0.');
+      return;
+    }
+
     try {
       setSaving(true);
       setError('');
@@ -281,6 +289,7 @@ const TeacherQuestionBank = () => {
           delete payload.correctOptions;
           delete payload.correctOption;
         }
+        payload.pointValue = pointValue;
 
         await updateTeacherQuestionBankItem(editingItemId, payload);
         setSuccess('Question updated.');
@@ -298,6 +307,7 @@ const TeacherQuestionBank = () => {
           delete payload.correctOptions;
           delete payload.correctOption;
         }
+        payload.pointValue = pointValue;
 
         await createTeacherQuestionBankItem(payload);
         setSuccess('Question added to bank.');
@@ -526,6 +536,7 @@ const TeacherQuestionBank = () => {
                   <th className="w-16 px-3 py-2 text-left">#</th>
                   <th className="px-3 py-2 text-left">Question</th>
                   <th className="w-36 px-3 py-2 text-left">Type</th>
+                  <th className="w-24 px-3 py-2 text-left">Points</th>
                   <th className="w-28 px-3 py-2 text-left">Correct</th>
                   <th className="w-24 px-3 py-2 text-center">Edit</th>
                   <th className="w-24 px-3 py-2 text-center">Trash</th>
@@ -534,7 +545,7 @@ const TeacherQuestionBank = () => {
               <tbody>
                 {loading && (
                   <tr>
-                    <td colSpan={7} className="px-4 py-6 text-center font-semibold text-slate-500">
+                    <td colSpan={8} className="px-4 py-6 text-center font-semibold text-slate-500">
                       Loading question bank...
                     </td>
                   </tr>
@@ -542,7 +553,7 @@ const TeacherQuestionBank = () => {
 
                 {!loading && !pagedBankItems.length && (
                   <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-slate-500">
+                    <td colSpan={8} className="px-4 py-8 text-center text-slate-500">
                       No questions found for this filter.
                     </td>
                   </tr>
@@ -571,6 +582,9 @@ const TeacherQuestionBank = () => {
                         </td>
                         <td className="whitespace-nowrap px-3 py-2 text-slate-700">
                           {questionTypeLabelMap[String(item.questionType || '').toUpperCase()] || item.questionType || '-'}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2 font-semibold text-indigo-700">
+                          {Number(item.pointValue ?? 1)} pts
                         </td>
                         <td className="whitespace-nowrap px-3 py-2 font-semibold text-emerald-700">
                           {item.correctOption || '-'}
@@ -676,7 +690,7 @@ const TeacherQuestionBank = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-[180px,150px,1fr]">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-[180px,150px,120px,1fr]">
                 <select
                   value={form.questionType}
                   onChange={(e) => {
@@ -755,7 +769,7 @@ const TeacherQuestionBank = () => {
                     <option value="B">Correct: False (B)</option>
                   </select>
                 ) : form.questionType === 'ESSAY' ? (
-                  <div className="text-sm text-slate-500">Essay — no correct option</div>
+                  <div className="text-sm text-slate-500">Essay - no correct option</div>
                 ) : (
                   <select
                     value={form.correctOption}
@@ -768,6 +782,16 @@ const TeacherQuestionBank = () => {
                     <option value="D">Correct: D</option>
                   </select>
                 )}
+
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  value={form.pointValue}
+                  onChange={(e) => setForm((prev) => ({ ...prev, pointValue: e.target.value }))}
+                  placeholder="Points"
+                  className="rounded-xl border border-slate-300 px-3 py-2 outline-none focus:border-cyan-500"
+                />
 
                 <input
                   value={form.explanation}
