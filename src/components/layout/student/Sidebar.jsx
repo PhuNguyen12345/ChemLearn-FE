@@ -12,6 +12,7 @@ import {
   Map,
   Swords,
   ChevronLeft,
+  ClipboardList
 } from 'lucide-react';
 import { useStudentStore } from '../../../stores/useStudentStore';
 import { useSidebarStore } from '../../../stores/useSidebarStore';
@@ -22,7 +23,7 @@ const navItems = [
   { name: 'Study Zone', icon: BookOpen, path: '/student/home', id: 'studyZone', emoji: '📚' },
   { name: 'Virtual Lab', icon: Microscope, path: '/student/home', id: 'labDashboard', emoji: '🧪' },
   { name: 'Quizzes', icon: ClipboardList, path: '/student/home', id: 'quizzes', emoji: '❓' },
-  { name: 'Missions', icon: Target, path: '/student/missions', id: 'missions', emoji: '🎯' },
+  { name: 'PVP Battle', icon: Swords, path: '/student/pvp', id: 'pvp', emoji: '🎯' },
   { name: 'Leaderboard', icon: Trophy, path: '/student/leaderboard', id: 'leaderboard', emoji: '🏆' },
   { name: 'Classes', icon: Users, path: '/student/classes', id: 'classes', emoji: '👥' },
 ];

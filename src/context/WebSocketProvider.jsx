@@ -25,7 +25,7 @@ export const WebSocketProvider = ({ children }) => {
   const connect = useCallback(() => {
     if (clientRef.current?.connected) return;
 
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('auth_token');
 
     const client = new Client({
       webSocketFactory: () => new SockJS('http://localhost:8080/ws'),

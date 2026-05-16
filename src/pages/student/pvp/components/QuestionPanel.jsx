@@ -36,7 +36,7 @@ export default function QuestionPanel({ question, onAnswer, disabled = false, ti
   const timePercent = (timeLeft / 30) * 100;
   const timeColor = timeLeft > 15 ? 'from-green-400 to-emerald-500'
     : timeLeft > 7 ? 'from-yellow-400 to-amber-500'
-    : 'from-red-500 to-rose-600';
+      : 'from-red-500 to-rose-600';
 
   const handleSelect = (key) => {
     if (disabled || selected) return;
@@ -48,7 +48,7 @@ export default function QuestionPanel({ question, onAnswer, disabled = false, ti
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
       {/* Timer bar */}
       <div className="flex items-center gap-3">
-        <Timer className="w-4 h-4 text-white/70 shrink-0" />
+        <Timer className="w-4 h-6 text-white/70 shrink-0" />
         <div className="flex-1 h-2 bg-black/30 rounded-full overflow-hidden">
           <div
             className={`h-full rounded-full bg-gradient-to-r ${timeColor} transition-all duration-1000`}

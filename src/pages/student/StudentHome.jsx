@@ -55,15 +55,6 @@ const StudentHome = () => {
   React.useEffect(() => {
     const initData = async () => {
       try {
-        // Force login for testing to bypass 403
-        localStorage.removeItem('token');
-        const res = await loginStudent();
-        if (res && res.token) {
-          localStorage.setItem('token', res.token);
-          // Optional: if your APIs need studentId, store it
-          if (res.studentId) localStorage.setItem('studentId', res.studentId);
-        }
-        
         // Log activity and fetch gamification data
         await logDailyActivity();
         const profile = await getGamificationProfile();

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useWebSocket } from '../../../context/WebSocketProvider';
 import { useStudentStore } from '../../../stores/useStudentStore';
+import useAuthStore from '../../../stores/useAuthStore';
 import PetStats from './components/PetStats';
 import QuestionPanel from './components/QuestionPanel';
 import SkillBar from './components/SkillBar';
@@ -10,15 +11,8 @@ import { Swords, WifiOff, Loader2, Users, ArrowLeft } from 'lucide-react';
 
 /**
  * BattleArenaPage — Main PVP battle container.
- * Manages all WebSocket subscriptions and battle state.
- * Passes data down to presentational components.
- *
- * Props:
- *  - selectedPetId: UUID string of the pet the student selected
- *  - onBack: () => void — return to lobby
  */
 
-// Battle phases to drive the Interaction Panel
 const PHASE = {
   MATCHMAKING: 'MATCHMAKING',
   WAITING_TURN: 'WAITING_TURN',
@@ -30,32 +24,21 @@ const PHASE = {
 export default function BattleArenaPage({ selectedPetId, onBack }) {
   const { connected, reconnecting, connect, subscribe, unsubscribe, send } = useWebSocket();
   const { level } = useStudentStore();
-
-  // Get current student's username from localStorage/token
-  const myUsername = (() => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) return null;
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.sub || payload.username;
-    } catch { return null; }
-  })();
+  const { user } = useAuthStore();
+  const myId = user?.id;
 
   const [phase, setPhase] = useState(PHASE.MATCHMAKING);
-  const [gameState, setGameState] = useState(null);   // GameStateResponse from BE
-  const [battleResult, setBattleResult] = useState(null); // BattleResultResponse
+  const [gameState, setGameState] = useState(null);
+  const [battleResult, setBattleResult] = useState(null);
   const [roomId, setRoomId] = useState(null);
   const [battleLogs, setBattleLogs] = useState([]);
-  const [damagedSlot, setDamagedSlot] = useState(null); // 'player1' | 'player2'
+  const [damagedSlot, setDamagedSlot] = useState(null);
   const [timeLeft, setTimeLeft] = useState(30);
   const [questionAnswered, setQuestionAnswered] = useState(false);
   const timerRef = useRef(null);
 
-  const myStudentId = gameState?.player1Id === myUsername || gameState?.player1Name === myUsername
-    ? gameState?.player1Id : gameState?.player2Id;
-
-  const isMyTurn = gameState?.currentTurnPlayerId === myStudentId ||
-                   gameState?.currentTurnIndex === (gameState?.player1Id === myStudentId ? 0 : 1);
+  const myStudentId = gameState?.player1Id === myId ? gameState?.player1Id : gameState?.player2Id;
+  const isMyTurn = gameState?.currentTurnPlayerId === myId;
 
   // --- WebSocket setup ---
   useEffect(() => {
@@ -63,43 +46,42 @@ export default function BattleArenaPage({ selectedPetId, onBack }) {
   }, [connect]);
 
   useEffect(() => {
-    if (!connected) return;
+    if (!connected || !myId) return;
 
     // Join queue
     send('/app/battle/join', { studentPetId: selectedPetId });
     addLog('⚔️ Đang tìm đối thủ...');
 
+    // Subscribe to global match topic
+    const unsubMatch = subscribe('/topic/battle/match', (state) => {
+      if (!roomId && (state.player1Id === myId || state.player2Id === myId)) {
+        console.log('[PVP] Match found! Room ID:', state.roomId);
+        setRoomId(state.roomId);
+        handleGameState(state);
+      }
+    });
+
     return () => {
+      unsubMatch();
       if (roomId) unsubscribe(`/topic/battle/${roomId}`);
     };
-  }, [connected]);
+  }, [connected, myId, selectedPetId]);
 
-  // When we get a roomId, subscribe to that room's channel
   useEffect(() => {
     if (!connected || !roomId) return;
-
     const unsub1 = subscribe(`/topic/battle/${roomId}`, handleGameState);
     const unsub2 = subscribe(`/topic/battle/${roomId}/result`, handleBattleResult);
-
-    return () => {
-      unsub1();
-      unsub2();
-    };
+    return () => { unsub1(); unsub2(); };
   }, [connected, roomId]);
 
-  // --- Game State Handler ---
   const handleGameState = useCallback((state) => {
-    // First message — extract room ID
-    if (!roomId && state.roomId) {
-      setRoomId(state.roomId);
-    }
-
+    if (!roomId && state.roomId) setRoomId(state.roomId);
     setGameState(state);
     updatePhase(state);
     processLogs(state);
     triggerDamageEffect(state);
     startTurnTimer(state);
-  }, [roomId, myStudentId]);
+  }, [roomId, myId]);
 
   const handleBattleResult = useCallback((result) => {
     setBattleResult(result);
@@ -113,15 +95,12 @@ export default function BattleArenaPage({ selectedPetId, onBack }) {
       setPhase(PHASE.GAME_OVER);
       return;
     }
-
-    const isMy = state.currentTurnPlayerId === myStudentId ||
-                 state.currentTurnIndex === (state.player1Id === myStudentId ? 0 : 1);
-
+    const isMy = state.currentTurnPlayerId === myId;
     if (state.lastActionResult === 'BATTLE_START' || state.lastActionResult === 'NEW_TURN') {
       setQuestionAnswered(false);
       setPhase(isMy ? PHASE.MY_TURN_QUESTION : PHASE.WAITING_TURN);
-    } else if (state.lastActionResult === 'CORRECT' && isMy) {
-      setPhase(PHASE.MY_TURN_SKILL);
+    } else {
+      setPhase(PHASE.WAITING_TURN);
     }
   };
 
@@ -129,23 +108,24 @@ export default function BattleArenaPage({ selectedPetId, onBack }) {
     if (!state.lastActionResult) return;
     const p1 = state.player1Name;
     const p2 = state.player2Name;
-    const attacker = state.currentTurnIndex === 1 ? p1 : p2; // switched after action
+    
+    // Since turn switches before broadcasting, the attacker is the OTHER player
+    const attacker = state.currentTurnIndex === 1 ? p1 : p2;
+    const attackerPet = state.currentTurnIndex === 1 ? state.player1Pet : state.player2Pet;
+    const skillName = attackerPet?.skillName || 'Tấn công cơ bản';
 
     const messages = {
       BATTLE_START: `⚔️ Trận đấu bắt đầu! ${p1} vs ${p2}`,
-      CORRECT: `✅ ${attacker} trả lời đúng! Gây ${state.lastDamageDealt} sát thương!`,
+      CORRECT: `✅ Pet ${attackerPet?.petName} của ${attacker} đã dùng [${skillName}] gây ${state.lastDamageDealt} sát thương (1 lần)!`,
       WRONG: `❌ ${attacker} trả lời sai! Mất lượt!`,
       TIMEOUT: `⏰ ${attacker} hết giờ! Chuyển lượt!`,
       NEW_TURN: `🎯 Đến lượt: ${state.currentTurnIndex === 0 ? p1 : p2}`,
     };
-    if (messages[state.lastActionResult]) {
-      addLog(messages[state.lastActionResult]);
-    }
+    if (messages[state.lastActionResult]) addLog(messages[state.lastActionResult]);
   };
 
   const triggerDamageEffect = (state) => {
     if (state.lastActionResult === 'CORRECT' && state.lastDamageDealt > 0) {
-      // The damage was dealt to whoever was the defender (not current turn player)
       const damagedPlayer = state.currentTurnIndex === 0 ? 'player2' : 'player1';
       setDamagedSlot(damagedPlayer);
       setTimeout(() => setDamagedSlot(null), 600);
@@ -167,7 +147,6 @@ export default function BattleArenaPage({ selectedPetId, onBack }) {
 
   const addLog = (msg) => setBattleLogs(prev => [...prev.slice(-49), msg]);
 
-  // --- Actions ---
   const handleAnswer = (selectedOption) => {
     if (!gameState || questionAnswered) return;
     setQuestionAnswered(true);
@@ -178,66 +157,48 @@ export default function BattleArenaPage({ selectedPetId, onBack }) {
     });
   };
 
-  const handleUseSkill = () => {
-    // In current BE design, skill is used automatically on correct answer.
-    // This confirms the attack — same action endpoint but after the fact.
-    // Sending a follow-up is not needed; BE already applied damage.
-    // We just switch to waiting.
-    setPhase(PHASE.WAITING_TURN);
-  };
+  const handleUseSkill = () => setPhase(PHASE.WAITING_TURN);
 
   const handleLeave = () => {
-    // Send leave queue message to server just in case we are in matchmaking
-    if (phase === PHASE.MATCHMAKING && connected) {
-      send('/app/battle/leave', {});
+    if (phase === PHASE.MATCHMAKING && connected) send('/app/battle/leave', {});
+    if (roomId) {
+      unsubscribe(`/topic/battle/${roomId}`);
+      unsubscribe(`/topic/battle/${roomId}/result`);
     }
-    unsubscribe(`/topic/battle/${roomId}`);
-    unsubscribe(`/topic/battle/${roomId}/result`);
     onBack?.();
   };
 
-  // --- Render helpers ---
-  const myPet = gameState?.player1Id === myStudentId ? gameState?.player1Pet : gameState?.player2Pet;
-  const enemyPet = gameState?.player1Id === myStudentId ? gameState?.player2Pet : gameState?.player1Pet;
-  const myName = gameState?.player1Id === myStudentId ? gameState?.player1Name : gameState?.player2Name;
-  const enemyName = gameState?.player1Id === myStudentId ? gameState?.player2Name : gameState?.player1Name;
+  const myPet = gameState?.player1Id === myId ? gameState?.player1Pet : gameState?.player2Pet;
+  const enemyPet = gameState?.player1Id === myId ? gameState?.player2Pet : gameState?.player1Pet;
+  const myName = gameState?.player1Id === myId ? gameState?.player1Name : gameState?.player2Name;
+  const enemyName = gameState?.player1Id === myId ? gameState?.player2Name : gameState?.player1Name;
 
   return (
     <div className="fixed inset-0 z-50 bg-gradient-to-b from-indigo-950 via-slate-900 to-purple-950 overflow-hidden flex flex-col">
-      {/* Animated background particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(12)].map((_, i) => (
           <div key={i} className="absolute w-1 h-1 rounded-full bg-white/20 animate-pulse"
-            style={{
-              top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%`,
-              animationDelay: `${i * 0.3}s`, animationDuration: `${2 + i * 0.5}s`
-            }}
+            style={{ top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%`, animationDelay: `${i * 0.3}s` }}
           />
         ))}
       </div>
 
-      {/* Reconnecting banner */}
       {reconnecting && (
-        <div className="absolute top-0 left-0 right-0 z-50 bg-red-500/90 backdrop-blur-sm py-2 text-center text-sm font-black text-white flex items-center justify-center gap-2">
-          <WifiOff className="w-4 h-4 animate-pulse" />
-          Đang mất kết nối — đang kết nối lại...
+        <div className="absolute top-0 left-0 right-0 z-50 bg-red-500/90 py-2 text-center text-sm font-black text-white flex items-center justify-center gap-2">
+          <WifiOff className="w-4 h-4 animate-pulse" /> Đang kết nối lại...
         </div>
       )}
 
-      {/* Header */}
-      <div className="relative z-10 flex items-center justify-between px-4 py-3 bg-black/30 backdrop-blur-sm border-b border-white/10 shrink-0">
+      <div className="relative z-10 flex items-center justify-between px-4 py-3 bg-black/30 border-b border-white/10">
         <button onClick={handleLeave} className="flex items-center gap-2 text-white/60 hover:text-white transition-colors">
-          <ArrowLeft className="w-4 h-4" />
-          <span className="text-sm font-bold">Thoát</span>
+          <ArrowLeft className="w-4 h-4" /> <span className="text-sm font-bold">Thoát</span>
         </button>
         <div className="flex items-center gap-2">
-          <Swords className="w-5 h-5 text-amber-400" />
-          <span className="font-black text-white text-sm">PVP Pet Battle</span>
+          <Swords className="w-5 h-5 text-amber-400" /> <span className="font-black text-white text-sm">PVP Pet Battle</span>
         </div>
         <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-400' : 'bg-red-400'} animate-pulse`} />
       </div>
 
-      {/* ============ MATCHMAKING PHASE ============ */}
       {phase === PHASE.MATCHMAKING && (
         <div className="flex-1 flex flex-col items-center justify-center gap-6 p-8 relative z-10">
           <div className="relative">
@@ -250,94 +211,54 @@ export default function BattleArenaPage({ selectedPetId, onBack }) {
             <h2 className="text-2xl font-black text-white">Đang tìm đối thủ...</h2>
             <p className="text-white/50 text-sm font-bold">Hãy chờ hệ thống ghép đôi</p>
           </div>
-          <div className="flex items-center gap-2 px-5 py-2 bg-white/10 rounded-full">
-            <Users className="w-4 h-4 text-white/60" />
-            <span className="text-sm font-bold text-white/60">Đang trong hàng chờ...</span>
-          </div>
-
-          <button
-            onClick={handleLeave}
-            className="mt-6 px-6 py-3 rounded-full bg-red-500/20 text-red-300 font-bold hover:bg-red-500/40 border border-red-500/30 transition-all hover:scale-105"
-          >
+          <button onClick={handleLeave} className="mt-6 px-6 py-3 rounded-full bg-red-500/20 text-red-300 font-bold hover:bg-red-500/40 border border-red-500/30">
             Hủy tìm trận
           </button>
         </div>
       )}
 
-      {/* ============ BATTLE ARENA ============ */}
       {phase !== PHASE.MATCHMAKING && phase !== PHASE.GAME_OVER && gameState && (
         <div className="flex-1 flex flex-col gap-3 p-3 md:p-4 overflow-auto">
-
-          {/* Battle field — 2 pet zones */}
           <div className="grid grid-cols-2 gap-3 shrink-0">
-            {/* My Pet (left) */}
-            <PetStats
-              petName={myPet?.petName}
-              ownerName={myName}
-              currentHp={myPet?.currentHp ?? 0}
-              maxHp={myPet?.maxHp ?? 100}
-              imageUrl={myPet?.imageUrl}
-              element={myPet?.element}
-              isCurrentTurn={isMyTurn}
-              isDamaged={damagedSlot === (gameState.player1Id === myStudentId ? 'player1' : 'player2')}
-            />
-
-            {/* Enemy Pet (right) */}
-            <PetStats
-              petName={enemyPet?.petName}
-              ownerName={enemyName}
-              currentHp={enemyPet?.currentHp ?? 0}
-              maxHp={enemyPet?.maxHp ?? 100}
-              imageUrl={enemyPet?.imageUrl}
-              element={enemyPet?.element}
-              isEnemy
-              isCurrentTurn={!isMyTurn}
-              isDamaged={damagedSlot === (gameState.player1Id === myStudentId ? 'player2' : 'player1')}
-            />
+            <PetStats petName={myPet?.petName} ownerName={myName} currentHp={myPet?.currentHp ?? 0} maxHp={myPet?.maxHp ?? 100} imageUrl={myPet?.imageUrl} element={myPet?.element} isCurrentTurn={isMyTurn} isDamaged={damagedSlot === (gameState.player1Id === myId ? 'player1' : 'player2')} />
+            <PetStats petName={enemyPet?.petName} ownerName={enemyName} currentHp={enemyPet?.currentHp ?? 0} maxHp={enemyPet?.maxHp ?? 100} imageUrl={enemyPet?.imageUrl} element={enemyPet?.element} isEnemy isCurrentTurn={!isMyTurn} isDamaged={damagedSlot === (gameState.player1Id === myId ? 'player2' : 'player1')} />
           </div>
-
-          {/* Interaction Panel */}
-          <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-2xl p-4 flex-1 min-h-[180px]">
+          <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-2xl p-4 shrink-0 my-2">
             {phase === PHASE.WAITING_TURN && (
-              <div className="h-full flex flex-col items-center justify-center gap-3 text-center">
-                <div className="w-12 h-12 rounded-full bg-indigo-500/20 flex items-center justify-center animate-pulse">
-                  <Loader2 className="w-6 h-6 text-indigo-300 animate-spin" />
-                </div>
-                <p className="text-white/60 font-black text-sm">Đang chờ đối thủ trả lời...</p>
-                <p className="text-white/30 text-xs">Đứng vững! Đến lượt bạn ngay thôi 💪</p>
+              <div className="flex flex-col gap-3">
+                {gameState.currentQuestion ? (
+                  <>
+                    <div className="flex items-center justify-center gap-2 bg-indigo-500/20 p-2 rounded-lg border border-indigo-500/30">
+                      <Loader2 className="w-5 h-5 text-indigo-300 animate-spin shrink-0" />
+                      <p className="text-indigo-200 font-bold text-sm">Đang chờ đối thủ...</p>
+                    </div>
+                    <div className="opacity-70 pointer-events-none filter grayscale-[30%]">
+                      <QuestionPanel question={gameState.currentQuestion} onAnswer={() => { }} disabled={true} timeLeft={timeLeft} />
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center gap-3 text-center py-8">
+                    <Loader2 className="w-6 h-6 text-indigo-300 animate-spin" />
+                    <p className="text-white/60 font-black text-sm">Đang chờ hệ thống...</p>
+                  </div>
+                )}
               </div>
             )}
-
             {phase === PHASE.MY_TURN_QUESTION && gameState.currentQuestion && (
-              <QuestionPanel
-                question={gameState.currentQuestion}
-                onAnswer={handleAnswer}
-                disabled={questionAnswered}
-                timeLeft={timeLeft}
-              />
+              <QuestionPanel question={gameState.currentQuestion} onAnswer={handleAnswer} disabled={questionAnswered} timeLeft={timeLeft} />
             )}
-
             {phase === PHASE.MY_TURN_SKILL && (
-              <SkillBar
-                petName={myPet?.petName}
-                skillName={myPet?.skillName}
-                onUseSkill={handleUseSkill}
-              />
+              <SkillBar petName={myPet?.petName} skillName={myPet?.skillName} onUseSkill={handleUseSkill} />
             )}
           </div>
-
-          {/* Battle Log */}
-          <BattleLog logs={battleLogs} />
+          <div className="mt-auto shrink-0 pt-2">
+            <BattleLog logs={battleLogs} />
+          </div>
         </div>
       )}
 
-      {/* ============ GAME OVER ============ */}
       {phase === PHASE.GAME_OVER && battleResult && (
-        <BattleResultModal
-          result={battleResult}
-          myStudentId={myStudentId}
-          onLeave={handleLeave}
-        />
+        <BattleResultModal result={battleResult} myStudentId={myId} onLeave={handleLeave} />
       )}
     </div>
   );

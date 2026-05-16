@@ -19,7 +19,7 @@ export default function PvpLobbyPage({ onBack }) {
 
   const username = (() => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return 'Học sinh';
       const payload = JSON.parse(atob(token.split('.')[1]));
       return payload.sub || 'Học sinh';

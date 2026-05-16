@@ -10,7 +10,7 @@ const api = axios.create({
 
 // Request interceptor to attach JWT token
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('auth_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -27,15 +27,6 @@ api.interceptors.response.use((response) => response, (error) => {
     // window.location.href = '/login';
   }
   return Promise.reject(error);
-});
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('auth_token');
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return config;
 });
 
 export const getStudyChapters = async () => {
