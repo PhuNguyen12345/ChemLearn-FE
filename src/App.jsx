@@ -14,6 +14,8 @@ import ProtectedRoute from "./components/shared/ProtectedRoute";
 import useAuthStore from "./stores/useAuthStore";
 
 import ConfirmLinkPage from "./pages/shared/ConfirmLinkPage";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 
 // Áp dụng Lazy Load cho các cụm Route theo Role
 const StudentRoutes = lazy(() => import('./routes/StudentRoutes'));
@@ -58,12 +60,15 @@ function App() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/confirm-link" element={<ConfirmLinkPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
 
             <Route element={<AuthLayout />}>
               <Route path="/login" element={<Navigate to="/auth/login" replace />} />
               <Route path="/register" element={<Navigate to="/auth/register" replace />} />
               <Route path="/auth/login" element={<Login />} />
               <Route path="/auth/register" element={<Register />} />
+              <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
             </Route>
 
             {/* Shared Routes: Giữ lại ở Top-level và bọc Phân quyền */}

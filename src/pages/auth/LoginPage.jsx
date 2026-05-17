@@ -105,8 +105,8 @@ export default function LoginPage() {
             />
             <div className="text-sm text-gray-500">
               Quên mật khẩu?{" "}
-              <Link to="/forgot-password" className="text-blue-600 hover:underline">
-                Khôi phục mật khẩu
+              <Link to="/forgot-password" className="text-blue-600 hover:underline font-medium">
+                Đặt lại mật khẩu
               </Link>
             </div>
           </div>
