@@ -13,6 +13,8 @@ import FireQuizGame from "./components/FireQuizGame";
 import ProtectedRoute from "./components/shared/ProtectedRoute";
 import useAuthStore from "./stores/useAuthStore";
 
+import ConfirmLinkPage from "./pages/shared/ConfirmLinkPage";
+
 // Áp dụng Lazy Load cho các cụm Route theo Role
 const StudentRoutes = lazy(() => import('./routes/StudentRoutes'));
 const TeacherRoutes = lazy(() => import('./routes/TeacherRoutes'));
@@ -55,6 +57,7 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/confirm-link" element={<ConfirmLinkPage />} />
 
             <Route element={<AuthLayout />}>
               <Route path="/login" element={<Navigate to="/auth/login" replace />} />

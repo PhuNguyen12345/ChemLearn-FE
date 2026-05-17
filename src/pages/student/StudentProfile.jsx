@@ -6,6 +6,8 @@ import boyChemist from '../../assets/boy_chemist.png';
 import girlBasic from '../../assets/girl_student_basic.png';
 import girlChemist from '../../assets/girl_magic-chemist.png';
 import { getStudentProfileData, updateStudentProfileData, changeStudentPassword } from '../../api/studentApi';
+import { initiateAccountLink, getPendingAccountLinks } from '../../api/accountLinkApi';
+import { toast } from 'sonner';
 
 const OUTFIT_DATA = [
   { id: 'outfit-boy-basic', name: 'Standard Uniform', gender: 'boy', price: 0, icon: '👕', image: boyBasic },
@@ -27,6 +29,8 @@ export default function StudentProfile() {
 
   const [infoForm, setInfoForm] = useState({ fullName: '', email: '', phoneNumber: '', gender: '' });
   const [passForm, setPassForm] = useState({ currentPassword: '', newPassword: '', confirm: '' });
+  const [linkEmail, setLinkEmail] = useState('');
+  const [pendingLinks, setPendingLinks] = useState([]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -42,9 +46,31 @@ export default function StudentProfile() {
       } catch (error) {
         console.error("Failed to fetch profile", error);
       }
+      try {
+        const links = await getPendingAccountLinks();
+        setPendingLinks(links);
+      } catch (error) {
+        console.error("Failed to fetch pending links", error);
+      }
     };
     fetchProfile();
   }, [setProfileData]);
+
+  const handleLinkAccount = async () => {
+    if (!linkEmail) return;
+    try {
+      setIsLoading(true);
+      await initiateAccountLink(linkEmail);
+      toast.success('Yêu cầu liên kết đã được gửi thành công! Vui lòng chờ phụ huynh xác nhận.');
+      setLinkEmail('');
+      const links = await getPendingAccountLinks();
+      setPendingLinks(links);
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message || 'Có lỗi xảy ra khi gửi yêu cầu.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleUpdateInfo = async () => {
     try {
@@ -451,6 +477,49 @@ export default function StudentProfile() {
                   </div>
                </div>
             </div>
+
+            {/* Account Linking Form */}
+            <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-8 md:col-span-2">
+               <h2 className="text-xl font-black text-slate-800 flex items-center gap-2 mb-6">
+                 <Users className="w-5 h-5 text-emerald-500" /> Liên kết Tài khoản Phụ huynh
+               </h2>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <div>
+                   <p className="text-sm font-bold text-slate-500 mb-4">Gửi yêu cầu liên kết đến email của phụ huynh để họ có thể theo dõi tiến độ học tập của bạn.</p>
+                   <div>
+                     <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-1.5">Email Phụ huynh</label>
+                     <div className="flex gap-2">
+                       <input 
+                         type="email" 
+                         placeholder="parent@example.com"
+                         value={linkEmail}
+                         onChange={(e) => setLinkEmail(e.target.value)}
+                         className="flex-1 px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 outline-none font-bold text-slate-700 transition-all"
+                       />
+                       <button onClick={handleLinkAccount} disabled={isLoading || !linkEmail} className="bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-black px-6 py-3 rounded-xl shadow-md shadow-emerald-200 transition-colors whitespace-nowrap">
+                         Gửi Yêu Cầu
+                       </button>
+                     </div>
+                   </div>
+                 </div>
+                 <div>
+                   <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-3">Yêu cầu đang chờ xác nhận</h3>
+                   {pendingLinks.length > 0 ? (
+                     <div className="space-y-3">
+                       {pendingLinks.map(link => (
+                         <div key={link.id} className="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                           <div className="text-sm font-bold text-slate-700 truncate mr-2">{link.targetEmail}</div>
+                           <span className="text-xs font-black px-2.5 py-1 bg-amber-100 text-amber-700 rounded-lg whitespace-nowrap">Đang chờ</span>
+                         </div>
+                       ))}
+                     </div>
+                   ) : (
+                     <p className="text-sm font-bold text-slate-400 bg-slate-50 p-4 rounded-xl text-center border border-slate-100 border-dashed">Không có yêu cầu nào đang chờ</p>
+                   )}
+                 </div>
+               </div>
+            </div>
+
           </div>
         )}
       </div>

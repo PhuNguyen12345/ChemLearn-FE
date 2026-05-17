@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import useAuthStore from '../../stores/useAuthStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +12,11 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const login = useAuthStore((state) => state.login);
+
+  // returnTo is set when redirected from ConfirmLinkPage
+  const returnTo = location.state?.returnTo;
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -27,6 +31,12 @@ export default function LoginPage() {
 
       const authData = response.data;
       login(authData);
+
+      // If we came from a link (e.g. confirm-link), go back there
+      if (returnTo) {
+        navigate(returnTo);
+        return;
+      }
 
       switch (authData.role) {
         case 'ROLE_STUDENT':

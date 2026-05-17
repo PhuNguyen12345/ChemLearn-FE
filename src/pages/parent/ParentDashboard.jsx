@@ -3,7 +3,9 @@ import { loginParent, getChildren, getChildOverview, getChildGamification, getCh
 import { ParentStatsCard } from '../../components/ui/ParentStatsCard';
 import { GamificationGrid } from '../../components/ui/GamificationGrid';
 import { Timeline } from '../../components/ui/Timeline';
-import { Award, BookOpen, GraduationCap, ChevronDown, Activity } from 'lucide-react';
+import { Award, BookOpen, GraduationCap, ChevronDown, Activity, Users } from 'lucide-react';
+import { initiateAccountLink, getPendingAccountLinks } from '../../api/accountLinkApi';
+import { toast } from 'sonner';
 import {
   LineChart,
   Line,
@@ -25,6 +27,11 @@ const ParentDashboard = () => {
   const [isLoadingChildren, setIsLoadingChildren] = useState(true);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [error, setError] = useState(null);
+  
+  // Account Linking
+  const [linkEmail, setLinkEmail] = useState('');
+  const [pendingLinks, setPendingLinks] = useState([]);
+  const [isLinking, setIsLinking] = useState(false);
 
   useEffect(() => {
     fetchChildren();
@@ -43,10 +50,35 @@ const ParentDashboard = () => {
       if (data.length > 0) {
         setSelectedChildId(data[0].studentId);
       }
+      fetchPendingLinks();
     } catch (err) {
       setError('Không thể lấy danh sách học sinh. Vui lòng kiểm tra kết nối.');
     } finally {
       setIsLoadingChildren(false);
+    }
+  };
+
+  const fetchPendingLinks = async () => {
+    try {
+      const links = await getPendingAccountLinks();
+      setPendingLinks(links);
+    } catch (err) {
+      console.error("Failed to fetch pending links", err);
+    }
+  };
+
+  const handleLinkAccount = async () => {
+    if (!linkEmail) return;
+    try {
+      setIsLinking(true);
+      await initiateAccountLink(linkEmail);
+      toast.success('Yêu cầu liên kết đã được gửi! Vui lòng chờ học sinh xác nhận.');
+      setLinkEmail('');
+      fetchPendingLinks();
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message || 'Có lỗi xảy ra khi gửi yêu cầu.');
+    } finally {
+      setIsLinking(false);
     }
   };
 
@@ -136,8 +168,52 @@ const ParentDashboard = () => {
           {error ? 'Đã xảy ra lỗi' : 'Chưa liên kết học sinh'}
         </h2>
         <p className="text-slate-500 mt-2 max-w-md">
-          {error || 'Tài khoản phụ huynh của bạn chưa được liên kết với bất kỳ học sinh nào. Vui lòng liên hệ trung tâm để được hỗ trợ.'}
+          {error || 'Tài khoản phụ huynh của bạn chưa được liên kết với bất kỳ học sinh nào. Vui lòng gửi yêu cầu liên kết để bắt đầu theo dõi tiến độ học tập.'}
         </p>
+
+        {/* Blank state linking form */}
+        <div className="mt-8 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 max-w-2xl w-full text-left">
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
+            <Users className="w-5 h-5 text-emerald-500" />
+            Liên kết Tài khoản Học sinh
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Nhập email của học sinh để gửi yêu cầu liên kết.</p>
+              <div className="flex gap-2">
+                <input 
+                  type="email" 
+                  placeholder="student@example.com"
+                  value={linkEmail}
+                  onChange={(e) => setLinkEmail(e.target.value)}
+                  className="flex-1 px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+                <button 
+                  onClick={handleLinkAccount} 
+                  disabled={isLinking || !linkEmail} 
+                  className="bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-semibold px-4 py-2.5 rounded-xl transition-colors whitespace-nowrap"
+                >
+                  Gửi Yêu Cầu
+                </button>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold uppercase text-slate-400 mb-3">Yêu cầu đang chờ xác nhận</h3>
+              {pendingLinks.length > 0 ? (
+                <div className="space-y-3">
+                  {pendingLinks.map(link => (
+                    <div key={link.id} className="flex justify-between items-center bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
+                      <div className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate mr-2">{link.targetEmail}</div>
+                      <span className="text-xs font-semibold px-2 py-1 bg-amber-100 text-amber-700 rounded-lg whitespace-nowrap">Đang chờ</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-slate-400 bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-center border border-slate-200 dark:border-slate-700 border-dashed">Không có yêu cầu nào đang chờ</p>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -256,6 +332,51 @@ const ParentDashboard = () => {
               )}
             </div>
           </div>
+          
+          {/* Account Linking Form */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
+            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-2">
+              <Users className="w-5 h-5 text-emerald-500" />
+              Liên kết Tài khoản Học sinh
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Nhập email của học sinh để gửi yêu cầu liên kết theo dõi quá trình học tập.</p>
+                <div className="flex gap-2">
+                  <input 
+                    type="email" 
+                    placeholder="student@example.com"
+                    value={linkEmail}
+                    onChange={(e) => setLinkEmail(e.target.value)}
+                    className="flex-1 px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                  <button 
+                    onClick={handleLinkAccount} 
+                    disabled={isLinking || !linkEmail} 
+                    className="bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-semibold px-4 py-2.5 rounded-xl transition-colors whitespace-nowrap"
+                  >
+                    Gửi Yêu Cầu
+                  </button>
+                </div>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold uppercase text-slate-400 mb-3">Yêu cầu đang chờ xác nhận</h3>
+                {pendingLinks.length > 0 ? (
+                  <div className="space-y-3">
+                    {pendingLinks.map(link => (
+                      <div key={link.id} className="flex justify-between items-center bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
+                        <div className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate mr-2">{link.targetEmail}</div>
+                        <span className="text-xs font-semibold px-2 py-1 bg-amber-100 text-amber-700 rounded-lg whitespace-nowrap">Đang chờ</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-slate-400 bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-center border border-slate-200 dark:border-slate-700 border-dashed">Không có yêu cầu nào đang chờ</p>
+                )}
+              </div>
+            </div>
+          </div>
+
         </div>
 
         {/* Right Column: Gamification & Timeline */}
