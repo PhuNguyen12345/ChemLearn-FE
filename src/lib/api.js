@@ -401,4 +401,37 @@ export const deleteMiniQuizQuestion = async (questionId) => {
   return response.data;
 };
 
-export default api;
+// Virtual Lab operations
+export const getVirtualLabs = async (params) => {
+  const response = await api.get('/api/v1/student/virtual-labs', { params });
+  return response.data;
+};
+
+export const enterVirtualLab = async (labId) => {
+  const response = await api.get(`/api/v1/student/virtual-labs/${labId}`);
+  return response.data;
+};
+
+export const createSandboxLab = async () => {
+  const response = await api.post('/api/v1/student/virtual-labs/sandbox');
+  return response.data;
+};
+
+export const saveVirtualLabProgress = async (labId, payload) => {
+  const response = await api.put(`/api/v1/student/virtual-labs/${labId}/progress`, payload);
+  return response.data;
+};
+
+export const renameVirtualLab = async (labId, newTitle) => {
+  const response = await api.patch(`/api/v1/student/virtual-labs/${labId}/rename`, null, {
+    params: { newTitle }
+  });
+  return response.data;
+};
+
+export const resetVirtualLab = async (labId) => {
+  const response = await api.delete(`/api/v1/student/virtual-labs/${labId}/reset`);
+  return response.data;
+};
+
+export default api

@@ -1,0 +1,61 @@
+{
+  "lab_id": "lab_axit_bazo_01",
+  "version": "1.0",
+  "metadata": {
+    "title": "Phản ứng Axit - Bazơ",
+    "description": "Thực hành phản ứng trung hòa và các phản ứng đặc trưng của axit mạnh với bazơ, muối. Khám phá sự đổi màu và hiện tượng sủi bọt/kết tủa.",
+    "category": "AXIT_BAZO",
+    "difficulty": "EASY",
+    "max_score": 50
+  },
+  "config": {
+    "sidebar_locked": false,
+    "allowed_types": [
+      "CONTAINER",
+      "EQUIPMENT",
+      "CHEMICAL",
+      "LIQUID",
+      "SOLID",
+      "GAS"
+    ],
+    "restricted_chemicals": []
+  },
+  "viewport": {
+    "zoom_scale": 1.0,
+    "offset": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  "workspace": [
+    {
+      "instanceId": "item-mock-beaker-1",
+      "templateId": "beaker",
+      "x": 400,
+      "y": 300,
+      "content": "HCl",
+      "liquidContent": "HCl",
+      "solidContent": null,
+      "gasContent": null,
+      "liquidColor": "rgba(200, 230, 255, 0.7)",
+      "isHeated": false
+    },
+    {
+      "instanceId": "item-mock-naoh-2",
+      "templateId": "naoh_sol",
+      "x": 600,
+      "y": 300,
+      "content": null,
+      "liquidContent": null,
+      "solidContent": null,
+      "gasContent": null,
+      "isHeated": false
+    }
+  ],
+  "progress": {
+    "current_step": 1,
+    "completed_actions": [],
+    "is_finished": false,
+    "score": 0
+  }
+}

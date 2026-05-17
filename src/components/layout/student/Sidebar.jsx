@@ -22,7 +22,7 @@ const navItems = [
   { name: 'Progress Map', icon: Map, path: '/student/home', id: 'progressMap', emoji: '🗺️' },
   { name: 'Study Zone', icon: BookOpen, path: '/student/home', id: 'studyZone', emoji: '📚' },
   { name: 'Virtual Lab', icon: Microscope, path: '/student/home', id: 'labDashboard', emoji: '🧪' },
-  { name: 'Quizzes', icon: ClipboardList, path: '/student/home', id: 'quizzes', emoji: '❓' },
+  { name: 'Quizzes', icon: ClipboardList, path: '/student/quiz', id: 'quizzes', emoji: '❓' },
   { name: 'PVP Battle', icon: Swords, path: '/student/pvp', id: 'pvp', emoji: '🎯' },
   { name: 'Leaderboard', icon: Trophy, path: '/student/leaderboard', id: 'leaderboard', emoji: '🏆' },
   { name: 'Classes', icon: Users, path: '/student/classes', id: 'classes', emoji: '👥' },
@@ -58,8 +58,7 @@ const Sidebar = ({ className = '', activeTab, setActiveTab }) => {
   };
 
   const handleLogoClick = () => {
-    if (location.pathname !== '/student/home') navigate('/student/home');
-    if (setActiveTab) setActiveTab('dashboard');
+    navigate('/student/home');
   };
 
   return (

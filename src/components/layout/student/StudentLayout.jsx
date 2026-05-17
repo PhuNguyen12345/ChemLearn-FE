@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import Footer from '../shared/Footer';
@@ -34,8 +34,9 @@ const readStoredHomeTab = () => {
 };
 
 const StudentLayout = () => {
-  const [activeTab, setActiveTabInternal] = useState('dashboard');
-  const [previousTab, setPreviousTab] = useState('dashboard');
+  const [activeTab, setActiveTabInternal] = useState(readStoredHomeTab());
+  const [previousTab, setPreviousTab] = useState(readStoredHomeTab());
+  const [activeLabId, setActiveLabId] = useState(null);
 
   const setActiveTab = (tab) => {
     setPreviousTab(activeTab);
