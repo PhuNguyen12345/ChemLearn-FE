@@ -14,6 +14,7 @@ const AdminLessonEditor = ({ chapterId, existing = null, onSaved }) => {
   const [quizOptionB, setQuizOptionB] = useState('');
   const [quizOptionC, setQuizOptionC] = useState('');
   const [quizOptionD, setQuizOptionD] = useState('');
+  const [quizQuestionType, setQuizQuestionType] = useState('SINGLE_CHOICE');
   const [quizCorrectOption, setQuizCorrectOption] = useState('A');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -24,6 +25,7 @@ const AdminLessonEditor = ({ chapterId, existing = null, onSaved }) => {
     setQuizOptionB('');
     setQuizOptionC('');
     setQuizOptionD('');
+    setQuizQuestionType('SINGLE_CHOICE');
     setQuizCorrectOption('A');
   };
 
@@ -32,17 +34,22 @@ const AdminLessonEditor = ({ chapterId, existing = null, onSaved }) => {
       setError('Please complete all mini quiz fields before adding a question.');
       return;
     }
+    if (!normalizeCorrectOption(quizCorrectOption)) {
+      setError('Please choose at least one correct option.');
+      return;
+    }
 
     setError('');
     setMiniQuizDrafts((prev) => [
       ...prev,
       {
         questionText: quizPrompt.trim(),
+        questionType: quizQuestionType,
         optionA: quizOptionA.trim(),
         optionB: quizOptionB.trim(),
         optionC: quizOptionC.trim(),
         optionD: quizOptionD.trim(),
-        correctOption: quizCorrectOption,
+        correctOption: normalizeCorrectOption(quizCorrectOption),
         orderIndex: prev.length
       }
     ]);
@@ -85,6 +92,7 @@ const AdminLessonEditor = ({ chapterId, existing = null, onSaved }) => {
           unsavedMiniQuiz.map((question, index) =>
             addMiniQuizQuestion(persistedLesson.id, {
               questionText: question.questionText,
+              questionType: question.questionType || 'SINGLE_CHOICE',
               optionA: question.optionA,
               optionB: question.optionB,
               optionC: question.optionC,
@@ -106,6 +114,27 @@ const AdminLessonEditor = ({ chapterId, existing = null, onSaved }) => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const normalizeCorrectOption = (value) => value
+    .split(',')
+    .map((item) => item.trim().toUpperCase())
+    .filter(Boolean)
+    .filter((item, index, list) => list.indexOf(item) === index)
+    .sort()
+    .join(',');
+
+  const toggleCorrectOption = (option) => {
+    if (quizQuestionType !== 'MULTIPLE_CHOICE') {
+      setQuizCorrectOption(option);
+      return;
+    }
+
+    const selected = quizCorrectOption ? quizCorrectOption.split(',') : [];
+    const next = selected.includes(option)
+      ? selected.filter((item) => item !== option)
+      : [...selected, option];
+    setQuizCorrectOption(next.sort().join(','));
   };
 
   return (
@@ -141,20 +170,36 @@ const AdminLessonEditor = ({ chapterId, existing = null, onSaved }) => {
             <input value={quizOptionC} onChange={(e) => setQuizOptionC(e.target.value)} placeholder="Option C" className="w-full rounded-md border px-3 py-2" />
             <input value={quizOptionD} onChange={(e) => setQuizOptionD(e.target.value)} placeholder="Option D" className="w-full rounded-md border px-3 py-2" />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
             <select
-              value={quizCorrectOption}
-              onChange={(e) => setQuizCorrectOption(e.target.value)}
+              value={quizQuestionType}
+              onChange={(e) => {
+                setQuizQuestionType(e.target.value);
+                setQuizCorrectOption('A');
+              }}
               className="rounded-md border px-3 py-2 text-sm"
             >
-              <option value="A">Correct: A</option>
-              <option value="B">Correct: B</option>
-              <option value="C">Correct: C</option>
-              <option value="D">Correct: D</option>
+              <option value="SINGLE_CHOICE">Single choice</option>
+              <option value="MULTIPLE_CHOICE">Multiple choice</option>
             </select>
-            <button type="button" className="rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold" onClick={addDraftQuestion}>
-              Add question
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              {['A', 'B', 'C', 'D'].map((option) => {
+                const active = quizCorrectOption.split(',').includes(option);
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    className={`rounded-lg border px-3 py-2 text-sm font-black ${active ? 'border-indigo-500 bg-indigo-600 text-white' : 'border-slate-300 bg-white text-slate-700'}`}
+                    onClick={() => toggleCorrectOption(option)}
+                  >
+                    {option}
+                  </button>
+                );
+              })}
+              <button type="button" className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold" onClick={addDraftQuestion}>
+                Add question
+              </button>
+            </div>
           </div>
         </div>
 
@@ -163,10 +208,12 @@ const AdminLessonEditor = ({ chapterId, existing = null, onSaved }) => {
             {miniQuizDrafts.map((question, index) => (
               <div key={`${question.questionText}-${index}`} className="rounded-md border border-slate-200 bg-slate-50 p-2">
                 <div className="flex items-center justify-between gap-2">
-                  <div className="text-sm font-semibold text-slate-800">{index + 1}. {question.questionText}</div>
+                  <div className="text-sm font-semibold text-slate-800">{index + 1}. {question.questionText || question.prompt}</div>
                   <button type="button" className="text-xs font-semibold text-rose-600" onClick={() => removeDraftQuestion(index)}>Remove</button>
                 </div>
-                <div className="mt-1 text-xs text-slate-600">Correct answer: {question.correctOption}</div>
+                <div className="mt-1 text-xs text-slate-600">
+                  {(question.questionType || 'SINGLE_CHOICE').replace('_', ' ').toLowerCase()} • Correct answer: {question.correctOption}
+                </div>
               </div>
             ))}
           </div>

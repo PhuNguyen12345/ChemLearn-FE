@@ -1,6 +1,5 @@
 import React from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { useStudentStore } from '../../stores/useStudentStore';
 import {
   PlayCircle,

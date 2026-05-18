@@ -19,10 +19,9 @@ const LessonContent = ({ lessonDetail }) => {
       </div>
 
       <div className="p-8 max-w-3xl mx-auto w-full space-y-8 flex-1">
-        <div className="prose max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: lessonDetail.content }} />
+        <div className="tiptap-content prose max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: lessonDetail.content }} />
 
-        {/* Mini-quiz stub */}
-        <MiniQuizSection lessonId={lessonDetail.id} questions={lessonDetail.miniQuizQuestions || []} isStub={true} />
+        <MiniQuizSection lessonId={lessonDetail.id} questions={lessonDetail.miniQuizQuestions || []} />
       </div>
     </div>
   );

@@ -215,6 +215,12 @@ const QuizTakingPage = () => {
             <CardDescription className="text-sm">Attempts history</CardDescription>
           </CardHeader>
           <CardContent>
+            {error && (
+              <div className="mb-4 flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">
+                <AlertCircle className="h-4 w-4" />
+                {error}
+              </div>
+            )}
             {attemptHistory.length === 0 ? (
               <p className="text-sm text-slate-500 font-bold">No previous attempts. You may start the quiz.</p>
             ) : (

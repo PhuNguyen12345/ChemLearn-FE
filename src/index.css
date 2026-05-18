@@ -299,6 +299,47 @@ button:focus-visible {
     }
 }
 
+/* Tiptap content defaults to restore block styling under Tailwind preflight. */
+.tiptap-content h2 {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 700;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.tiptap-content h3 {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 700;
+  margin: 1rem 0 0.5rem;
+}
+
+.tiptap-content ul,
+.tiptap-content ol {
+  padding-left: 1.5rem;
+  margin: 0.75rem 0;
+}
+
+.tiptap-content ul {
+  list-style: disc;
+}
+
+.tiptap-content ol {
+  list-style: decimal;
+}
+
+.tiptap-content li {
+  margin: 0.25rem 0;
+}
+
+.tiptap-content blockquote {
+  border-left: 4px solid #e2e8f0;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: #475569;
+  font-style: italic;
+}
+
 /* Lab Animations */
 @keyframes riseAndFade {
   0% { transform: translateY(0) scale(0.5); opacity: 0; }

@@ -1,8 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getStudentClasses, joinClassByCode, leaveClass } from '../../lib/api';
-import { Loader, AlertCircle, Lock, Users, Calendar, CheckCircle } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
+import { Loader, AlertCircle, Lock, Users, Calendar, CheckCircle, Flame, Zap, Shield, Sparkles } from 'lucide-react';
 
 export default function ClassesLanding() {
   const navigate = useNavigate();
@@ -17,7 +16,6 @@ export default function ClassesLanding() {
 
   const normalizeClasses = (payload) => {
     if (!Array.isArray(payload)) return [];
-
     return payload.map((cls) => ({
       id: cls.id || cls.classId || null,
       name: cls.name || 'Untitled class',
@@ -75,7 +73,6 @@ export default function ClassesLanding() {
       setError('Cannot leave this class because the class id is invalid. Please refresh and try again.');
       return;
     }
-
     setError(null);
     setLeaveConfirmClass(normalizedClassId);
     setLeaveAcknowledged(false);
@@ -90,7 +87,6 @@ export default function ClassesLanding() {
     if (!leaveConfirmClass || !leaveAcknowledged) {
       return;
     }
-
     try {
       setLeavingClassId(leaveConfirmClass);
       setError(null);
@@ -106,207 +102,214 @@ export default function ClassesLanding() {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      'active': { bg: 'bg-green-100', text: 'text-green-800', label: 'Active' },
-      'inactive': { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Inactive' },
-      'archived': { bg: 'bg-orange-100', text: 'text-orange-800', label: 'Archived' },
+      'active': { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300', label: 'Active' },
+      'inactive': { bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-300', label: 'Inactive' },
+      'archived': { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300', label: 'Archived' },
     };
     const config = statusConfig[status] || statusConfig['inactive'];
     return (
-      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${config.bg} ${config.text}`}>
+      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest ${config.bg} ${config.text} border ${config.border}`}>
         {status === 'active' && <CheckCircle className="w-3 h-3" />}
         {config.label}
       </span>
     );
   };
 
+  // Card color cycle
+  const cardColors = [
+    { border: 'border-blue-200 border-b-blue-400', hover: 'hover:border-b-blue-500', iconBg: 'bg-blue-500', text: 'text-blue-700' },
+    { border: 'border-purple-200 border-b-purple-400', hover: 'hover:border-b-purple-500', iconBg: 'bg-purple-500', text: 'text-purple-700' },
+    { border: 'border-emerald-200 border-b-emerald-400', hover: 'hover:border-b-emerald-500', iconBg: 'bg-emerald-500', text: 'text-emerald-700' },
+    { border: 'border-amber-200 border-b-amber-400', hover: 'hover:border-b-amber-500', iconBg: 'bg-amber-400', text: 'text-amber-700' },
+    { border: 'border-rose-200 border-b-rose-400', hover: 'hover:border-b-rose-500', iconBg: 'bg-rose-500', text: 'text-rose-700' }
+  ];
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader className="w-8 h-8 animate-spin text-blue-500" />
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader className="h-10 w-10 animate-spin text-indigo-500" />
+          <p className="text-sm font-black text-slate-500 uppercase tracking-widest">Loading Classes...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Header */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">My Classes</h1>
-          <p className="text-gray-600">Manage your enrolled classes and join new ones</p>
+    <div className="space-y-8 pb-12 select-none">
+      {/* Header Banner */}
+      <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-8 text-white shadow-[0_10px_30px_rgba(168,85,247,0.4)] border-b-4 border-purple-700">
+        <div className="absolute -top-10 -right-10 w-56 h-56 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-8 -left-8 w-44 h-44 bg-pink-400/20 rounded-full blur-2xl pointer-events-none" />
+        
+        <div className="absolute top-8 right-14 text-pink-200 animate-bounce" style={{ animationDuration: '3.1s', animationDelay: '0.5s' }}>
+          <Sparkles className="w-6 h-6" />
+        </div>
+
+        <div className="relative z-10">
+          <h1 className="text-3xl md:text-4xl font-black tracking-tight drop-shadow-sm mb-2">My Classes 📚</h1>
+          <p className="text-purple-100 text-base md:text-lg font-semibold opacity-90 max-w-xl">
+            Manage your enrolled classes and jump back into your learning journey!
+          </p>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className="space-y-8">
         {/* Code Entry Section */}
-        <Card className="mb-12 border-2 border-blue-200 bg-blue-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Lock className="w-5 h-5 text-blue-600" />
-              Join a New Class
-            </CardTitle>
-            <CardDescription>Enter the class code provided by your instructor to join a new class</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleJoinClass} className="flex gap-3">
-              <input
-                type="text"
-                value={classCode}
-                onChange={(e) => setClassCode(e.target.value.toUpperCase())}
-                placeholder="Enter class code (e.g., ABC123)"
-                maxLength="10"
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase tracking-widest font-semibold"
-              />
-              <button
-                type="submit"
-                disabled={joiningClass || !classCode.trim()}
-                className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors flex items-center gap-2"
-              >
-                {joiningClass ? (
-                  <>
-                    <Loader className="w-4 h-4 animate-spin" />
-                    Joining...
-                  </>
-                ) : (
-                  'Join Class'
-                )}
-              </button>
-            </form>
-          </CardContent>
-        </Card>
+        <div className="p-6 bg-white rounded-[1.5rem] border-2 border-sky-200 border-b-[6px] border-b-sky-400 shadow-sm hover:-translate-y-1 transition-transform duration-300">
+          <div className="flex items-center gap-2 mb-2">
+            <Lock className="w-6 h-6 text-sky-500 fill-sky-100" />
+            <h2 className="text-xl font-black text-slate-800">Join a New Class</h2>
+          </div>
+          <p className="text-sm font-semibold text-slate-500 mb-5">Enter the class code provided by your instructor to join</p>
+          <form onSubmit={handleJoinClass} className="flex gap-3">
+            <input
+              type="text"
+              value={classCode}
+              onChange={(e) => setClassCode(e.target.value.toUpperCase())}
+              placeholder="e.g. ABC123"
+              maxLength="10"
+              className="flex-1 px-5 py-3.5 bg-slate-50 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100 uppercase tracking-widest font-black text-slate-700 placeholder:text-slate-400 transition-all"
+            />
+            <button
+              type="submit"
+              disabled={joiningClass || !classCode.trim()}
+              className="group flex items-center gap-2 px-8 py-3.5 bg-gradient-to-b from-sky-400 to-sky-500 hover:from-sky-500 hover:to-sky-600 text-white font-black rounded-xl border-b-[5px] border-sky-700 active:border-b active:translate-y-1 transition-all disabled:opacity-50 disabled:pointer-events-none shadow-sm shadow-sky-300/50"
+            >
+              {joiningClass ? (
+                <>
+                  <Loader className="w-5 h-5 animate-spin" />
+                  JOINING...
+                </>
+              ) : (
+                'JOIN CLASS'
+              )}
+            </button>
+          </form>
+        </div>
 
         {/* Error Alert */}
         {error && (
-          <div className="mb-6 flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-center gap-3 p-4 bg-red-50 border-2 border-red-200 rounded-[1rem]">
             <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-            <p className="text-red-800">{error}</p>
+            <p className="text-sm font-bold text-red-800">{error}</p>
           </div>
         )}
 
         {/* Classes Grid */}
         {classes.length === 0 ? (
-          <Card>
-            <CardContent className="pt-12 pb-12 text-center">
-              <div className="mb-4 flex justify-center">
-                <div className="p-3 bg-slate-100 rounded-full">
-                  <Users className="w-8 h-8 text-slate-400" />
-                </div>
-              </div>
-              <p className="text-lg font-semibold text-gray-700 mb-2">No Classes Yet</p>
-              <p className="text-gray-500 mb-6">Join a class using the code above to get started!</p>
-            </CardContent>
-          </Card>
+          <div className="p-10 bg-white rounded-[2rem] border-2 border-slate-200 border-b-[6px] border-b-slate-300 shadow-sm text-center">
+             <div className="w-20 h-20 mx-auto bg-slate-100 rounded-[1.5rem] flex items-center justify-center mb-4">
+                <Users className="w-10 h-10 text-slate-300" />
+             </div>
+             <h3 className="text-xl font-black text-slate-700 mb-2">No Classes Yet</h3>
+             <p className="text-slate-500 font-semibold max-w-sm mx-auto">Join a class using the code above to start your adventure!</p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {classes.map((cls) => (
-              <Card
-                key={cls.id}
-                className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:border-blue-300 overflow-hidden group"
-                onClick={() => cls.id && navigate(`/student/class/${cls.id}`)}
-              >
-                {/* Color bar at top */}
-                <div className="h-1 bg-gradient-to-r from-blue-500 to-indigo-500 group-hover:from-blue-600 group-hover:to-indigo-600" />
-
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <CardTitle className="text-lg leading-tight">{cls.name}</CardTitle>
+            {classes.map((cls, idx) => {
+              const colorTheme = cardColors[idx % cardColors.length];
+              return (
+                <div
+                  key={cls.id}
+                  onClick={() => cls.id && navigate(`/student/class/${cls.id}`)}
+                  className={`group flex flex-col p-6 rounded-[1.5rem] bg-white border-2 border-b-[6px] ${colorTheme.border} ${colorTheme.hover} active:border-b-2 active:translate-y-1 transition-all duration-150 shadow-sm cursor-pointer relative overflow-hidden`}
+                >
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-10 -mt-10 blur-2xl pointer-events-none group-hover:scale-125 transition-transform" />
+                  
+                  <div className="relative z-10 flex items-start justify-between gap-2 mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-xl font-black text-slate-800 leading-tight mb-1 group-hover:text-slate-900 line-clamp-2">{cls.name}</h3>
+                      <p className="text-xs font-bold text-slate-400 line-clamp-1">{cls.description}</p>
+                    </div>
                     {getStatusBadge(cls.status || 'active')}
                   </div>
-                  <CardDescription className="line-clamp-2">{cls.description || 'No description'}</CardDescription>
-                </CardHeader>
 
-                <CardContent className="space-y-4">
-                  {/* Instructor Info */}
-                  {cls.instructorName && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                        {cls.instructorName.charAt(0)}
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500 uppercase tracking-wide">Instructor</p>
-                        <p className="font-semibold text-gray-900">{cls.instructorName}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Enrollment and Participants */}
-                  <div className="flex items-center gap-4 pt-2 border-t border-gray-100">
-                    <div className="flex items-center gap-1.5 text-sm">
-                      <Users className="w-4 h-4 text-gray-500" />
-                      <span className="text-gray-700 font-semibold">{cls.enrollmentCount || 0} members</span>
-                    </div>
-                    {cls.enrollmentDate && (
-                      <div className="flex items-center gap-1.5 text-sm">
-                        <Calendar className="w-4 h-4 text-gray-500" />
-                        <span className="text-gray-600 text-xs">
-                          {new Date(cls.enrollmentDate).toLocaleDateString(undefined, {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                          })}
-                        </span>
+                  <div className="relative z-10 mt-auto pt-4 space-y-3">
+                    {cls.instructorName && (
+                      <div className="flex items-center gap-2">
+                        <div className={`w-8 h-8 rounded-[0.75rem] flex items-center justify-center text-white font-black text-sm shadow-sm ${colorTheme.iconBg}`}>
+                          {cls.instructorName.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Instructor</p>
+                          <p className={`text-sm font-bold ${colorTheme.text}`}>{cls.instructorName}</p>
+                        </div>
                       </div>
                     )}
-                  </div>
 
-                  {/* Click to expand indicator */}
-                  <div className="pt-2 flex items-center justify-between">
-                    <span className="text-xs text-blue-600 font-semibold">Click to view content</span>
-                    <button
-                      type="button"
-                      onClick={(e) => openLeaveConfirmation(e, cls.id)}
-                      disabled={leavingClassId === cls.id || !cls.id}
-                      className="text-xs px-3 py-1.5 rounded-md border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-60"
-                    >
-                      {leavingClassId === cls.id ? 'Leaving...' : 'Leave class'}
-                    </button>
+                    <div className="flex items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
+                        <Users className="w-4 h-4 text-slate-400" />
+                        {cls.enrollmentCount || 0} members
+                      </div>
+                      {cls.enrollmentDate && (
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
+                          <Calendar className="w-4 h-4 text-slate-400" />
+                          {new Date(cls.enrollmentDate).toLocaleDateString()}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2">
+                      <span className={`text-xs font-black uppercase tracking-widest ${colorTheme.text}`}>ENTER CLASS →</span>
+                      <button
+                        type="button"
+                        onClick={(e) => openLeaveConfirmation(e, cls.id)}
+                        disabled={leavingClassId === cls.id || !cls.id}
+                        className="text-xs font-bold px-3 py-1.5 rounded-lg border-2 border-red-100 text-red-500 hover:bg-red-50 hover:border-red-200 transition-colors disabled:opacity-50"
+                      >
+                        {leavingClassId === cls.id ? 'LEAVING...' : 'LEAVE'}
+                      </button>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
 
+      {/* Leave Class Confirmation Modal */}
       {leaveConfirmClass && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4" role="dialog" aria-modal="true" aria-labelledby="leave-class-title">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5">
-            <div className="mb-4">
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-red-600">Confirm leave</p>
-              <h2 id="leave-class-title" className="mt-2 text-2xl font-bold text-slate-900">Are you sure?</h2>
-              <p className="mt-2 text-sm text-slate-600">Leaving this class will remove it from your class list. You can rejoin later only if you have the class code again.</p>
-            </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={closeLeaveConfirmation} />
+           <div className="relative bg-white w-full max-w-sm rounded-[2rem] p-7 shadow-2xl border-4 border-slate-100 animate-in zoom-in-95 duration-200">
+             <div className="w-14 h-14 bg-red-100 rounded-[1.25rem] flex items-center justify-center mb-4">
+                <AlertCircle className="w-7 h-7 text-red-500" />
+             </div>
+             <h2 className="text-2xl font-black text-slate-800 mb-2">Leave Class?</h2>
+             <p className="text-sm font-semibold text-slate-500 mb-6">You will be removed from this class and will need the code to rejoin.</p>
+             
+             <label className="flex items-center gap-3 p-4 bg-slate-50 border-2 border-slate-200 rounded-[1rem] cursor-pointer mb-6 hover:bg-slate-100 transition-colors">
+               <input
+                 type="checkbox"
+                 checked={leaveAcknowledged}
+                 onChange={(e) => setLeaveAcknowledged(e.target.checked)}
+                 className="w-5 h-5 rounded-[0.4rem] border-2 border-slate-300 text-red-500 focus:ring-red-500/20 focus:ring-offset-0"
+               />
+               <span className="text-sm font-bold text-slate-700">I understand the consequences</span>
+             </label>
 
-            <label className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-              <input
-                type="checkbox"
-                checked={leaveAcknowledged}
-                onChange={(event) => setLeaveAcknowledged(event.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-slate-300 text-red-600 focus:ring-red-500"
-              />
-              <span>I want to leave this class</span>
-            </label>
-
-            <div className="mt-6 flex items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={closeLeaveConfirmation}
-                disabled={leavingClassId === leaveConfirmClass}
-                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"
-              >
-                No
-              </button>
-              <button
-                type="button"
-                onClick={handleLeaveClass}
-                disabled={!leaveAcknowledged || leavingClassId === leaveConfirmClass}
-                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300"
-              >
-                Yes
-              </button>
-            </div>
-          </div>
+             <div className="flex gap-3">
+               <button
+                 type="button"
+                 onClick={closeLeaveConfirmation}
+                 disabled={leavingClassId === leaveConfirmClass}
+                 className="flex-1 py-3 px-4 rounded-xl font-black text-slate-600 bg-white border-2 border-slate-200 hover:bg-slate-50 transition-colors"
+               >
+                 CANCEL
+               </button>
+               <button
+                 type="button"
+                 onClick={handleLeaveClass}
+                 disabled={!leaveAcknowledged || leavingClassId === leaveConfirmClass}
+                 className="flex-1 py-3 px-4 rounded-xl font-black text-white bg-red-500 border-b-[4px] border-red-700 hover:bg-red-600 active:border-b-0 active:translate-y-1 transition-all disabled:opacity-50 disabled:pointer-events-none disabled:translate-y-0 disabled:border-b-[4px]"
+               >
+                 LEAVE
+               </button>
+             </div>
+           </div>
         </div>
       )}
     </div>
