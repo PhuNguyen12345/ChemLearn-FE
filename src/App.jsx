@@ -30,6 +30,8 @@ import AdminLayout from "./components/layout/admin/AdminLayout";
 import AuthLayout from "./components/layout/auth/AuthLayout";
 import Login from "./pages/auth/LoginPage";
 import Register from "./pages/auth/RegisterPage";
+import RequestAccessPage from "./pages/auth/RequestAccessPage";
+import InviteAcceptPage from "./pages/auth/InviteAcceptPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminStudyZone from "./pages/admin/AdminStudyZone";
 import AdminStudyEditPage from "./pages/admin/AdminStudyEditPage";
@@ -130,6 +132,8 @@ function App() {
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/request-access" element={<RequestAccessPage />} />
+            <Route path="/invite" element={<InviteAcceptPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

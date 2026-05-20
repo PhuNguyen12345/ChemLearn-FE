@@ -42,6 +42,38 @@ const getQuizTypeStyle = (quizType) => {
   return quizTypeConfig[key] || { label: 'Quiz', color: 'bg-slate-100 text-slate-700 border-slate-200' };
 };
 
+const DEADLINE_WARNING_HOURS = 48;
+
+const getDeadlineStatus = (dueDate) => {
+  if (!dueDate) return null;
+  const parsed = new Date(dueDate);
+  if (Number.isNaN(parsed.getTime())) return null;
+
+  const msLeft = parsed.getTime() - Date.now();
+  const isPastDue = msLeft <= 0;
+  const hoursLeft = Math.ceil(msLeft / (1000 * 60 * 60));
+  const daysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
+  const isNear = !isPastDue && msLeft <= DEADLINE_WARNING_HOURS * 60 * 60 * 1000;
+  const remainingLabel = isPastDue
+    ? 'Overdue'
+    : hoursLeft < 24
+      ? `Due in ${Math.max(hoursLeft, 1)}h`
+      : `Due in ${Math.max(daysLeft, 1)}d`;
+  const tone = isPastDue
+    ? 'bg-rose-100 text-rose-700 border-rose-200'
+    : isNear
+      ? 'bg-amber-100 text-amber-700 border-amber-200'
+      : 'bg-slate-100 text-slate-600 border-slate-200';
+
+  return {
+    dueAt: parsed,
+    isPastDue,
+    isNear,
+    remainingLabel,
+    tone,
+  };
+};
+
 /* ─────────────────────────────────────────────
    Sort options
 ───────────────────────────────────────────── */
@@ -327,20 +359,24 @@ const ClassDetail = () => {
 /* ─────────────────────────────────────────────
    Tab Button
 ───────────────────────────────────────────── */
-const TabButton = ({ active, onClick, icon: Icon, label, count }) => (
-  <button
-    onClick={onClick}
-    className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-black transition-all duration-200 ${
-      active 
-        ? 'bg-indigo-100 text-indigo-700 shadow-sm shadow-indigo-200/50 scale-[1.02]' 
-        : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
-    }`}
-  >
-    <Icon className="h-4 w-4" />
-    {label}
-    <span className={`ml-1 px-2 py-0.5 rounded-lg text-[10px] ${active ? 'bg-indigo-200 text-indigo-800' : 'bg-slate-200 text-slate-600'}`}>{count}</span>
-  </button>
-);
+const TabButton = ({ active, onClick, icon: Icon, label, count }) => {
+  const IconComponent = Icon;
+
+  return (
+    <button
+      onClick={onClick}
+      className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-black transition-all duration-200 ${
+        active
+          ? 'bg-indigo-100 text-indigo-700 shadow-sm shadow-indigo-200/50 scale-[1.02]'
+          : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
+      }`}
+    >
+      <IconComponent className="h-4 w-4" />
+      {label}
+      <span className={`ml-1 px-2 py-0.5 rounded-lg text-[10px] ${active ? 'bg-indigo-200 text-indigo-800' : 'bg-slate-200 text-slate-600'}`}>{count}</span>
+    </button>
+  );
+};
 
 /* ─────────────────────────────────────────────
    Documents Tab
@@ -513,6 +549,10 @@ const QuizzesTab = ({ quizzes, totalCount, quizSort, setQuizSort, quizSearch, se
 ───────────────────────────────────────────── */
 const QuizCard = ({ quiz, onClick, onHistory }) => {
   const typeStyle = getQuizTypeStyle(quiz.quizType);
+  const deadline = getDeadlineStatus(quiz.dueDate);
+  const deadlineLabel = deadline
+    ? `Due ${deadline.dueAt.toLocaleString()}${deadline.isPastDue || deadline.isNear ? ` - ${deadline.remainingLabel}` : ''}`
+    : null;
 
   return (
     <div 
@@ -545,6 +585,12 @@ const QuizCard = ({ quiz, onClick, onHistory }) => {
             <ClipboardList className="h-3.5 w-3.5 text-slate-400" />
             {quiz.questionCount || 0} Qs
           </span>
+          {deadlineLabel && (
+            <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border ${deadline.tone}`}>
+              <Calendar className="h-3.5 w-3.5" />
+              {deadlineLabel}
+            </span>
+          )}
         </div>
 
         <div className="flex gap-3">

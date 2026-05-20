@@ -27,6 +27,46 @@ const normalizeListResponse = (data) => {
   return [];
 };
 
+export const loginWithGoogle = async (idToken) => {
+  const response = await api.post('/api/auth/google', { idToken });
+  return response.data;
+};
+
+export const submitAccessRequest = async (payload) => {
+  const response = await api.post('/api/auth/requests', payload);
+  return response.data;
+};
+
+export const acceptInvite = async (payload) => {
+  const response = await api.post('/api/auth/invites/accept', payload);
+  return response.data;
+};
+
+export const getAuthAccessRequests = async () => {
+  const response = await api.get('/api/admin/auth/requests');
+  return response.data;
+};
+
+export const approveAccessRequest = async (requestId) => {
+  const response = await api.post(`/api/admin/auth/requests/${requestId}/approve`, {});
+  return response.data;
+};
+
+export const rejectAccessRequest = async (requestId) => {
+  const response = await api.post(`/api/admin/auth/requests/${requestId}/reject`, {});
+  return response.data;
+};
+
+export const getAuthInvites = async () => {
+  const response = await api.get('/api/admin/auth/invites');
+  return response.data;
+};
+
+export const createAuthInvite = async (payload) => {
+  const response = await api.post('/api/admin/auth/invites', payload);
+  return response.data;
+};
+
 export const getStudyChapters = async () => {
   const response = await api.get('/api/study/chapters');
   return response.data;

@@ -4,26 +4,21 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, 
   Mail, 
-  Lock, 
-  Eye, 
-  EyeOff, 
+  Info, 
   UserCheck, 
   Atom, 
   AlertCircle, 
   CheckCircle2, 
   ArrowLeft,
   ArrowRight,
-  Sparkles,
-  Trophy,
-  GraduationCap
+  School,
+  LineChart,
+  Users
 } from 'lucide-react';
-import useAuthStore from '../../stores/useAuthStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import api from '@/lib/api';
-
-const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_.]).{8,32}$/;
+import { submitAccessRequest } from '@/lib/api';
 
 // Interactive Light-mode Molecular Canvas for Left Panel Graphic
 function GraphicCanvas() {
@@ -108,55 +103,38 @@ function GraphicCanvas() {
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none z-0" />;
 }
 
-export default function RegisterPage() {
-  const [formData, setFormData] = useState({
-    username: '',
-    fullName: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+export default function RequestAccessPage() {
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [role, setRole] = useState('ROLE_TEACHER');
+  const [additionalInfo, setAdditionalInfo] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
-  const logout = useAuthStore((state) => state.logout);
 
-  const handleRegister = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
-
-    if (formData.password !== formData.confirmPassword) {
-      setError('Mật khẩu xác nhận không khớp.');
-      return;
-    }
-
-    if (!PASSWORD_REGEX.test(formData.password)) {
-      setError('Mật khẩu phải từ 8-32 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.');
-      return;
-    }
-
     setIsLoading(true);
 
     try {
-      await api.post('/api/auth/register', {
-        username: formData.username,
-        email: formData.email,
-        fullName: formData.fullName,
-        password: formData.password,
+      await submitAccessRequest({
+        fullName,
+        email,
+        role,
+        additionalInfo,
       });
 
-      logout();
-      setSuccess('Đăng ký thành công! Đang chuyển hướng sang trang đăng nhập...');
-      setTimeout(() => navigate('/login', { replace: true }), 1200);
+      setSuccess('Yêu cầu gửi thành công! Quản trị viên sẽ kiểm duyệt và liên hệ qua email của bạn.');
+      setFullName('');
+      setEmail('');
+      setAdditionalInfo('');
     } catch (err) {
       const backendMessage =
         err?.response?.data?.message ||
         err?.response?.data ||
-        'Đăng ký thất bại. Tên tài khoản hoặc email có thể đã được sử dụng.';
+        'Gửi yêu cầu thất bại.';
       setError(String(backendMessage));
     } finally {
       setIsLoading(false);
@@ -192,31 +170,31 @@ export default function RegisterPage() {
             className="space-y-6 max-w-lg"
           >
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-tight text-white tracking-tight">
-              Khởi Đầu Hành Trình Hóa Học
+              Đồng Hành Cùng Học Sinh
             </h1>
             <p className="text-white/85 text-base sm:text-lg leading-relaxed">
-              Tạo tài khoản học sinh ChemLearn của bạn để mở khóa các bài học tương tác, thực hành thí nghiệm và nhận điểm thưởng khi hoàn thành bài tập!
+              Dành cho Giáo viên và Phụ huynh. Gửi yêu cầu để được cấp quyền quản lý lớp học hoặc theo sát lộ trình làm bài thực hành của con.
             </p>
 
             {/* Core features listing */}
             <div className="grid grid-cols-1 gap-4 pt-4">
               <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all duration-300">
                 <div className="p-2.5 rounded-lg bg-teal-400/20 text-teal-300">
-                  <GraduationCap className="w-6 h-6" />
+                  <Users className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-white text-sm sm:text-base">Học Tập Chủ Động</h4>
-                  <p className="text-white/70 text-xs sm:text-sm font-medium">Truy cập hàng trăm lý thuyết hóa học kèm hình ảnh minh họa sống động.</p>
+                  <h4 className="font-bold text-white text-sm sm:text-base">Quản Lý Lớp Học (Giáo Viên)</h4>
+                  <p className="text-white/70 text-xs sm:text-sm">Tạo lời mời học sinh, theo dõi bảng xếp hạng thi đua và chấm điểm tự động.</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all duration-300">
                 <div className="p-2.5 rounded-lg bg-purple-400/20 text-purple-300">
-                  <Trophy className="w-6 h-6" />
+                  <LineChart className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-white text-sm sm:text-base font-bold">Nhiệm Vụ & Bảng Xếp Hạng</h4>
-                  <p className="text-white/70 text-xs sm:text-sm">Tranh tài cùng bạn học, giữ chuỗi ngày streak học tập để tăng hạng.</p>
+                  <h4 className="font-bold text-white text-sm sm:text-base">Theo Dõi Lộ Trình (Phụ Huynh)</h4>
+                  <p className="text-white/70 text-xs sm:text-sm">Xem kết quả kiểm tra, thống kê thời gian học của con để hỗ trợ kịp thời.</p>
                 </div>
               </div>
             </div>
@@ -229,7 +207,7 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* RIGHT SECTION: White Registration Service */}
+      {/* RIGHT SECTION: White Request Access Service */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 lg:p-16 bg-white min-h-screen">
         <motion.div 
           initial={{ opacity: 0, x: 20 }}
@@ -239,8 +217,8 @@ export default function RegisterPage() {
         >
           {/* Header Info */}
           <div>
-            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Đăng Ký Tài Khoản</h2>
-            <p className="text-slate-500 text-sm mt-2">Đăng ký tài khoản học sinh ChemLearn mới</p>
+            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Yêu Cầu Quyền Truy Cập</h2>
+            <p className="text-slate-500 text-sm mt-2">Dành cho Giáo viên và Phụ huynh đăng ký tài khoản mới</p>
           </div>
 
           <AnimatePresence mode="wait">
@@ -258,7 +236,7 @@ export default function RegisterPage() {
                       <path d="M22 12H42V24L56 64C59 72 53 76 45 76H19C11 76 5 72 8 64L22 24V12Z" stroke="currentColor" strokeWidth="4" />
                     </svg>
                   </div>
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Đang khởi tạo tài khoản...</p>
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Đang gửi yêu cầu xác thực...</p>
                 </div>
               </motion.div>
             ) : (
@@ -292,41 +270,21 @@ export default function RegisterPage() {
                 )}
 
                 {/* Form fields */}
-                <form onSubmit={handleRegister} className="space-y-4">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="username" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
-                      Tên đăng nhập
-                    </Label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                        <User className="w-4 h-4" />
-                      </div>
-                      <Input
-                        id="username"
-                        type="text"
-                        placeholder="Nhập tên đăng nhập..."
-                        value={formData.username}
-                        onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                        required
-                        className="bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:ring-blue-100 pl-10"
-                      />
-                    </div>
-                  </div>
-
+                <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-1.5">
                     <Label htmlFor="fullName" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
                       Họ và tên
                     </Label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                        <UserCheck className="w-4 h-4" />
+                        <User className="w-4 h-4" />
                       </div>
                       <Input
                         id="fullName"
                         type="text"
-                        placeholder="Nhập đầy đủ họ tên..."
-                        value={formData.fullName}
-                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                        placeholder="Nhập họ và tên đầy đủ..."
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
                         required
                         className="bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:ring-blue-100 pl-10"
                       />
@@ -344,9 +302,9 @@ export default function RegisterPage() {
                       <Input
                         id="email"
                         type="email"
-                        placeholder="name@example.com"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        placeholder="name@school.edu.vn"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         required
                         className="bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:ring-blue-100 pl-10"
                       />
@@ -354,79 +312,57 @@ export default function RegisterPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="password" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
-                      Mật khẩu
+                    <Label htmlFor="role" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
+                      Vai trò đăng ký
                     </Label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                        <Lock className="w-4 h-4" />
+                        <UserCheck className="w-4 h-4" />
                       </div>
-                      <Input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Nhập mật khẩu..."
-                        value={formData.password}
-                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      <select
+                        id="role"
+                        value={role}
+                        onChange={(e) => setRole(e.target.value)}
+                        className="flex h-10 w-full rounded-md border border-slate-200 bg-slate-50 text-slate-900 pl-10 pr-3 py-2 text-sm focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-100 disabled:cursor-not-allowed"
                         required
-                        className="bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:ring-blue-100 pl-10 pr-10"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
                       >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
+                        <option value="ROLE_TEACHER">Giáo Viên (Teacher)</option>
+                        <option value="ROLE_PARENT">Phụ Huynh (Parent)</option>
+                      </select>
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="confirmPassword" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
-                      Xác nhận mật khẩu
+                    <Label htmlFor="additionalInfo" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
+                      Thông tin thêm (Trường học, Số điện thoại...)
                     </Label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                        <Lock className="w-4 h-4" />
+                      <div className="absolute top-3 left-3 pointer-events-none text-slate-400">
+                        <Info className="w-4 h-4" />
                       </div>
-                      <Input
-                        id="confirmPassword"
-                        type={showConfirmPassword ? "text" : "password"}
-                        placeholder="Xác nhận lại mật khẩu..."
-                        value={formData.confirmPassword}
-                        onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                        required
-                        className="bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:ring-blue-100 pl-10 pr-10"
+                      <textarea
+                        id="additionalInfo"
+                        placeholder="Trường lớp công tác hoặc thông tin liên quan giúp ban quản trị phê duyệt nhanh hơn..."
+                        value={additionalInfo}
+                        onChange={(e) => setAdditionalInfo(e.target.value)}
+                        className="flex min-h-[90px] w-full rounded-md border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 pl-10 pr-3 py-2 text-sm focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-100"
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
-                      >
-                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
                     </div>
-                  </div>
-
-                  <div className="text-[10px] text-slate-450 leading-relaxed bg-slate-50 border border-slate-100 p-2.5 rounded-lg space-y-0.5">
-                    <p>📌 Mật khẩu bao gồm: 8-32 ký tự, ít nhất 1 chữ hoa, 1 chữ thường, 1 chữ số và 1 ký tự đặc biệt.</p>
                   </div>
 
                   <Button
                     type="submit"
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition-all shadow-md shadow-blue-500/10 cursor-pointer"
                   >
-                    Đăng Ký Tài Khoản <ArrowRight className="w-4 h-4 ml-2" />
+                    Gửi Yêu Cầu <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </form>
 
                 {/* Sub routing services */}
                 <div className="pt-4 border-t border-slate-100 text-center">
-                  <div className="text-sm text-slate-500">
-                    Đã có tài khoản?{" "}
-                    <Link to="/login" className="text-blue-600 font-bold hover:text-blue-500 hover:underline">
-                      Đăng nhập ngay
-                    </Link>
-                  </div>
+                  <Link to="/login" className="text-slate-500 hover:text-slate-700 text-sm inline-flex items-center gap-1.5 transition-colors">
+                    <ArrowLeft className="w-4 h-4" /> Quay lại đăng nhập
+                  </Link>
                 </div>
               </motion.div>
             )}
