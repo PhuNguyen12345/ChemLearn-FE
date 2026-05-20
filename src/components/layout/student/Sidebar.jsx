@@ -9,35 +9,46 @@ import {
   LayoutDashboard,
   Users,
   Sparkles,
+  Map,
+  Swords,
   ChevronLeft,
+  ClipboardList
 } from 'lucide-react';
+import { useStudentStore } from '../../../stores/useStudentStore';
 import { useSidebarStore } from '../../../stores/useSidebarStore';
 
 const navItems = [
-  { name: 'Dashboard',   icon: LayoutDashboard, path: '/student/home', id: 'dashboard' },
-  { name: 'Study Zone',  icon: BookOpen,        path: '/student/home', id: 'studyZone' },
-  { name: 'Virtual Lab', icon: Microscope,      path: '/student/home', id: 'labDashboard' },
-  { name: 'Missions',    icon: Target,          path: '/student/missions', id: 'missions' },
-  { name: 'Leaderboard', icon: Trophy,          path: '/student/leaderboard', id: 'leaderboard' },
-  { name: 'Classes',     icon: Users,           path: '/student/classes', id: 'classes' },
+  { name: 'Dashboard',   icon: LayoutDashboard, path: '/student/home', id: 'dashboard', emoji: '🏠' },
+  { name: 'Progress Map',icon: Map,             path: '/student/home', id: 'progressMap', emoji: '🗺️' },
+  { name: 'Study Zone',  icon: BookOpen,        path: '/student/home', id: 'studyZone', emoji: '📚' },
+  { name: 'Virtual Lab', icon: Microscope,      path: '/student/home', id: 'labDashboard', emoji: '🧪' },
+  { name: 'Missions',    icon: Target,          path: '/student/missions', id: 'missions', emoji: '🎯' },
+  { name: 'Quizzes',     icon: ClipboardList,   path: '/student/quiz', id: 'quizzes', emoji: '❓' },
+  { name: 'PVP Battle',  icon: Swords,          path: '/student/pvp', id: 'pvp', emoji: '⚔️' },
+  { name: 'Leaderboard', icon: Trophy,          path: '/student/leaderboard', id: 'leaderboard', emoji: '🏆' },
+  { name: 'Classes',     icon: Users,           path: '/student/classes', id: 'classes', emoji: '👥' },
 ];
 
 /* Colour accent per nav item for its active state */
 const itemAccent = {
-  dashboard:    { bg: 'bg-indigo-500',  border: 'border-b-indigo-700',  shadow: 'shadow-indigo-300/40'  },
-  studyZone:    { bg: 'bg-sky-500',     border: 'border-b-sky-700',     shadow: 'shadow-sky-300/40'     },
-  labDashboard: { bg: 'bg-purple-500',  border: 'border-b-purple-700',  shadow: 'shadow-purple-300/40'  },
-  missions:     { bg: 'bg-orange-500',  border: 'border-b-orange-700',  shadow: 'shadow-orange-300/40'  },
-  leaderboard:  { bg: 'bg-amber-500',   border: 'border-b-amber-700',   shadow: 'shadow-amber-300/40'   },
-  classes:      { bg: 'bg-indigo-600',  border: 'border-b-indigo-800',  shadow: 'shadow-indigo-300/40'  },
+  dashboard: { bg: 'bg-indigo-500', border: 'border-b-indigo-700', shadow: 'shadow-indigo-300/40' },
+  progressMap: { bg: 'bg-cyan-500', border: 'border-b-cyan-700', shadow: 'shadow-cyan-300/40' },
+  studyZone: { bg: 'bg-sky-500', border: 'border-b-sky-700', shadow: 'shadow-sky-300/40' },
+  labDashboard: { bg: 'bg-purple-500', border: 'border-b-purple-700', shadow: 'shadow-purple-300/40' },
+  missions: { bg: 'bg-orange-500', border: 'border-b-orange-700', shadow: 'shadow-orange-300/40' },
+  leaderboard: { bg: 'bg-amber-500', border: 'border-b-amber-700', shadow: 'shadow-amber-300/40' },
+  profile: { bg: 'bg-pink-500', border: 'border-b-pink-700', shadow: 'shadow-pink-300/40' },
+  pvp: { bg: 'bg-rose-600', border: 'border-b-rose-800', shadow: 'shadow-rose-300/40' },
+  classes: { bg: 'bg-indigo-600', border: 'border-b-indigo-800', shadow: 'shadow-indigo-300/40' },
 };
 
 const Sidebar = ({ className = '', activeTab, setActiveTab }) => {
-  const navigate  = useNavigate();
-  const location  = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { experience, level } = useStudentStore();
   const { isCollapsed, toggleSidebar } = useSidebarStore();
 
-  const homeTabIds = ['dashboard', 'studyZone', 'labDashboard'];
+  const homeTabIds = ['dashboard', 'studyZone', 'labDashboard', 'profile', 'progressMap', 'pvp'];
 
   const handleNavClick = (e, item) => {
     if (homeTabIds.includes(item.id)) {
@@ -48,8 +59,7 @@ const Sidebar = ({ className = '', activeTab, setActiveTab }) => {
   };
 
   const handleLogoClick = () => {
-    if (location.pathname !== '/student/home') navigate('/student/home');
-    if (setActiveTab) setActiveTab('dashboard');
+    navigate('/student/home');
   };
 
   return (
@@ -63,7 +73,7 @@ const Sidebar = ({ className = '', activeTab, setActiveTab }) => {
         <div className="p-1.5 bg-indigo-500 rounded-xl shadow-md shadow-indigo-300/50 group-hover:scale-110 transition-transform shrink-0">
           <FlaskConical className="w-5 h-5 text-white" />
         </div>
-        
+
         {!isCollapsed && (
           <>
             <span className="text-xl font-black tracking-tight text-slate-800">
@@ -86,11 +96,10 @@ const Sidebar = ({ className = '', activeTab, setActiveTab }) => {
       {/* ── Navigation ── */}
       <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-1.5">
         {navItems.map((item) => {
-          const isTabActive = location.pathname === '/student/home' && homeTabIds.includes(item.id) && activeTab === item.id;
-          const isClassesRouteActive = item.id === 'classes' && (location.pathname === '/student/classes' || location.pathname.startsWith('/student/class/'));
-          const isRouteActive = item.id !== 'classes' && !homeTabIds.includes(item.id) && location.pathname === item.path;
-          const isActive      = isTabActive || isClassesRouteActive || isRouteActive;
-          const accent        = itemAccent[item.id] ?? itemAccent.dashboard;
+          const isTabActive = location.pathname === '/student/home' && activeTab === item.id;
+          const isRouteActive = location.pathname === item.path && !['dashboard', 'studyZone', 'labDashboard', 'quizzes', "classes"].includes(item.id);
+          const isActive = isTabActive || isRouteActive;
+          const accent = itemAccent[item.id] ?? itemAccent.dashboard;
 
           return (
             <NavLink
@@ -137,13 +146,13 @@ const Sidebar = ({ className = '', activeTab, setActiveTab }) => {
               <p className="text-[10px] font-black uppercase tracking-widest text-indigo-200 mb-1">⚡ Your Progress</p>
               {/* XP bar */}
               <div className="h-2.5 w-full bg-white/20 rounded-full overflow-hidden mb-1.5">
-                <div className="h-full bg-yellow-300 rounded-full" style={{ width: '82%' }}>
+                <div className="h-full bg-yellow-300 rounded-full" style={{ width: `${(experience % 1000) / 10}%` }}>
                   <div className="h-full w-full bg-white/20 rounded-full" />
                 </div>
               </div>
               <div className="flex justify-between text-[11px] font-black">
-                <span>2,450 XP</span>
-                <span className="text-indigo-200">Lv.8 → 3,000</span>
+                <span>{experience.toLocaleString()} XP</span>
+                <span className="text-indigo-200">Lv.{level + 1} → {level * 1000}</span>
               </div>
             </>
           )}

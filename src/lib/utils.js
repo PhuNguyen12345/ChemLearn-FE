@@ -24,3 +24,32 @@ export function instantToDatetimeLocal(value) {
   const minutes = pad(parsed.getMinutes());
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
+
+export function formatRelativeTime(isoString, prefix = "Đã sửa") {
+  if (!isoString) return "";
+  
+  const parsed = new Date(isoString);
+  if (Number.isNaN(parsed.getTime())) return "";
+
+  const timeMs = parsed.getTime();
+  const deltaMs = timeMs - Date.now();
+  const deltaSeconds = Math.round(deltaMs / 1000);
+  const deltaMinutes = Math.round(deltaSeconds / 60);
+  const deltaHours = Math.round(deltaMinutes / 60);
+  const deltaDays = Math.round(deltaHours / 24);
+
+  const rtf = new Intl.RelativeTimeFormat('vi', { numeric: 'auto' });
+
+  let timeString = '';
+  if (Math.abs(deltaDays) >= 1) {
+    timeString = rtf.format(deltaDays, 'day');
+  } else if (Math.abs(deltaHours) >= 1) {
+    timeString = rtf.format(deltaHours, 'hour');
+  } else if (Math.abs(deltaMinutes) >= 1) {
+    timeString = rtf.format(deltaMinutes, 'minute');
+  } else {
+    return prefix ? `${prefix} vừa xong` : 'vừa xong';
+  }
+  
+  return prefix ? `${prefix} ${timeString}` : timeString;
+}

@@ -16,6 +16,8 @@ import {
   ChevronRight,
 } from 'lucide-react';
 
+import { getProgressMap, loginStudent, getGamificationProfile, logDailyActivity, getDailyQuests } from '../../api/studentApi';
+
 /* ─────────────────────────────────────────────
    Reusable: Neon XP / HP progress bar
 ───────────────────────────────────────────── */
@@ -46,7 +48,25 @@ const XPPill = ({ label }) => (
 const StudentHome = () => {
   const context = useOutletContext();
   const setActiveTab = context?.setActiveTab;
-  const { coins } = useStudentStore();
+  const { coins, experience, level, currentStreak, setGamificationProfile } = useStudentStore();
+  const [dailyQuests, setDailyQuests] = React.useState([]);
+
+  React.useEffect(() => {
+    const initData = async () => {
+      try {
+        // Log activity and fetch gamification data
+        await logDailyActivity();
+        const profile = await getGamificationProfile();
+        setGamificationProfile(profile);
+        
+        const quests = await getDailyQuests();
+        setDailyQuests(quests.slice(0, 3)); // Display up to 3 quests on home
+      } catch (error) {
+        console.error("Failed to fetch gamification data:", error);
+      }
+    };
+    initData();
+  }, []);
 
   return (
     <div className="space-y-8 pb-12 select-none">
@@ -97,10 +117,10 @@ const StudentHome = () => {
             {/* Level badge */}
             <div className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-black tracking-widest uppercase border border-white/30 mb-1">
               <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
-              Level 7 · Apprentice Chemist
+              Level {level} · Chemist
             </div>
             <h1 className="text-3xl md:text-4xl font-black tracking-tight drop-shadow-sm">
-              Welcome back, Alex! 🎉
+              Welcome back! 🎉
             </h1>
             <p className="text-purple-100 text-base md:text-lg font-semibold opacity-90 max-w-xl">
               You're on fire! 🔥 Keep the streak going and earn bonus XP today.
@@ -116,11 +136,11 @@ const StudentHome = () => {
         {/* XP progress toward next level */}
         <div className="relative z-10 mt-6 space-y-1.5">
           <div className="flex justify-between text-xs font-black text-purple-100 uppercase tracking-wider">
-            <span>Progress to Level 8</span>
-            <span>2,450 / 3,000 XP</span>
+            <span>Progress to Level {level + 1}</span>
+            <span>{experience} XP</span>
           </div>
           <div className="h-4 w-full bg-white/20 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-yellow-300 to-yellow-400 rounded-full relative overflow-hidden" style={{ width: '82%' }}>
+            <div className="h-full bg-gradient-to-r from-yellow-300 to-yellow-400 rounded-full relative overflow-hidden" style={{ width: `${(experience % 1000) / 10}%` }}>
               <div className="absolute top-0 left-0 w-full h-1/2 bg-white/30 rounded-full" />
             </div>
           </div>
@@ -139,7 +159,7 @@ const StudentHome = () => {
           </div>
           <div>
             <p className="text-xs font-black text-orange-500 uppercase tracking-widest">Daily Streak</p>
-            <h3 className="text-2xl font-black text-slate-800">5 Days 🔥</h3>
+            <h3 className="text-2xl font-black text-slate-800">{currentStreak} Days 🔥</h3>
           </div>
         </div>
 
@@ -150,7 +170,7 @@ const StudentHome = () => {
           </div>
           <div>
             <p className="text-xs font-black text-yellow-600 uppercase tracking-widest">Total EXP</p>
-            <h3 className="text-2xl font-black text-slate-800">2,450 XP ⚡</h3>
+            <h3 className="text-2xl font-black text-slate-800">{experience} XP ⚡</h3>
           </div>
         </div>
 
@@ -161,7 +181,9 @@ const StudentHome = () => {
           </div>
           <div>
             <p className="text-xs font-black text-indigo-500 uppercase tracking-widest">Current Rank</p>
-            <h3 className="text-lg font-black text-slate-800">🥉 Bronze Alchemist</h3>
+            <h3 className="text-lg font-black text-slate-800">
+              {level >= 10 ? '🥇 Gold Alchemist' : level >= 7 ? '🥈 Silver Alchemist' : level >= 4 ? '🥉 Bronze Alchemist' : '🌱 Novice Chemist'}
+            </h3>
           </div>
         </div>
 
@@ -282,56 +304,35 @@ const StudentHome = () => {
           {/* Quest list */}
           <div className="p-6 space-y-6">
 
-            {/* Quest 1 — Complete a Quiz */}
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
-                    <HelpCircle className="w-4.5 h-4.5 text-emerald-600" />
-                  </div>
-                  <span className="font-black text-slate-700 text-sm truncate">Complete 1 Quiz</span>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <XPPill label="+50 XP" />
-                  <span className="text-slate-400 font-black text-xs bg-slate-100 px-2 py-0.5 rounded-lg">0/1</span>
-                </div>
-              </div>
-              <XPBar fill="5%" color="bg-emerald-400" />
-            </div>
+            {dailyQuests.map((quest, index) => {
+              const Icon = quest.actionType === 'DO_LAB' ? Beaker : 
+                           quest.actionType === 'LEARN_LESSON' ? BookOpen : 
+                           quest.actionType === 'LOGIN' ? Clock : 
+                           quest.actionType === 'FEED_PET' ? Star : 
+                           Flame;
+              const colorClass = index % 3 === 0 ? 'emerald' : index % 3 === 1 ? 'blue' : 'pink';
+              const fillPct = Math.round((quest.currentProgress / quest.targetValue) * 100);
 
-            {/* Quest 2 — Lab Time */}
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
-                    <Beaker className="w-4.5 h-4.5 text-blue-600" />
+              return (
+                <div key={quest.id} className="space-y-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className={`w-9 h-9 rounded-xl bg-${colorClass}-100 flex items-center justify-center shrink-0`}>
+                        <Icon className={`w-4.5 h-4.5 text-${colorClass}-600`} />
+                      </div>
+                      <span className="font-black text-slate-700 text-sm truncate">{quest.title}</span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <XPPill label={`+${quest.rewardXp} XP`} />
+                      <span className={`text-${colorClass}-600 font-black text-xs bg-${colorClass}-50 px-2 py-0.5 rounded-lg`}>
+                        {quest.currentProgress}/{quest.targetValue}
+                      </span>
+                    </div>
                   </div>
-                  <span className="font-black text-slate-700 text-sm truncate">30 mins in Lab</span>
+                  <XPBar fill={`${fillPct}%`} color={`bg-${colorClass}-400`} />
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <XPPill label="+80 XP" />
-                  <span className="text-blue-600 font-black text-xs bg-blue-50 px-2 py-0.5 rounded-lg">15/30</span>
-                </div>
-              </div>
-              <XPBar fill="50%" color="bg-blue-500" />
-            </div>
-
-            {/* Quest 3 — Read a Lesson */}
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-9 h-9 rounded-xl bg-pink-100 flex items-center justify-center shrink-0">
-                    <BookOpen className="w-4.5 h-4.5 text-pink-600" />
-                  </div>
-                  <span className="font-black text-slate-700 text-sm truncate">Read 1 Lesson</span>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <XPPill label="+30 XP" />
-                  <span className="text-pink-600 font-black text-xs bg-pink-50 px-2 py-0.5 rounded-lg">1/1</span>
-                </div>
-              </div>
-              <XPBar fill="100%" color="bg-gradient-to-r from-pink-400 to-rose-400" />
-            </div>
+              );
+            })}
 
           </div>
         </div>

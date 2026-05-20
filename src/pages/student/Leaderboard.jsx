@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Trophy,
   Crown,
@@ -11,26 +11,9 @@ import {
   Medal,
   Flame,
   Users,
+  Loader2,
 } from 'lucide-react';
-
-/* ================================================================
-   MOCK DATA
-================================================================ */
-const mockLeaderboard = [
-  { id: 1,  rank: 1,  name: 'Minh Khoa',    initials: 'MK', exp: 8_420, trend: 'flat', isCurrentUser: false, avatarBg: 'bg-violet-500'  },
-  { id: 2,  rank: 2,  name: 'Linh Anh',     initials: 'LA', exp: 7_890, trend: 'up',   isCurrentUser: false, avatarBg: 'bg-pink-500'    },
-  { id: 3,  rank: 3,  name: 'Bao Nguyen',   initials: 'BN', exp: 7_310, trend: 'up',   isCurrentUser: false, avatarBg: 'bg-teal-500'    },
-  { id: 4,  rank: 4,  name: 'Thanh Van',    initials: 'TV', exp: 6_750, trend: 'down', isCurrentUser: false, avatarBg: 'bg-blue-500'    },
-  { id: 5,  rank: 5,  name: 'Alex (You)',   initials: 'ST', exp: 6_450, trend: 'up',   isCurrentUser: true,  avatarBg: 'bg-indigo-500'  },
-  { id: 6,  rank: 6,  name: 'Hoa Tran',     initials: 'HT', exp: 5_990, trend: 'flat', isCurrentUser: false, avatarBg: 'bg-emerald-500' },
-  { id: 7,  rank: 7,  name: 'Duc Manh',     initials: 'DM', exp: 5_620, trend: 'down', isCurrentUser: false, avatarBg: 'bg-orange-500'  },
-  { id: 8,  rank: 8,  name: 'Phuong Chi',   initials: 'PC', exp: 5_100, trend: 'up',   isCurrentUser: false, avatarBg: 'bg-rose-500'    },
-  { id: 9,  rank: 9,  name: 'Khai Nguyen',  initials: 'KN', exp: 4_830, trend: 'flat', isCurrentUser: false, avatarBg: 'bg-amber-500'   },
-  { id: 10, rank: 10, name: 'Thu Hương',    initials: 'TH', exp: 4_200, trend: 'down', isCurrentUser: false, avatarBg: 'bg-cyan-500'    },
-];
-
-const top3    = mockLeaderboard.slice(0, 3);
-const restOf  = mockLeaderboard.slice(3);
+import { getLeaderboard } from '../../api/studentApi';
 
 /* ================================================================
    HELPERS
@@ -77,12 +60,23 @@ const podiumConfig = {
   },
 };
 
+const getCategoryDetails = (category) => {
+  switch (category) {
+    case 'EXPERIENCE': return { icon: Zap, label: 'XP', title: 'Top Level' };
+    case 'STREAK': return { icon: Flame, label: 'Days', title: 'Longest Streak' };
+    case 'PVP_WINS': return { icon: Trophy, label: 'Wins', title: 'PVP Champions' };
+    default: return { icon: Zap, label: 'Score', title: 'Leaderboard' };
+  }
+};
+
 /* ================================================================
    SUB-COMPONENTS
 ================================================================ */
-const PodiumCard = ({ user }) => {
+const PodiumCard = ({ user, category }) => {
+  if (!user) return <div className={`w-24 md:w-28 flex flex-col items-center ${podiumConfig[1].order}`}></div>;
   const cfg = podiumConfig[user.rank];
-  const TrendIcon = trendConfig[user.trend].icon;
+  const TrendIcon = trendConfig[user.trend]?.icon || Minus;
+  const { icon: StatIcon, label: statLabel } = getCategoryDetails(category);
 
   return (
     <div className={`flex flex-col items-center gap-2 ${cfg.order}`}>
@@ -98,12 +92,12 @@ const PodiumCard = ({ user }) => {
         {user.initials}
       </div>
 
-      {/* Name + EXP */}
+      {/* Name + Score */}
       <div className="text-center space-y-0.5">
-        <p className="font-black text-slate-800 text-sm leading-tight">{user.name}</p>
+        <p className="font-black text-slate-800 text-sm leading-tight max-w-[100px] truncate">{user.name}</p>
         <p className={`text-xs font-black ${cfg.expColor} flex items-center justify-center gap-0.5`}>
-          <Zap className="w-3 h-3" />
-          {user.exp.toLocaleString()} XP
+          <StatIcon className="w-3 h-3" />
+          {user.exp.toLocaleString()} {statLabel}
         </p>
         {/* Trend */}
         <div className={`inline-flex items-center gap-0.5 text-[10px] font-black px-1.5 py-0.5 rounded-full ${trendConfig[user.trend].bg} ${trendConfig[user.trend].color}`}>
@@ -124,7 +118,44 @@ const PodiumCard = ({ user }) => {
    MAIN COMPONENT
 ================================================================ */
 const Leaderboard = () => {
-  const [filter, setFilter] = useState('weekly');
+  const [category, setCategory] = useState('EXPERIENCE');
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        setLoading(true);
+        const res = await getLeaderboard(category, 50);
+        setData(res);
+      } catch (err) {
+        console.error('Error fetching leaderboard:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLeaderboard();
+  }, [category]);
+
+  if (loading && !data) {
+    return (
+      <div className="min-h-full w-full flex items-center justify-center bg-slate-50">
+        <Loader2 className="w-10 h-10 text-indigo-500 animate-spin" />
+      </div>
+    );
+  }
+
+  const topStudents = data?.topStudents || [];
+  const currentUser = data?.currentUser;
+  const top3 = topStudents.slice(0, 3);
+  const restOf = topStudents.slice(3);
+  const { icon: StatIcon, label: statLabel, title } = getCategoryDetails(category);
+
+  // For the motivation footer
+  const userRank = currentUser?.rank || 0;
+  const userScore = currentUser?.exp || 0;
+  const nextRankScore = userRank > 1 && topStudents[userRank - 2] ? topStudents[userRank - 2].exp : userScore;
+  const scoreDiff = nextRankScore - userScore;
 
   return (
     <div className="min-h-full w-full bg-slate-50 overflow-y-auto pb-12">
@@ -133,11 +164,8 @@ const Leaderboard = () => {
           BANNER HEADER
       ════════════════════════════════════════════════ */}
       <div className="m-4 md:m-6 rounded-[2rem] bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 p-7 md:p-10 relative overflow-hidden shadow-2xl shadow-indigo-500/30">
-        {/* Blobs */}
         <div className="absolute -top-12 -right-12 w-56 h-56 bg-white/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-10 -left-8 w-44 h-44 bg-violet-400/20 rounded-full blur-2xl pointer-events-none" />
-
-        {/* Floating icons */}
         <div className="absolute top-5 right-28 animate-bounce" style={{ animationDuration: '2.6s' }}>
           <Trophy className="w-7 h-7 text-amber-300 fill-amber-300/40" />
         </div>
@@ -159,27 +187,30 @@ const Leaderboard = () => {
           </div>
 
           <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight drop-shadow-sm">
-            Weekly Leaderboard 🏆
+            ChemLearn Leaderboard 🏆
           </h1>
           <p className="text-indigo-200 mt-1.5 font-semibold text-base flex items-center gap-2">
             <Medal className="w-4 h-4 text-amber-300" />
-            Bronze Alchemist League · Ends in 2 days
+            Daily Updated Rankings
           </p>
 
-          {/* Quick stats */}
           <div className="flex flex-wrap gap-3 mt-5">
             <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl px-4 py-2">
               <Users className="w-4 h-4 text-indigo-200" />
-              <span className="text-white font-black text-sm">{mockLeaderboard.length} Students Competing</span>
+              <span className="text-white font-black text-sm">{data?.totalStudents || 0} Students</span>
             </div>
-            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl px-4 py-2">
-              <Star className="w-4 h-4 text-amber-300 fill-amber-300/60" />
-              <span className="text-white font-black text-sm">You're Rank #5</span>
-            </div>
-            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl px-4 py-2">
-              <Flame className="w-4 h-4 text-orange-300 fill-orange-300/40" />
-              <span className="text-white font-black text-sm">1,970 XP behind #1</span>
-            </div>
+            {currentUser && (
+              <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl px-4 py-2">
+                <Star className="w-4 h-4 text-amber-300 fill-amber-300/60" />
+                <span className="text-white font-black text-sm">You're Rank #{currentUser.rank}</span>
+              </div>
+            )}
+            {scoreDiff > 0 && currentUser && (
+              <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl px-4 py-2">
+                <Flame className="w-4 h-4 text-orange-300 fill-orange-300/40" />
+                <span className="text-white font-black text-sm">{scoreDiff} {statLabel} behind #{currentUser.rank - 1}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -188,149 +219,148 @@ const Leaderboard = () => {
 
         {/* ── Filter pills ── */}
         <div className="flex gap-2 flex-wrap">
-          {['weekly', 'monthly', 'all-time'].map((f) => (
+          {[
+            { id: 'EXPERIENCE', name: 'Thợ Săn XP' },
+            { id: 'STREAK', name: 'Chuỗi Ngày Học' },
+            { id: 'PVP_WINS', name: 'Chiến Thần PVP' }
+          ].map((f) => (
             <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-wider border-b-[3px] transition-all duration-150 capitalize
-                ${filter === f
+              key={f.id}
+              onClick={() => setCategory(f.id)}
+              className={`px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-wider border-b-[3px] transition-all duration-150
+                ${category === f.id
                   ? 'bg-indigo-500 text-white border-indigo-700 shadow-md shadow-indigo-200'
                   : 'bg-white text-slate-500 border-slate-200 hover:bg-indigo-50 hover:text-indigo-600 hover:-translate-y-0.5 hover:shadow-sm'}
               `}
             >
-              {f.replace('-', ' ')}
+              {f.name}
             </button>
           ))}
         </div>
 
-        {/* ════════════════════════════════════════════════
-            TOP 3 PODIUM
-        ════════════════════════════════════════════════ */}
-        <section>
-          <div className="flex items-center gap-2 mb-6">
-            <div className="p-2 bg-amber-500 rounded-xl shadow-md shadow-amber-300/40">
-              <Crown className="w-4 h-4 text-white" />
-            </div>
-            <h2 className="text-xl font-black text-slate-800">Top Champions</h2>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
           </div>
-
-          {/* Podium stage */}
-          <div className="bg-white rounded-3xl border-2 border-slate-100 border-b-[6px] border-b-slate-200 shadow-sm overflow-hidden">
-            {/* Stars bg decoration */}
-            <div className="relative flex items-end justify-center gap-4 md:gap-8 pt-10 pb-0 px-4 bg-gradient-to-b from-indigo-50/60 to-white overflow-hidden min-h-[260px] md:min-h-[320px]">
-              {/* Decorative confetti-like dots */}
-              {['top-8 left-8', 'top-12 left-1/4', 'top-6 right-1/4', 'top-10 right-8'].map((pos, i) => (
-                <div key={i} className={`absolute ${pos} w-3 h-3 rounded-full opacity-40 ${['bg-amber-400','bg-indigo-400','bg-pink-400','bg-emerald-400'][i]}`} />
-              ))}
-
-              {/* Render: 2, 1, 3 in DOM (left, center, right) via order- classes */}
-              {[top3[1], top3[0], top3[2]].map((user) => (
-                <PodiumCard key={user.id} user={user} />
-              ))}
-            </div>
-
-            {/* Stage floor label */}
-            <div className="bg-slate-800 py-2 text-center">
-              <span className="text-slate-400 text-[11px] font-black uppercase tracking-widest">
-                🏟️ Champions Stage
-              </span>
-            </div>
-          </div>
-        </section>
-
-        {/* ════════════════════════════════════════════════
-            RANKING LIST (Ranks 4+)
-        ════════════════════════════════════════════════ */}
-        <section>
-          <div className="flex items-center gap-2 mb-4">
-            <div className="p-2 bg-indigo-500 rounded-xl shadow-md shadow-indigo-300/40">
-              <Users className="w-4 h-4 text-white" />
-            </div>
-            <h2 className="text-xl font-black text-slate-800">Full Rankings</h2>
-          </div>
-
-          <div className="space-y-2.5">
-            {restOf.map((user) => {
-              const cfg        = trendConfig[user.trend];
-              const TrendIcon  = cfg.icon;
-
-              return (
-                <div
-                  key={user.id}
-                  className={`group flex items-center gap-3 md:gap-4 p-3.5 rounded-2xl border-2 transition-all duration-200
-                    ${user.isCurrentUser
-                      ? 'bg-indigo-50 border-indigo-400 border-b-[5px] border-b-indigo-500 shadow-md shadow-indigo-100/60'
-                      : 'bg-white border-slate-100 border-b-[4px] border-b-slate-200 hover:-translate-y-1 hover:shadow-md hover:border-indigo-100 hover:border-b-indigo-200'
-                    }
-                  `}
-                >
-                  {/* Rank number */}
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm shrink-0
-                    ${user.isCurrentUser
-                      ? 'bg-indigo-500 text-white shadow-md shadow-indigo-300/50'
-                      : 'bg-slate-100 text-slate-500'}
-                  `}>
-                    #{user.rank}
+        ) : (
+          <>
+            {/* ════════════════════════════════════════════════
+                TOP 3 PODIUM
+            ════════════════════════════════════════════════ */}
+            {top3.length > 0 && (
+              <section>
+                <div className="flex items-center gap-2 mb-6">
+                  <div className="p-2 bg-amber-500 rounded-xl shadow-md shadow-amber-300/40">
+                    <Crown className="w-4 h-4 text-white" />
                   </div>
+                  <h2 className="text-xl font-black text-slate-800">{title}</h2>
+                </div>
 
-                  {/* Avatar circle */}
-                  <div className={`w-10 h-10 rounded-full ${user.avatarBg} flex items-center justify-center font-black text-white text-xs shrink-0 shadow-sm
-                    ${user.isCurrentUser ? 'ring-2 ring-indigo-400 ring-offset-1' : ''}
-                  `}>
-                    {user.initials}
+                <div className="bg-white rounded-3xl border-2 border-slate-100 border-b-[6px] border-b-slate-200 shadow-sm overflow-hidden">
+                  <div className="relative flex items-end justify-center gap-4 md:gap-8 pt-10 pb-0 px-4 bg-gradient-to-b from-indigo-50/60 to-white overflow-hidden min-h-[260px] md:min-h-[320px]">
+                    {['top-8 left-8', 'top-12 left-1/4', 'top-6 right-1/4', 'top-10 right-8'].map((pos, i) => (
+                      <div key={i} className={`absolute ${pos} w-3 h-3 rounded-full opacity-40 ${['bg-amber-400','bg-indigo-400','bg-pink-400','bg-emerald-400'][i]}`} />
+                    ))}
+                    {[top3[1], top3[0], top3[2]].map((user, idx) => (
+                      <PodiumCard key={user?.id || idx} user={user} category={category} />
+                    ))}
                   </div>
-
-                  {/* Name */}
-                  <div className="flex-1 min-w-0">
-                    <p className={`font-black text-sm truncate
-                      ${user.isCurrentUser ? 'text-indigo-700' : 'text-slate-800'}
-                    `}>
-                      {user.name}
-                      {user.isCurrentUser && (
-                        <span className="ml-2 text-[10px] font-black text-indigo-500 bg-indigo-100 border border-indigo-200 px-1.5 py-0.5 rounded-full">YOU</span>
-                      )}
-                    </p>
-                    <p className={`text-[11px] font-semibold ${user.isCurrentUser ? 'text-indigo-400' : 'text-slate-400'}`}>
-                      Bronze Alchemist
-                    </p>
-                  </div>
-
-                  {/* Trend indicator */}
-                  <div className={`hidden sm:flex items-center gap-1 px-2 py-1 rounded-xl text-xs font-black ${cfg.bg} ${cfg.color} shrink-0`}>
-                    <TrendIcon className="w-3.5 h-3.5" />
-                    <span>{user.trend === 'up' ? '+2' : user.trend === 'down' ? '-1' : '—'}</span>
-                  </div>
-
-                  {/* EXP */}
-                  <div className={`flex items-center gap-1 font-black text-sm shrink-0
-                    ${user.isCurrentUser ? 'text-indigo-600' : 'text-slate-700'}
-                  `}>
-                    <Zap className={`w-3.5 h-3.5 ${user.isCurrentUser ? 'text-indigo-400' : 'text-amber-400'}`} />
-                    {user.exp.toLocaleString()}
-                    <span className={`text-[11px] font-bold ${user.isCurrentUser ? 'text-indigo-300' : 'text-slate-400'}`}>XP</span>
+                  <div className="bg-slate-800 py-2 text-center">
+                    <span className="text-slate-400 text-[11px] font-black uppercase tracking-widest">
+                      🏟️ Champions Stage
+                    </span>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </section>
+              </section>
+            )}
 
-        {/* ── Motivational footer nudge ── */}
-        <div className="rounded-3xl bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-center shadow-xl shadow-indigo-300/30">
-          <p className="text-white font-black text-lg mb-1">⚡ Keep it up, Alex!</p>
-          <p className="text-indigo-100 font-semibold text-sm">
-            You're only <span className="text-yellow-300 font-black">300 XP</span> behind Rank #4. Complete today's quests to climb!
-          </p>
-          <div className="mt-4 h-3 w-full max-w-xs mx-auto bg-white/20 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-yellow-300 to-amber-400 rounded-full" style={{ width: '94%' }}>
-              <div className="h-full w-full bg-white/20 rounded-full" />
-            </div>
-          </div>
-          <p className="text-indigo-200 text-[11px] font-black mt-1.5 uppercase tracking-wider">
-            6,450 / 6,750 XP to next rank
-          </p>
-        </div>
+            {/* ════════════════════════════════════════════════
+                RANKING LIST (Ranks 4+)
+            ════════════════════════════════════════════════ */}
+            {restOf.length > 0 && (
+              <section>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="p-2 bg-indigo-500 rounded-xl shadow-md shadow-indigo-300/40">
+                    <Users className="w-4 h-4 text-white" />
+                  </div>
+                  <h2 className="text-xl font-black text-slate-800">Full Rankings</h2>
+                </div>
 
+                <div className="space-y-2.5">
+                  {restOf.map((user) => {
+                    const cfg        = trendConfig[user.trend];
+                    const TrendIcon  = cfg.icon;
+
+                    return (
+                      <div
+                        key={user.studentId}
+                        className={`group flex items-center gap-3 md:gap-4 p-3.5 rounded-2xl border-2 transition-all duration-200
+                          ${user.isCurrentUser
+                            ? 'bg-indigo-50 border-indigo-400 border-b-[5px] border-b-indigo-500 shadow-md shadow-indigo-100/60'
+                            : 'bg-white border-slate-100 border-b-[4px] border-b-slate-200 hover:-translate-y-1 hover:shadow-md hover:border-indigo-100 hover:border-b-indigo-200'
+                          }
+                        `}
+                      >
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm shrink-0
+                          ${user.isCurrentUser ? 'bg-indigo-500 text-white shadow-md shadow-indigo-300/50' : 'bg-slate-100 text-slate-500'}
+                        `}>
+                          #{user.rank}
+                        </div>
+
+                        <div className={`w-10 h-10 rounded-full ${user.avatarBg} flex items-center justify-center font-black text-white text-xs shrink-0 shadow-sm
+                          ${user.isCurrentUser ? 'ring-2 ring-indigo-400 ring-offset-1' : ''}
+                        `}>
+                          {user.initials}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <p className={`font-black text-sm truncate ${user.isCurrentUser ? 'text-indigo-700' : 'text-slate-800'}`}>
+                            {user.name}
+                            {user.isCurrentUser && (
+                              <span className="ml-2 text-[10px] font-black text-indigo-500 bg-indigo-100 border border-indigo-200 px-1.5 py-0.5 rounded-full">YOU</span>
+                            )}
+                          </p>
+                          <p className={`text-[11px] font-semibold ${user.isCurrentUser ? 'text-indigo-400' : 'text-slate-400'}`}>
+                            Student
+                          </p>
+                        </div>
+
+                        <div className={`hidden sm:flex items-center gap-1 px-2 py-1 rounded-xl text-xs font-black ${cfg.bg} ${cfg.color} shrink-0`}>
+                          <TrendIcon className="w-3.5 h-3.5" />
+                          <span>{user.trend === 'up' ? '+2' : user.trend === 'down' ? '-1' : '—'}</span>
+                        </div>
+
+                        <div className={`flex items-center gap-1 font-black text-sm shrink-0 ${user.isCurrentUser ? 'text-indigo-600' : 'text-slate-700'}`}>
+                          <StatIcon className={`w-3.5 h-3.5 ${user.isCurrentUser ? 'text-indigo-400' : 'text-amber-400'}`} />
+                          {user.exp.toLocaleString()}
+                          <span className={`text-[11px] font-bold ${user.isCurrentUser ? 'text-indigo-300' : 'text-slate-400'}`}>{statLabel}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* ── Motivational footer nudge ── */}
+            {currentUser && scoreDiff > 0 && (
+              <div className="rounded-3xl bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-center shadow-xl shadow-indigo-300/30">
+                <p className="text-white font-black text-lg mb-1">⚡ Keep it up, {currentUser.initials}!</p>
+                <p className="text-indigo-100 font-semibold text-sm">
+                  You're only <span className="text-yellow-300 font-black">{scoreDiff} {statLabel}</span> behind Rank #{currentUser.rank - 1}.
+                </p>
+                <div className="mt-4 h-3 w-full max-w-xs mx-auto bg-white/20 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-yellow-300 to-amber-400 rounded-full" style={{ width: `${Math.max(10, (userScore / nextRankScore) * 100)}%` }}>
+                    <div className="h-full w-full bg-white/20 rounded-full" />
+                  </div>
+                </div>
+                <p className="text-indigo-200 text-[11px] font-black mt-1.5 uppercase tracking-wider">
+                  {userScore.toLocaleString()} / {nextRankScore.toLocaleString()} {statLabel} to next rank
+                </p>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

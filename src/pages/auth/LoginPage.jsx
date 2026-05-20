@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Lock, 
@@ -138,6 +138,7 @@ export default function LoginPage() {
   const [copiedText, setCopiedText] = useState('');
 
   const navigate = useNavigate();
+  const location = useLocation();
   const login = useAuthStore((state) => state.login);
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -223,6 +224,9 @@ export default function LoginPage() {
     document.body.appendChild(script);
   }, [googleClientId]);
 
+  // returnTo is set when redirected from ConfirmLinkPage
+  const returnTo = location.state?.returnTo;
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
@@ -236,6 +240,12 @@ export default function LoginPage() {
 
       const authData = response.data;
       login(authData);
+
+      // If we came from a link (e.g. confirm-link), go back there
+      if (returnTo) {
+        navigate(returnTo);
+        return;
+      }
 
       switch (authData.role) {
         case 'ROLE_STUDENT':

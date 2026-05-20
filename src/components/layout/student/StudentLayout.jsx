@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import Footer from '../shared/Footer';
 import StudyZone from '../../../pages/student/StudyZone';
 import LabDashboard from '../../../features/lab/components/LabDashboard';
 import LabWorkspaceHeader from '../../../features/lab/components/LabWorkspaceHeader';
-import VirtualLabPage from '../../../features/lab/VirtualLabPage'; 
+import VirtualLabPage from '../../../features/lab/VirtualLabPage';
 import FireQuizGame from '../../FireQuizGame';
 import StudentShop from '../../../pages/student/StudentShop';
 import StudentIsland from '../../../pages/student/StudentIsland';
+import StudentProfile from '../../../pages/student/StudentProfile';
+import ProgressMap from '../../../pages/student/ProgressMap';
+import PvpLobbyPage from '../../../pages/student/pvp/PvpLobbyPage';
 
 const STUDENT_HOME_TAB_KEY = 'chemlearn_student_home_tab';
 
@@ -31,9 +34,14 @@ const readStoredHomeTab = () => {
 };
 
 const StudentLayout = () => {
-  const [activeTab, setActiveTab] = useState(readStoredHomeTab);
+  const [activeTab, setActiveTabInternal] = useState(readStoredHomeTab());
+  const [previousTab, setPreviousTab] = useState(readStoredHomeTab());
   const [activeLabId, setActiveLabId] = useState(null);
-  const location = useLocation();
+
+  const setActiveTab = (tab) => {
+    setPreviousTab(activeTab);
+    setActiveTabInternal(tab);
+  };
 
   React.useEffect(() => {
     if (location.pathname === '/student/home') {
@@ -49,9 +57,9 @@ const StudentLayout = () => {
     return (
       <div className="flex h-screen w-full bg-background text-foreground overflow-hidden">
         <div className="absolute inset-0 z-50 flex flex-col bg-slate-50 h-full w-full">
-          <LabWorkspaceHeader 
-            onBack={() => { setActiveTab('labDashboard'); setActiveLabId(null); }} 
-            titleText={activeLabId === 'new' ? 'Untitled Experiment' : 'My Saved Lab'} 
+          <LabWorkspaceHeader
+            onBack={() => { setActiveTab('labDashboard'); setActiveLabId(null); }}
+            titleText={activeLabId === 'new' ? 'Untitled Experiment' : 'My Saved Lab'}
             labId={activeLabId}
           />
           <div className="flex-1 relative overflow-hidden">
@@ -66,17 +74,17 @@ const StudentLayout = () => {
     <div className="flex h-screen w-full bg-background text-foreground overflow-hidden">
       {/* Fixed Sidebar on Desktop */}
       <div className="hidden md:block h-full flex-shrink-0 z-20">
-        <Sidebar 
-          className="h-full border-r border-border" 
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab} 
+        <Sidebar
+          className="h-full border-r border-border"
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
         />
       </div>
 
       {/* Main Content Area */}
       <div className="flex flex-col flex-1 h-full min-w-0">
-        <Header />
-        
+        <Header setActiveTab={setActiveTab} />
+
         {/* Router Outlet content scrolls */}
         <main className="flex-1 overflow-x-hidden overflow-y-auto w-full bg-muted/30">
           <div className="p-4 md:p-6 lg:p-8 mx-auto max-w-7xl w-full h-full min-h-[calc(100vh-8rem)]">
@@ -87,17 +95,17 @@ const StudentLayout = () => {
                   <StudyZone />
                 )}
                 {activeTab === 'labDashboard' && (
-                  <LabDashboard 
-                    onOpenLab={(id) => { 
-                      setActiveLabId(id); 
-                      setActiveTab('labWorkspace'); 
-                    }} 
+                  <LabDashboard
+                    onOpenLab={(id) => {
+                      setActiveLabId(id);
+                      setActiveTab('labWorkspace');
+                    }}
                   />
                 )}
                 {activeTab === 'fireQuiz' && (
                   <div className="absolute inset-0 z-50">
-                    <FireQuizGame 
-                      onBack={() => setActiveTab('dashboard')} 
+                    <FireQuizGame
+                      onBack={() => setActiveTab(previousTab)}
                       onGoShop={() => setActiveTab('shop')}
                     />
                   </div>
@@ -112,13 +120,24 @@ const StudentLayout = () => {
                     <StudentIsland onBack={() => setActiveTab('dashboard')} />
                   </div>
                 )}
+                {activeTab === 'profile' && (
+                  <StudentProfile />
+                )}
+                {activeTab === 'progressMap' && (
+                  <div className="absolute inset-0 z-50 bg-[#0a0e27] flex flex-col">
+                    <ProgressMap onBack={() => setActiveTab('dashboard')} setActiveTab={setActiveTab} />
+                  </div>
+                )}
+                {activeTab === 'pvp' && (
+                  <PvpLobbyPage onBack={() => setActiveTab('dashboard')} />
+                )}
               </>
             ) : (
               <Outlet context={{ setActiveTab }} />
             )}
           </div>
         </main>
-        
+
         <Footer />
       </div>
     </div>

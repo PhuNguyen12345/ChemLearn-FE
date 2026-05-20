@@ -1,6 +1,5 @@
-
 import "./App.css";
-import { useEffect } from "react";
+import React, { useEffect, Suspense, lazy } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import StudentHome from "./pages/student/StudentHome";
 import Missions from "./pages/student/Missions";
@@ -24,9 +23,9 @@ import TeacherClassChapters from "./pages/teacher/TeacherClassChapters";
 import TeacherClassQuizzes from "./pages/teacher/TeacherClassQuizzes";
 import TeacherQuizSubmissions from "./pages/teacher/TeacherQuizSubmissions";
 import TeacherClassStudents from "./pages/teacher/TeacherClassStudents";
+import { Toaster } from "sonner";
 import LandingPage from "./pages/LandingPage";
 
-import AdminLayout from "./components/layout/admin/AdminLayout";
 import AuthLayout from "./components/layout/auth/AuthLayout";
 import Login from "./pages/auth/LoginPage";
 import Register from "./pages/auth/RegisterPage";
@@ -38,9 +37,20 @@ import AdminStudyEditPage from "./pages/admin/AdminStudyEditPage";
 import AdminClassManagement from "./pages/admin/AdminClassManagement";
 import AdminUserManagement from "./pages/admin/AdminUserManagement";
 import VirtualLabPage from "./features/lab/VirtualLabPage";
+
 import FireQuizGame from "./components/FireQuizGame";
 import ProtectedRoute from "./components/shared/ProtectedRoute";
 import useAuthStore from "./stores/useAuthStore";
+
+import ConfirmLinkPage from "./pages/shared/ConfirmLinkPage";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
+
+// Áp dụng Lazy Load cho các cụm Route theo Role
+const StudentRoutes = lazy(() => import("./routes/StudentRoutes"));
+const TeacherRoutes = lazy(() => import("./routes/TeacherRoutes"));
+const AdminRoutes = lazy(() => import("./routes/AdminRoutes"));
+const ParentRoutes = lazy(() => import("./routes/ParentRoutes"));
 
 const isJwtExpired = (token) => {
   try {
@@ -69,53 +79,136 @@ function App() {
 
   return (
     <>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/auth/login" element={<Navigate to="/login" replace />} />
-          <Route path="/auth/register" element={<Navigate to="/register" replace />} />
-          <Route path="/fire-quiz" element={<FireQuizGame />} />
+      <Toaster position="top-right" richColors />
+      <Suspense
+        fallback={
+          <div className="h-screen w-screen flex items-center justify-center bg-slate-50">
+            <div className="animate-spin w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full"></div>
+          </div>
+        }
+      >
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/confirm-link" element={<ConfirmLinkPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+          </Routes>
           <Route
-            path="/lab"
-            element={<VirtualLabPage></VirtualLabPage>}
-          ></Route>
-
-          <Route path="/student" element={<Navigate to="/student/home" replace />} />
-          <Route path="/parent" element={<Navigate to="/parent/dashboard" replace />} />
-          <Route path="/teacher" element={<Navigate to="/teacher/dashboard" replace />} />
-          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+            path="/student"
+            element={<Navigate to="/student/home" replace />}
+          />
+          <Route
+            path="/parent"
+            element={<Navigate to="/parent/dashboard" replace />}
+          />
+          <Route
+            path="/teacher"
+            element={<Navigate to="/teacher/dashboard" replace />}
+          />
+          <Route
+            path="/admin"
+            element={<Navigate to="/admin/dashboard" replace />}
+          />
 
           <Route element={<ProtectedRoute allowedRoles={["ROLE_STUDENT"]} />}>
             <Route element={<StudentLayout />}>
               <Route path="/student/home" element={<StudentHome />} />
               <Route path="/student/classes" element={<ClassesLanding />} />
               <Route path="/student/class/:classId" element={<ClassDetail />} />
-              <Route path="/student/class/:classId/material/:lessonId" element={<ClassMaterialPage />} />
+              <Route
+                path="/student/class/:classId/material/:lessonId"
+                element={<ClassMaterialPage />}
+              />
               <Route path="/student/missions" element={<Missions />} />
               <Route path="/student/leaderboard" element={<Leaderboard />} />
-              <Route path="/student/quiz/:quizId" element={<QuizTakingPage />} />
+              <Route
+                path="/student/quiz/:quizId"
+                element={<QuizTakingPage />}
+              />
+            </Route>
+            <Route element={<AuthLayout />}>
+              <Route
+                path="/login"
+                element={<Navigate to="/auth/login" replace />}
+              />
+              <Route
+                path="/register"
+                element={<Navigate to="/auth/register" replace />}
+              />
+              <Route path="/auth/login" element={<Login />} />
+              <Route path="/auth/register" element={<Register />} />
+              <Route
+                path="/auth/forgot-password"
+                element={<ForgotPasswordPage />}
+              />
             </Route>
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={["ROLE_PARENT"]} />}>
             <Route element={<ParentLayout />}>
               <Route path="/parent/dashboard" element={<ParentDashboard />} />
+              {/* Shared Routes: Giữ lại ở Top-level và bọc Phân quyền */}
+              <Route
+                element={
+                  <ProtectedRoute
+                    allowedRoles={[
+                      "ROLE_STUDENT",
+                      "ROLE_TEACHER",
+                      "ROLE_ADMIN",
+                    ]}
+                  />
+                }
+              >
+                <Route path="/lab-workspace/:id" element={<VirtualLabPage />} />
+                <Route path="/fire-quiz" element={<FireQuizGame />} />
+              </Route>
             </Route>
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={["ROLE_TEACHER"]} />}>
             <Route element={<TeacherLayout />}>
-              <Route path="/teacher/dashboard" element={<TeacherDashboard initialTab="performance" />} />
+              <Route
+                path="/teacher/dashboard"
+                element={<TeacherDashboard initialTab="performance" />}
+              />
               <Route path="/teacher/profile" element={<TeacherProfile />} />
-              <Route path="/teacher/classes" element={<TeacherClassManagement />} />
-              <Route path="/teacher/classes/:classId/chapters" element={<TeacherClassChapters />} />
-              <Route path="/teacher/classes/:classId/quizzes" element={<TeacherClassQuizzes />} />
-              <Route path="/teacher/classes/:classId/quizzes/:quizId/submissions" element={<TeacherQuizSubmissions />} />
-              <Route path="/teacher/classes/:classId/students" element={<TeacherClassStudents />} />
-              <Route path="/teacher/content" element={<TeacherContentManagement />} />
-              <Route path="/teacher/quiz-creation" element={<TeacherQuizCreation />} />
-              <Route path="/teacher/questions" element={<TeacherQuestionBank />} />
-              <Route path="/teacher/students/:studentId" element={<TeacherStudentProfile />} />
+              <Route
+                path="/teacher/classes"
+                element={<TeacherClassManagement />}
+              />
+              <Route
+                path="/teacher/classes/:classId/chapters"
+                element={<TeacherClassChapters />}
+              />
+              <Route
+                path="/teacher/classes/:classId/quizzes"
+                element={<TeacherClassQuizzes />}
+              />
+              <Route
+                path="/teacher/classes/:classId/quizzes/:quizId/submissions"
+                element={<TeacherQuizSubmissions />}
+              />
+              <Route
+                path="/teacher/classes/:classId/students"
+                element={<TeacherClassStudents />}
+              />
+              <Route
+                path="/teacher/content"
+                element={<TeacherContentManagement />}
+              />
+              <Route
+                path="/teacher/quiz-creation"
+                element={<TeacherQuizCreation />}
+              />
+              <Route
+                path="/teacher/questions"
+                element={<TeacherQuestionBank />}
+              />
+              <Route
+                path="/teacher/students/:studentId"
+                element={<TeacherStudentProfile />}
+              />
             </Route>
           </Route>
 
@@ -123,20 +216,23 @@ function App() {
             <Route element={<AdminLayout />}>
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/study" element={<AdminStudyZone />} />
-              <Route path="/admin/study/:entityType/:entityId/edit" element={<AdminStudyEditPage />} />
+              <Route
+                path="/admin/study/:entityType/:entityId/edit"
+                element={<AdminStudyEditPage />}
+              />
               <Route path="/admin/classes" element={<AdminClassManagement />} />
               <Route path="/admin/users" element={<AdminUserManagement />} />
             </Route>
-          </Route>
 
-          <Route element={<AuthLayout />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/request-access" element={<RequestAccessPage />} />
-            <Route path="/invite" element={<InviteAcceptPage />} />
+            <Route element={<AuthLayout />}>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/request-access" element={<RequestAccessPage />} />
+              <Route path="/invite" element={<InviteAcceptPage />} />
+            </Route>
           </Route>
-        </Routes>
-      </BrowserRouter>
+        </BrowserRouter>
+      </Suspense>
     </>
   );
 }

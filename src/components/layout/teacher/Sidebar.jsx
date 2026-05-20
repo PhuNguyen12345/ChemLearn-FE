@@ -26,10 +26,9 @@ const Sidebar = ({ className = '' }) => {
             key={item.name}
             to={item.path}
             className={({ isActive }) =>
-              `flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-colors ${
-                isActive
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              `flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-colors ${isActive
+                ? 'bg-primary/10 text-primary'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               }`
             }
           >

@@ -1,54 +1,70 @@
 import React, { useState, useEffect } from 'react';
 import { useStudentStore } from '../../stores/useStudentStore';
 import { Coins, ArrowLeft, Heart, Zap } from 'lucide-react';
+import { getMyPets, getMyCoins, getShopItems, buyItem, openEgg, feedPet, starUpPet, getMyInventory } from '../../api/studentApi';
 import islandBg from '../../assets/islandBg.png';
 import detailBg from '../../assets/detailBg.png';
 
-// Pets images
-import pet1 from '../../assets/SkibidiToilem.png';
-import pet2 from '../../assets/CapybaraWizard.png';
-import pet3 from '../../assets/DogeWizard.png';
+// Fallback images if DB doesn't have URLs
+import pet1 from '../../assets/CapybaraWizard.png';
+import pet2 from '../../assets/DogeWizard.png';
+import pet3 from '../../assets/SkibidiToilem.png';
 import pet4 from '../../assets/TungSahurWarrior.png';
+import egg1 from '../../assets/egg.png';
 
-const PET_DATA = [
-  { id: 'skibidi', name: 'Skibidi Tolem', image: pet1, price: 10, type: 'Water' },
-  { id: 'capybara', name: 'Capybara Wizard', image: pet2, price: 800, type: 'Magic' },
-  { id: 'doge', name: 'Doge Wizard', image: pet3, price: 10, type: 'Light' },
-  { id: 'tung', name: 'Tung Sahur Warrior', image: pet4, price: 10, type: 'Earth' },
-];
+const FALLBACK_IMAGES = [pet1, pet2, pet3, pet4, egg1];
+const getPetImage = (url, index) => url || FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
 
 const StudentIsland = ({ onBack }) => {
-  const { coins, spendCoins } = useStudentStore();
+  const { coins, setCoins, spendCoins } = useStudentStore();
 
-  // Try to load owned pets from local storage or initialize empty
-  const [ownedPets, setOwnedPets] = useState(() => {
-    try {
-      const saved = localStorage.getItem('chemlearn_owned_pets');
-      return saved ? JSON.parse(saved) : [
-        { ...PET_DATA[1], level: 1, hunger: 80 } // Give them a Capybara for free to test! (Optional but fun)
-      ];
-    } catch {
-      return [];
-    }
-  });
+  const [ownedPets, setOwnedPets] = useState([]);
+  const [shopEggs, setShopEggs] = useState([]);
+  const [foodItems, setFoodItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [selectedPet, setSelectedPet] = useState(null);
   const [showShop, setShowShop] = useState(false);
-
-  // Random walk positions
   const [petPositions, setPetPositions] = useState({});
+  const [gachaResult, setGachaResult] = useState(null);
+
+  // Fetch Data
+  const loadData = async () => {
+    try {
+      const [petsRes, shopRes, invRes, coinsRes] = await Promise.all([
+        getMyPets(),
+        getShopItems(),
+        getMyInventory(),
+        getMyCoins()
+      ]);
+      setOwnedPets(petsRes);
+      setShopEggs(shopRes.filter(item => item.itemType === 'EGG'));
+      setFoodItems(invRes.filter(item => item.itemType === 'FOOD'));
+      setCoins(coinsRes);
+    } catch (error) {
+      console.error("Failed to load pet data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    localStorage.setItem('chemlearn_owned_pets', JSON.stringify(ownedPets));
+    loadData();
+  }, []);
 
+  useEffect(() => {
     // Generate initial positions
     const initialPos = {};
-    ownedPets.forEach(pet => {
-      initialPos[pet.id] = {
-        left: 25 + Math.random() * 50, // 25% to 75%
-        top: 45 + Math.random() * 30,  // 45% to 75%
-        flip: Math.random() > 0.5
-      };
+    ownedPets.forEach((pet, i) => {
+      if (!petPositions[pet.id]) {
+        initialPos[pet.id] = {
+          left: 25 + Math.random() * 50,
+          top: 45 + Math.random() * 30,
+          flip: Math.random() > 0.5
+        };
+      } else {
+        initialPos[pet.id] = petPositions[pet.id];
+      }
     });
     setPetPositions(initialPos);
 
@@ -57,15 +73,12 @@ const StudentIsland = ({ onBack }) => {
       setPetPositions(prev => {
         const next = { ...prev };
         Object.keys(next).forEach(id => {
-          // moveX: mostly horizontal (5% to 20% distance)
           const moveX = (Math.random() > 0.5 ? 1 : -1) * (5 + Math.random() * 15);
-          // moveY: mostly flat (small wobble), 20% chance to move diagonally up/down
           const moveY = Math.random() > 0.8 ? (Math.random() - 0.5) * 15 : (Math.random() - 0.5) * 3;
 
           let newLeft = next[id].left + moveX;
           let newTop = next[id].top + moveY;
 
-          // Clamp strictly to the grassy surface of the island
           newLeft = Math.max(35, Math.min(75, newLeft));
           newTop = Math.max(14, Math.min(70, newTop));
 
@@ -82,22 +95,64 @@ const StudentIsland = ({ onBack }) => {
     return () => clearInterval(interval);
   }, [ownedPets]);
 
-  const handleBuyPet = (pet) => {
-    if (coins >= pet.price && !ownedPets.find(p => p.id === pet.id)) {
-      spendCoins(pet.price);
-      setOwnedPets([...ownedPets, { ...pet, level: 1, hunger: 50 }]);
+  const handleBuyAndOpenEgg = async (egg) => {
+    // We assume backend handles coin deduction, but for frontend responsiveness we'll check local store
+    if (coins >= egg.quantity) {
+      try {
+        // 1. Buy Egg (price is stored in quantity field from our DTO workaround)
+        await buyItem(egg.itemId, 1);
+        spendCoins(egg.quantity);
+
+        // 2. Open Egg immediately
+        const result = await openEgg(egg.itemId);
+        setGachaResult(result);
+
+        // 3. Reload pets
+        await loadData();
+      } catch (error) {
+        alert("Có lỗi xảy ra: " + (error.response?.data?.message || error.message));
+      }
     }
   };
 
-  const updatePetProp = (id, newProps) => {
-    const updated = ownedPets.map(p => p.id === id ? { ...p, ...newProps } : p);
-    setOwnedPets(updated);
-    if (selectedPet?.id === id) {
-      setSelectedPet(updated.find(p => p.id === id));
+  const handleFeedPet = async () => {
+    if (foodItems.length > 0) {
+      try {
+        const food = foodItems[0]; // Use first available food
+        await feedPet(selectedPet.id, food.itemId, 1);
+        await loadData(); // Reload stats
+
+        // Update local selected pet reference
+        const updatedPets = await getMyPets();
+        setSelectedPet(updatedPets.find(p => p.id === selectedPet.id));
+      } catch (error) {
+        alert("Lỗi cho ăn: " + (error.response?.data?.message || error.message));
+      }
+    } else {
+      alert("Bạn không có thức ăn! Hãy mua trong Cửa hàng.");
     }
   };
+
+  const handleStarUp = async () => {
+    try {
+      await starUpPet(selectedPet.id);
+      await loadData();
+
+      const updatedPets = await getMyPets();
+      setSelectedPet(updatedPets.find(p => p.id === selectedPet.id));
+      alert("Nâng sao thành công! Chỉ số đã tăng vọt.");
+    } catch (error) {
+      alert("Lỗi nâng sao: " + (error.response?.data?.message || error.message));
+    }
+  };
+
+  if (isLoading) {
+    return <div className="flex w-full h-full items-center justify-center bg-black text-white">Đang tải Đảo Thú Cưng...</div>;
+  }
 
   if (selectedPet) {
+    const expPercentage = Math.min(100, (selectedPet.experience / selectedPet.nextLevelExp) * 100);
+
     return (
       <div className="flex w-full h-full items-center justify-center relative overflow-hidden bg-black animate-in fade-in duration-300">
         <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${detailBg})` }} />
@@ -105,12 +160,16 @@ const StudentIsland = ({ onBack }) => {
           <ArrowLeft className="w-6 h-6" />
         </button>
         <div className="z-10 flex flex-col items-center gap-6 p-8 bg-black/50 backdrop-blur-md rounded-3xl border border-white/20 text-white shadow-2xl max-w-lg w-full mx-4">
-          <h2 className="text-4xl font-black text-amber-400 drop-shadow-lg">{selectedPet.name}</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-4xl font-black text-amber-400 drop-shadow-lg">{selectedPet.species?.name}</h2>
+            <div className="flex text-yellow-400">
+              {Array.from({ length: selectedPet.starLevel }).map((_, i) => <span key={i}>⭐</span>)}
+            </div>
+          </div>
 
-          {/* Pet Stage/Platform */}
           <div className="relative w-64 h-64 flex items-center justify-center animate-bounce" style={{ animationDuration: '3s' }}>
             <div className="absolute bottom-0 w-48 h-12 bg-black/40 rounded-[100%] blur-md"></div>
-            <img src={selectedPet.image} alt={selectedPet.name} className="relative z-10 max-w-full max-h-full object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]" draggable="false" />
+            <img src={getPetImage(selectedPet.species?.imageUrl, selectedPet.species?.id)} alt={selectedPet.species?.name} className="relative z-10 max-w-full max-h-full object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]" draggable="false" />
           </div>
 
           <div className="flex gap-4 w-full">
@@ -119,35 +178,33 @@ const StudentIsland = ({ onBack }) => {
               <div className="flex justify-center items-end gap-1"><span className="text-3xl font-black text-blue-400">{selectedPet.level}</span></div>
             </div>
             <div className="flex-1 bg-white/10 p-4 rounded-xl border border-white/20 text-center shadow-inner">
-              <p className="text-sm text-slate-300 font-semibold mb-1">Độ no</p>
+              <p className="text-sm text-slate-300 font-semibold mb-1">EXP</p>
               <div className="w-full bg-black/50 rounded-full h-3 mt-2 overflow-hidden border border-white/10">
-                <div className="bg-gradient-to-r from-green-400 to-green-500 h-full rounded-full transition-all duration-300" style={{ width: `${selectedPet.hunger}%` }}></div>
+                <div className="bg-gradient-to-r from-blue-400 to-blue-600 h-full rounded-full transition-all duration-300" style={{ width: `${expPercentage}%` }}></div>
               </div>
-              <p className="text-xs font-bold text-green-300 mt-1">{selectedPet.hunger}/100</p>
+              <p className="text-xs font-bold text-blue-300 mt-1">{selectedPet.experience}/{selectedPet.nextLevelExp}</p>
+            </div>
+          </div>
+
+          <div className="flex gap-4 w-full">
+            <div className="flex-1 bg-red-500/20 p-2 rounded border border-red-500/30 text-center">
+              <p className="text-xs text-red-300">HP: {selectedPet.maxHp}</p>
+            </div>
+            <div className="flex-1 bg-orange-500/20 p-2 rounded border border-orange-500/30 text-center">
+              <p className="text-xs text-orange-300">Sát Thương: {selectedPet.damage}</p>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 mt-4 w-full">
             <button
-              onClick={() => {
-                if (selectedPet.hunger < 100) {
-                  updatePetProp(selectedPet.id, { hunger: Math.min(100, selectedPet.hunger + 15) });
-                }
-              }}
-              disabled={selectedPet.hunger >= 100}
-              className={`flex-1 flex items-center justify-center gap-2 font-bold py-3 px-4 rounded-xl transition-all shadow-lg ${selectedPet.hunger >= 100 ? 'bg-slate-700 text-slate-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600 hover:-translate-y-1 text-white border-b-4 border-green-700 active:border-b-0 active:translate-y-0'}`}>
+              onClick={handleFeedPet}
+              className={`flex-1 flex items-center justify-center gap-2 font-bold py-3 px-4 rounded-xl transition-all shadow-lg bg-green-500 hover:bg-green-600 hover:-translate-y-1 text-white border-b-4 border-green-700 active:border-b-0 active:translate-y-0`}>
               <Heart className="w-5 h-5" /> Cho Ăn
             </button>
             <button
-              onClick={() => {
-                if (coins >= 50) {
-                  spendCoins(50);
-                  updatePetProp(selectedPet.id, { level: selectedPet.level + 1 });
-                }
-              }}
-              disabled={coins < 50}
-              className={`flex-1 flex items-center justify-center gap-2 font-bold py-3 px-4 rounded-xl transition-all shadow-lg ${coins < 50 ? 'bg-slate-700 text-slate-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 hover:-translate-y-1 text-white border-b-4 border-blue-700 active:border-b-0 active:translate-y-0'}`}>
-              <Zap className="w-5 h-5" /> Nâng Cấp (-50)
+              onClick={handleStarUp}
+              className={`flex-1 flex items-center justify-center gap-2 font-bold py-3 px-4 rounded-xl transition-all shadow-lg bg-yellow-500 hover:bg-yellow-600 hover:-translate-y-1 text-white border-b-4 border-yellow-700 active:border-b-0 active:translate-y-0`}>
+              <Zap className="w-5 h-5" /> Tăng Sao
             </button>
           </div>
         </div>
@@ -157,10 +214,8 @@ const StudentIsland = ({ onBack }) => {
 
   return (
     <div className="flex w-full h-full items-center justify-center animate-in fade-in zoom-in-95 duration-300 relative overflow-hidden bg-[#87CEEB]">
-      {/* Background container filling screen */}
       <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${islandBg})` }} />
 
-      {/* Top Bar */}
       <div className="absolute top-6 left-6 right-6 flex justify-between z-20 pointer-events-none">
         <button onClick={onBack} className="p-3 bg-black/50 hover:bg-black/80 text-white rounded-full backdrop-blur-sm transition-all shadow-lg border border-white/10 pointer-events-auto">
           <ArrowLeft className="w-6 h-6" />
@@ -172,14 +227,13 @@ const StudentIsland = ({ onBack }) => {
             <span className="font-black text-xl text-yellow-400 drop-shadow-md">{coins} Vàng</span>
           </div>
           <button onClick={() => setShowShop(true)} className="px-6 py-2.5 bg-gradient-to-b from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 font-black text-amber-950 rounded-full shadow-lg border-2 border-amber-300 transition-all hover:scale-105 active:scale-95 uppercase tracking-wide">
-            🛒 Mua Pet
+            🛒 Ấp Trứng
           </button>
         </div>
       </div>
 
-      {/* Walking Pets Layer */}
       <div className="absolute inset-0 z-10 overflow-hidden pointer-events-none">
-        {ownedPets.map(pet => (
+        {ownedPets.map((pet, idx) => (
           <div
             key={pet.id}
             className="absolute transition-all duration-[4000ms] ease-linear z-10"
@@ -194,9 +248,8 @@ const StudentIsland = ({ onBack }) => {
                 className="relative w-36 h-36 sm:w-56 sm:h-56 cursor-pointer hover:scale-110 transition-transform duration-200 pointer-events-auto"
               >
                 <div className={`w-full h-full transition-transform duration-200 ${petPositions[pet.id]?.flip ? 'scale-x-[-1]' : ''}`}>
-                  {/* Shadow underneath pet */}
                   <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-24 h-5 bg-black/30 rounded-[100%] blur-sm"></div>
-                  <img src={pet.image} alt={pet.name} className="relative z-10 w-full h-full object-contain drop-shadow-2xl" draggable="false" />
+                  <img src={getPetImage(pet.species?.imageUrl, idx)} alt={pet.species?.name} className="relative z-10 w-full h-full object-contain drop-shadow-2xl" draggable="false" />
                 </div>
               </div>
             </div>
@@ -204,12 +257,46 @@ const StudentIsland = ({ onBack }) => {
         ))}
       </div>
 
-      {/* Zero State */}
       {ownedPets.length === 0 && !showShop && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
           <div className="bg-black/50 backdrop-blur-md p-8 rounded-3xl border border-white/20 text-center animate-pulse shadow-2xl">
             <p className="text-2xl font-black text-white">Trống Vắng Quá!</p>
-            <p className="text-amber-200 mt-2 font-semibold text-lg">Đảo trên trời đang chờ bạn đón một Thú Cưng về.</p>
+            <p className="text-amber-200 mt-2 font-semibold text-lg">Hãy đến Cửa hàng để ấp Quả trứng đầu tiên.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Gacha Result Modal */}
+      {gachaResult && (
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[60] p-4 animate-in zoom-in-50 duration-300">
+          <div className="bg-gradient-to-b from-indigo-900 to-black p-8 rounded-3xl border-4 border-yellow-400 flex flex-col items-center max-w-sm text-center shadow-[0_0_100px_rgba(250,204,21,0.4)]">
+            <h2 className="text-3xl font-black text-yellow-400 mb-6 drop-shadow-lg animate-bounce">
+              {gachaResult.isDuplicate ? "TRÙNG LẶP!" : "PET MỚI!"}
+            </h2>
+
+            <div className="w-48 h-48 bg-white/10 rounded-full p-4 mb-6 shadow-inner">
+              <img src={getPetImage(gachaResult.species?.imageUrl, gachaResult.species?.id)} alt={gachaResult.species?.name} className="w-full h-full object-contain drop-shadow-2xl animate-pulse" />
+            </div>
+
+            <h3 className="text-2xl font-bold text-white mb-2">{gachaResult.species?.name}</h3>
+            <p className="text-sm font-bold text-indigo-300 mb-6 px-3 py-1 bg-indigo-500/20 rounded-full">
+              Hệ: {gachaResult.species?.element} | Độ hiếm: {gachaResult.species?.rarity}
+            </p>
+
+            {gachaResult.isDuplicate ? (
+              <div className="bg-orange-500/20 border border-orange-500 p-3 rounded-xl mb-6">
+                <p className="text-orange-300 font-semibold">Bạn đã có Pet này!</p>
+                <p className="text-white font-black">Nhận được {gachaResult.fragmentsReceived} mảnh linh hồn</p>
+              </div>
+            ) : (
+              <p className="text-green-400 font-bold mb-6">Pet đã được thêm vào đảo!</p>
+            )}
+
+            <button
+              onClick={() => setGachaResult(null)}
+              className="px-8 py-3 bg-yellow-500 hover:bg-yellow-400 text-yellow-950 font-black rounded-xl w-full transition-colors">
+              TUYỆT VỜI!
+            </button>
           </div>
         </div>
       )}
@@ -220,38 +307,43 @@ const StudentIsland = ({ onBack }) => {
           <div className="bg-[#1a1c29] w-full max-w-4xl rounded-[2rem] border-4 border-amber-500/50 shadow-[0_0_50px_rgba(245,158,11,0.3)] overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-6 bg-gradient-to-r from-amber-600/30 to-orange-600/30 flex justify-between items-center border-b border-amber-500/30 relative">
               <h2 className="text-3xl font-black text-amber-400 drop-shadow-lg flex items-center gap-3">
-                <span className="text-4xl">🏪</span>Shop Cửa Hàng Thú Cưng
+                <span className="text-4xl">🥚</span>Ấp Trứng Linh Thú
               </h2>
               <button onClick={() => setShowShop(false)} className="w-12 h-12 bg-white/10 hover:bg-white/20 hover:rotate-90 rounded-full flex items-center justify-center text-white transition-all">
                 ✕
               </button>
             </div>
-            <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-4 overflow-y-auto bg-slate-900/50">
-              {PET_DATA.map(pet => {
-                const isOwned = ownedPets.find(p => p.id === pet.id);
-                const canAfford = coins >= pet.price;
-                return (
-                  <div key={pet.id} className="bg-gradient-to-b from-white/10 to-white/5 rounded-2xl p-4 flex flex-col items-center border border-white/10 hover:border-amber-400/50 transition-all group shadow-lg hover:-translate-y-1">
-                    <div className="w-28 h-28 mb-4 bg-black/40 rounded-xl p-3 flex items-center justify-center shadow-inner group-hover:bg-amber-500/10 transition-colors">
-                      <img src={pet.image} alt={pet.name} className="w-full h-full object-contain drop-shadow-xl group-hover:scale-110 transition-transform duration-300" />
-                    </div>
-                    <h3 className="text-sm font-black text-white text-center mb-1 leading-tight">{pet.name}</h3>
-                    <p className="text-xs text-amber-300/80 font-bold mb-4 uppercase tracking-wider">{pet.type}</p>
 
-                    {isOwned ? (
-                      <div className="mt-auto px-4 py-2 bg-green-500/20 text-green-400 font-bold rounded-xl w-full text-center border border-green-500/30">Đã Sở Hữu</div>
-                    ) : (
+            <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-4 overflow-y-auto bg-slate-900/50">
+              {shopEggs.length === 0 ? (
+                <div className="col-span-full text-center py-10 text-slate-400 italic">
+                  Chưa có trứng nào được bán hôm nay. Vui lòng quay lại sau!
+                </div>
+              ) : (
+                shopEggs.map((egg, idx) => {
+                  // Using quantity field to transport price from backend workaround
+                  const price = egg.quantity;
+                  const canAfford = coins >= price;
+
+                  return (
+                    <div key={egg.id} className="bg-gradient-to-b from-indigo-900/40 to-black/60 rounded-2xl p-4 flex flex-col items-center border border-indigo-500/30 hover:border-amber-400/50 transition-all group shadow-lg hover:-translate-y-1">
+                      <div className="w-28 h-28 mb-4 bg-black/40 rounded-full p-3 flex items-center justify-center shadow-inner group-hover:bg-amber-500/10 transition-colors border border-white/5">
+                        <img src={egg.imageUrl || egg1} alt={egg.name} className="w-full h-full object-contain drop-shadow-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-300" />
+                      </div>
+                      <h3 className="text-sm font-black text-white text-center mb-1 leading-tight">{egg.name}</h3>
+                      <p className="text-xs text-indigo-300/80 font-medium mb-4 text-center line-clamp-2">{egg.description || "Mở để nhận pet ngẫu nhiên!"}</p>
+
                       <button
-                        onClick={() => handleBuyPet(pet)}
+                        onClick={() => handleBuyAndOpenEgg(egg)}
                         disabled={!canAfford}
-                        className={`mt-auto px-4 py-2 rounded-xl font-bold w-full flex items-center justify-center gap-1 transition-colors border ${canAfford ? 'bg-amber-500 hover:bg-amber-600 text-amber-950 border-amber-400' : 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed'}`}
+                        className={`mt-auto px-4 py-3 rounded-xl font-black w-full flex items-center justify-center gap-2 transition-colors border shadow-lg ${canAfford ? 'bg-amber-500 hover:bg-amber-400 text-amber-950 border-amber-400' : 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed'}`}
                       >
-                        <Coins className="w-4 h-4" /> {pet.price} Vàng
+                        <Coins className="w-5 h-5" /> Ấp: {price}
                       </button>
-                    )}
-                  </div>
-                )
-              })}
+                    </div>
+                  )
+                })
+              )}
             </div>
           </div>
         </div>

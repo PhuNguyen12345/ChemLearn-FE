@@ -16,11 +16,13 @@ import LanguageSwitcher from '../shared/LanguageSwitcher';
 import useLanguageStore from '@/stores/useLanguageStore';
 import { useLogout } from '@/stores/useLogout';
 import { translations } from '@/lib/translations';
+import { useStudentStore } from '../../../stores/useStudentStore';
 
-const Header = () => {
+const Header = ({ setActiveTab }) => {
   const [open, setOpen] = useState(false);
   const { language } = useLanguageStore();
   const t = translations[language] || translations['vi'];
+  const { experience, currentStreak, level } = useStudentStore();
   const logout = useLogout();
 
   return (
@@ -41,7 +43,7 @@ const Header = () => {
           </SheetTrigger>
           <SheetContent side="left" className="p-0 w-64">
             <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-            <Sidebar className="border-r-0" />
+            <Sidebar className="border-r-0" setActiveTab={setActiveTab} />
           </SheetContent>
         </Sheet>
 
@@ -62,13 +64,13 @@ const Header = () => {
             {/* 🔥 Streak */}
             <div className="flex items-center gap-1.5 text-sm font-black text-amber-700 bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-full shadow-[0_0_12px_rgba(245,158,11,0.35)] hover:shadow-[0_0_18px_rgba(245,158,11,0.5)] transition-shadow cursor-default">
               <Flame className="w-4 h-4 fill-amber-500 text-amber-500 shrink-0" />
-              <span>5 Day Streak</span>
+              <span>{currentStreak} Day Streak</span>
             </div>
 
             {/* ⭐ EXP */}
             <div className="flex items-center gap-1.5 text-sm font-black text-blue-700 bg-blue-100 border border-blue-200 px-3 py-1.5 rounded-full shadow-[0_0_12px_rgba(59,130,246,0.35)] hover:shadow-[0_0_18px_rgba(59,130,246,0.5)] transition-shadow cursor-default">
               <Star className="w-4 h-4 fill-blue-500 text-blue-500 shrink-0" />
-              <span>2,450 EXP</span>
+              <span>{experience.toLocaleString()} EXP</span>
             </div>
 
           </div>
@@ -101,11 +103,11 @@ const Header = () => {
                     <AvatarFallback className="bg-indigo-100 text-indigo-700 font-black text-xs">ST</AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col">
-                    <p className="text-sm font-black text-slate-800 leading-none">Alex Student</p>
+                    <p className="text-sm font-black text-slate-800 leading-none">ChemLearn Student</p>
                     <p className="text-xs text-slate-400 font-semibold mt-0.5">Grade 8 · Science Explorers</p>
                     <div className="flex items-center gap-1 mt-1">
                       <Sparkles className="w-3 h-3 text-indigo-400" />
-                      <span className="text-[10px] font-black text-indigo-500 uppercase tracking-wider">Level 7 Alchemist</span>
+                      <span className="text-[10px] font-black text-indigo-500 uppercase tracking-wider">Level {level} {level >= 4 ? 'Alchemist' : 'Chemist'}</span>
                     </div>
                   </div>
                 </div>
@@ -113,7 +115,10 @@ const Header = () => {
 
               <DropdownMenuSeparator className="my-1.5 bg-slate-100" />
 
-              <DropdownMenuItem className="cursor-pointer rounded-xl px-3 py-2.5 hover:bg-indigo-50 focus:bg-indigo-50 font-semibold">
+              <DropdownMenuItem
+                onClick={() => { if (setActiveTab) setActiveTab('profile'); }}
+                className="cursor-pointer rounded-xl px-3 py-2.5 hover:bg-indigo-50 focus:bg-indigo-50 font-semibold"
+              >
                 <User className="mr-2.5 h-4 w-4 text-indigo-500" />
                 <span>{t.profile || 'My Profile'}</span>
               </DropdownMenuItem>

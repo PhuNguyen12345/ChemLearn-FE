@@ -17,170 +17,8 @@ import {
   FlaskConical,
   Award,
 } from 'lucide-react';
-
-/* ================================================================
-   MOCK DATA
-================================================================ */
-const initialQuests = [
-  {
-    id: 'q1',
-    title: 'Complete 2 Quizzes',
-    desc: 'Take any 2 knowledge quizzes today',
-    icon: HelpCircle,
-    iconBg: 'bg-emerald-100',
-    iconColor: 'text-emerald-600',
-    barColor: 'bg-emerald-400',
-    xp: 50,
-    progress: 2,
-    goal: 2,
-    claimed: false,
-  },
-  {
-    id: 'q2',
-    title: 'Spend 15 Mins in Lab',
-    desc: 'Run experiments in the Virtual Lab',
-    icon: Beaker,
-    iconBg: 'bg-purple-100',
-    iconColor: 'text-purple-600',
-    barColor: 'bg-purple-400',
-    xp: 80,
-    progress: 8,
-    goal: 15,
-    claimed: false,
-  },
-  {
-    id: 'q3',
-    title: 'Read a Lesson',
-    desc: 'Open any lesson in the Study Zone',
-    icon: BookOpen,
-    iconBg: 'bg-sky-100',
-    iconColor: 'text-sky-600',
-    barColor: 'bg-sky-400',
-    xp: 30,
-    progress: 1,
-    goal: 1,
-    claimed: false,
-  },
-  {
-    id: 'q4',
-    title: 'Maintain a 3-Day Streak',
-    desc: 'Log in and complete activities 3 days in a row',
-    icon: Flame,
-    iconBg: 'bg-orange-100',
-    iconColor: 'text-orange-600',
-    barColor: 'bg-orange-400',
-    xp: 100,
-    progress: 3,
-    goal: 3,
-    claimed: false,
-  },
-  {
-    id: 'q5',
-    title: 'Get 100% on a Quiz',
-    desc: 'Achieve a perfect score on any quiz',
-    icon: Star,
-    iconBg: 'bg-amber-100',
-    iconColor: 'text-amber-600',
-    barColor: 'bg-amber-400',
-    xp: 60,
-    progress: 0,
-    goal: 1,
-    claimed: false,
-  },
-];
-
-const mockBadges = [
-  {
-    id: 'b1',
-    title: 'Mad Scientist',
-    desc: 'Run 10 lab experiments',
-    icon: FlaskConical,
-    unlocked: true,
-    gradient: 'from-purple-400 to-indigo-500',
-    glow: 'shadow-[0_0_20px_rgba(168,85,247,0.45)]',
-    bg: 'bg-purple-50',
-    border: 'border-purple-200',
-  },
-  {
-    id: 'b2',
-    title: 'Element Explorer',
-    desc: 'Study all elements in a period',
-    icon: Atom,
-    unlocked: true,
-    gradient: 'from-cyan-400 to-sky-500',
-    glow: 'shadow-[0_0_20px_rgba(6,182,212,0.45)]',
-    bg: 'bg-cyan-50',
-    border: 'border-cyan-200',
-  },
-  {
-    id: 'b3',
-    title: 'Safety First',
-    desc: 'Complete the lab safety quiz',
-    icon: Shield,
-    unlocked: true,
-    gradient: 'from-emerald-400 to-green-500',
-    glow: 'shadow-[0_0_20px_rgba(52,211,153,0.45)]',
-    bg: 'bg-emerald-50',
-    border: 'border-emerald-200',
-  },
-  {
-    id: 'b4',
-    title: 'Quiz Champion',
-    desc: 'Score 100% on 5 quizzes',
-    icon: Trophy,
-    unlocked: true,
-    gradient: 'from-amber-400 to-orange-500',
-    glow: 'shadow-[0_0_20px_rgba(251,191,36,0.45)]',
-    bg: 'bg-amber-50',
-    border: 'border-amber-200',
-  },
-  {
-    id: 'b5',
-    title: 'Streak Master',
-    desc: 'Achieve a 7-day login streak',
-    icon: Flame,
-    unlocked: false,
-    gradient: 'from-rose-400 to-pink-500',
-    glow: '',
-    bg: 'bg-slate-50',
-    border: 'border-slate-200',
-  },
-  {
-    id: 'b6',
-    title: 'Periodic Pro',
-    desc: 'Memorize the first 20 elements',
-    icon: Sparkles,
-    unlocked: false,
-    gradient: 'from-violet-400 to-purple-500',
-    glow: '',
-    bg: 'bg-slate-50',
-    border: 'border-slate-200',
-  },
-  {
-    id: 'b7',
-    title: 'Reaction King',
-    desc: 'Complete 5 reaction simulations',
-    icon: Zap,
-    unlocked: false,
-    gradient: 'from-yellow-400 to-amber-500',
-    glow: '',
-    bg: 'bg-slate-50',
-    border: 'border-slate-200',
-  },
-  {
-    id: 'b8',
-    title: 'Grand Alchemist',
-    desc: 'Unlock all other badges',
-    icon: Award,
-    unlocked: false,
-    gradient: 'from-indigo-500 to-rose-500',
-    glow: '',
-    bg: 'bg-slate-50',
-    border: 'border-slate-200',
-  },
-];
-
-const BASE_XP = 2450;
+import { useStudentStore } from '../../stores/useStudentStore';
+import { getDailyQuests, claimQuest, getGamificationProfile } from '../../api/studentApi';
 
 /* ================================================================
    SUB-COMPONENTS
@@ -202,18 +40,40 @@ const XPBar = ({ fill, color }) => (
    MAIN COMPONENT
 ================================================================ */
 const Missions = () => {
-  const [quests, setQuests] = useState(initialQuests);
-  const [totalXP, setTotalXP]   = useState(BASE_XP);
+  const [quests, setQuests] = useState([]);
+  const { experience, setGamificationProfile } = useStudentStore();
 
-  const handleClaim = (questId, xp) => {
-    setQuests((prev) =>
-      prev.map((q) => (q.id === questId ? { ...q, claimed: true } : q))
-    );
-    setTotalXP((prev) => prev + xp);
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const qData = await getDailyQuests();
+        setQuests(qData);
+        const pData = await getGamificationProfile();
+        setGamificationProfile(pData);
+      } catch (err) {
+        console.error("Failed to fetch gamification data", err);
+      }
+    };
+    fetchData();
+  }, [setGamificationProfile]);
+
+  const handleClaim = async (questId) => {
+    try {
+      await claimQuest(questId);
+      // Refetch quests and profile
+      const qData = await getDailyQuests();
+      setQuests(qData);
+      const pData = await getGamificationProfile();
+      setGamificationProfile(pData);
+      alert("Claimed successfully!");
+    } catch (err) {
+      console.error("Failed to claim quest", err);
+      alert("Failed to claim quest");
+    }
   };
 
-  const completedQuests = quests.filter((q) => q.progress >= q.goal);
-  const unlockedBadges  = mockBadges.filter((b) => b.unlocked).length;
+  const completedQuests = quests.filter((q) => q.currentProgress >= q.targetValue);
+  const unlockedBadges = mockBadges.filter((b) => b.unlocked).length;
 
   return (
     <div className="min-h-full w-full bg-slate-50 overflow-y-auto pb-12">
@@ -259,7 +119,7 @@ const Missions = () => {
             <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl px-4 py-2">
               <Zap className="w-4 h-4 text-yellow-300 fill-yellow-300" />
               <span className="text-white font-black text-sm">
-                {totalXP.toLocaleString()} XP Total
+                {experience.toLocaleString()} XP Total
               </span>
             </div>
             <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl px-4 py-2">
@@ -295,11 +155,20 @@ const Missions = () => {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {quests.map((quest) => {
-              const Icon      = quest.icon;
-              const isDone    = quest.progress >= quest.goal;
-              const fillPct   = Math.round((quest.progress / quest.goal) * 100);
-              const isClaimed = quest.claimed;
+            {quests.map((quest, index) => {
+              const Icon = quest.actionType === 'DO_LAB' ? Beaker :
+                quest.actionType === 'LEARN_LESSON' ? BookOpen :
+                  quest.actionType === 'LOGIN' ? Clock :
+                    quest.actionType === 'FEED_PET' ? Star :
+                      Flame;
+              const colorClass = index % 3 === 0 ? 'emerald' : index % 3 === 1 ? 'blue' : 'pink';
+              const iconBg = `bg-${colorClass}-100`;
+              const iconColor = `text-${colorClass}-600`;
+              const barColor = `bg-${colorClass}-400`;
+
+              const isDone = quest.currentProgress >= quest.targetValue;
+              const fillPct = Math.round((quest.currentProgress / quest.targetValue) * 100);
+              const isClaimed = quest.isClaimed;
 
               return (
                 <div
@@ -311,27 +180,27 @@ const Missions = () => {
                 >
                   {/* Top row */}
                   <div className="flex items-start gap-3">
-                    <div className={`w-12 h-12 ${quest.iconBg} rounded-2xl flex items-center justify-center shrink-0`}>
-                      <Icon className={`w-6 h-6 ${quest.iconColor}`} />
+                    <div className={`w-12 h-12 ${iconBg} rounded-2xl flex items-center justify-center shrink-0`}>
+                      <Icon className={`w-6 h-6 ${iconColor}`} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <h3 className="font-black text-slate-800 text-sm leading-snug">{quest.title}</h3>
                         {/* XP reward tag */}
                         <span className="shrink-0 inline-flex items-center gap-1 text-[11px] font-black text-amber-800 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-full">
-                          ⭐ +{quest.xp} XP
+                          ⭐ +{quest.rewardXp} XP
                         </span>
                       </div>
-                      <p className="text-slate-400 text-xs font-semibold mt-0.5">{quest.desc}</p>
+                      <p className="text-slate-400 text-xs font-semibold mt-0.5">Reach target: {quest.targetValue}</p>
                     </div>
                   </div>
 
                   {/* Progress bar */}
                   <div className="space-y-1.5">
-                    <XPBar fill={fillPct} color={quest.barColor} />
+                    <XPBar fill={fillPct} color={barColor} />
                     <div className="flex justify-between text-[11px] font-black">
                       <span className={isDone ? 'text-emerald-600' : 'text-slate-400'}>
-                        {isDone ? '✅ Complete!' : `${quest.progress} / ${quest.goal}`}
+                        {isDone ? '✅ Complete!' : `${quest.currentProgress} / ${quest.targetValue}`}
                       </span>
                       <span className="text-slate-400">{fillPct}%</span>
                     </div>
@@ -346,7 +215,7 @@ const Missions = () => {
                       </div>
                     ) : isDone ? (
                       <button
-                        onClick={() => handleClaim(quest.id, quest.xp)}
+                        onClick={() => handleClaim(quest.id)}
                         className="w-full py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-500 text-amber-900 font-black text-sm border-b-4 border-amber-600 hover:border-amber-700 hover:-translate-y-1 hover:border-b-[6px] active:border-b-0 active:translate-y-1 transition-all duration-150 shadow-md shadow-amber-200/60 flex items-center justify-center gap-2"
                       >
                         <Zap className="w-4 h-4 fill-amber-900/30" />
