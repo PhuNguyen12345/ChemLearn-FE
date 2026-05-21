@@ -11,8 +11,7 @@ import {
   Sparkles,
   Map,
   Swords,
-  ChevronLeft,
-  ClipboardList
+  ChevronLeft
 } from 'lucide-react';
 import { useStudentStore } from '../../../stores/useStudentStore';
 import { useSidebarStore } from '../../../stores/useSidebarStore';
@@ -23,7 +22,6 @@ const navItems = [
   { name: 'Study Zone',  icon: BookOpen,        path: '/student/home', id: 'studyZone', emoji: '📚' },
   { name: 'Virtual Lab', icon: Microscope,      path: '/student/home', id: 'labDashboard', emoji: '🧪' },
   { name: 'Missions',    icon: Target,          path: '/student/missions', id: 'missions', emoji: '🎯' },
-  { name: 'Quizzes',     icon: ClipboardList,   path: '/student/quiz', id: 'quizzes', emoji: '❓' },
   { name: 'PVP Battle',  icon: Swords,          path: '/student/pvp', id: 'pvp', emoji: '⚔️' },
   { name: 'Leaderboard', icon: Trophy,          path: '/student/leaderboard', id: 'leaderboard', emoji: '🏆' },
   { name: 'Classes',     icon: Users,           path: '/student/classes', id: 'classes', emoji: '👥' },
@@ -97,7 +95,8 @@ const Sidebar = ({ className = '', activeTab, setActiveTab }) => {
       <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-1.5">
         {navItems.map((item) => {
           const isTabActive = location.pathname === '/student/home' && activeTab === item.id;
-          const isRouteActive = location.pathname === item.path && !['dashboard', 'studyZone', 'labDashboard', 'quizzes', "classes"].includes(item.id);
+          const isClassRoute = item.id === 'classes' && (location.pathname === '/student/classes' || location.pathname.startsWith('/student/class/'));
+          const isRouteActive = isClassRoute || (location.pathname === item.path && !['dashboard', 'studyZone', 'labDashboard', 'classes'].includes(item.id));
           const isActive = isTabActive || isRouteActive;
           const accent = itemAccent[item.id] ?? itemAccent.dashboard;
 
