@@ -1,10 +1,11 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import AdminLayout from "../components/layout/admin/AdminLayout";
 import AdminDashboard from "../pages/admin/AdminDashboard";
-import AdminClassManagement from "../pages/admin/AdminClassManagement";
 import AdminUserManagement from "../pages/admin/AdminUserManagement";
 import AdminStudyZone from "../pages/admin/AdminStudyZone";
+import AdminStudyEditPage from "../pages/admin/AdminStudyEditPage";
+import AdminAccountRequests from "../pages/admin/AdminAccountRequests";
 
 export default function AdminRoutes() {
   return (
@@ -12,9 +13,11 @@ export default function AdminRoutes() {
       <Route element={<AdminLayout />}>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<AdminDashboard />} />
-        <Route path="classes" element={<AdminClassManagement />} />
+        <Route path="study" element={<AdminStudyZone />} />
+        <Route path="study/:entityType/:entityId/edit" element={<AdminStudyEditPage />} />
+        <Route path="account-requests" element={<AdminAccountRequests />} />
         <Route path="users" element={<AdminUserManagement />} />
-        <Route path="/admin/study" element={<AdminStudyZone />} />
+        <Route path="*" element={<Navigate to="dashboard" replace />} />
       </Route>
     </Routes>
   );

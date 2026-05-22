@@ -4,7 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, 
   Mail, 
-  Info, 
+  Lock,
+  Eye,
+  EyeOff,
+  Phone,
+  Briefcase,
+  GraduationCap,
+  BookOpen,
   UserCheck, 
   Atom, 
   AlertCircle, 
@@ -18,7 +24,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { submitAccessRequest } from '@/lib/api';
+import api from '@/lib/api';
+
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_.]).{8,32}$/;
 
 // Interactive Light-mode Molecular Canvas for Left Panel Graphic
 function GraphicCanvas() {
@@ -105,31 +113,64 @@ function GraphicCanvas() {
 
 export default function RequestAccessPage() {
   const [fullName, setFullName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState('ROLE_TEACHER');
-  const [additionalInfo, setAdditionalInfo] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [workplace, setWorkplace] = useState('');
+  const [degree, setDegree] = useState('');
+  const [specialization, setSpecialization] = useState('');
+  const [jobTitle, setJobTitle] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+
+    if (password !== confirmPassword) {
+      setError('Password confirmation does not match.');
+      return;
+    }
+
+    if (!PASSWORD_REGEX.test(password)) {
+      setError('Password must be 8-32 characters and include uppercase, lowercase, number, and special character.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      await submitAccessRequest({
+      await api.post('/api/auth/register', {
+        username,
         fullName,
         email,
         role,
-        additionalInfo,
+        password,
+        phoneNumber,
+        workplace: role === 'ROLE_TEACHER' ? workplace : undefined,
+        degree: role === 'ROLE_TEACHER' ? degree : undefined,
+        specialization: role === 'ROLE_TEACHER' ? specialization : undefined,
+        jobTitle: role === 'ROLE_PARENT' ? jobTitle : undefined,
       });
 
-      setSuccess('Yêu cầu gửi thành công! Quản trị viên sẽ kiểm duyệt và liên hệ qua email của bạn.');
+      setSuccess('Account request submitted. Your account is pending admin approval.');
+      setUsername('');
       setFullName('');
       setEmail('');
-      setAdditionalInfo('');
+      setPassword('');
+      setConfirmPassword('');
+      setPhoneNumber('');
+      setWorkplace('');
+      setDegree('');
+      setSpecialization('');
+      setJobTitle('');
     } catch (err) {
       const backendMessage =
         err?.response?.data?.message ||
@@ -145,13 +186,13 @@ export default function RequestAccessPage() {
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-slate-50/50 font-sans">
       
       {/* LEFT SECTION: Graphics & Concept Showcase */}
-      <div className="relative w-full lg:w-1/2 bg-gradient-to-tr from-indigo-650 via-blue-600 to-teal-500 flex flex-col justify-between p-8 sm:p-16 text-white overflow-hidden shrink-0 min-h-[360px] lg:min-h-screen">
+      <div className="relative w-full lg:w-1/2 bg-gradient-to-b from-indigo-950 via-purple-900 to-slate-900 flex flex-col justify-between p-8 sm:p-16 text-white overflow-hidden shrink-0 min-h-[360px] lg:min-h-screen">
         {/* Floating chemistry grid background */}
         <GraphicCanvas />
 
         {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-teal-300/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-80 h-80 bg-violet-400/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-cyan-300/5 rounded-full blur-3xl pointer-events-none" />
 
         {/* Logo and branding */}
         <div className="relative z-10 flex items-center gap-2">
@@ -272,6 +313,26 @@ export default function RequestAccessPage() {
                 {/* Form fields */}
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-1.5">
+                    <Label htmlFor="username" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
+                      Username
+                    </Label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <UserCheck className="w-4 h-4" />
+                      </div>
+                      <Input
+                        id="username"
+                        type="text"
+                        placeholder="Choose a username..."
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                        className="bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:ring-blue-100 pl-10"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
                     <Label htmlFor="fullName" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
                       Họ và tên
                     </Label>
@@ -312,6 +373,60 @@ export default function RequestAccessPage() {
                   </div>
 
                   <div className="space-y-1.5">
+                    <Label htmlFor="password" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
+                      Password
+                    </Label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <Lock className="w-4 h-4" />
+                      </div>
+                      <Input
+                        id="password"
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Create a password..."
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        className="bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:ring-blue-100 pl-10 pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="confirmPassword" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
+                      Confirm password
+                    </Label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <Lock className="w-4 h-4" />
+                      </div>
+                      <Input
+                        id="confirmPassword"
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        placeholder="Confirm your password..."
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                        className="bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:ring-blue-100 pl-10 pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword((prev) => !prev)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                      >
+                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
                     <Label htmlFor="role" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
                       Vai trò đăng ký
                     </Label>
@@ -333,22 +448,131 @@ export default function RequestAccessPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="additionalInfo" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
-                      Thông tin thêm (Trường học, Số điện thoại...)
+                    <Label htmlFor="phoneNumber" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
+                      Phone number
                     </Label>
                     <div className="relative">
-                      <div className="absolute top-3 left-3 pointer-events-none text-slate-400">
-                        <Info className="w-4 h-4" />
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <Phone className="w-4 h-4" />
                       </div>
-                      <textarea
-                        id="additionalInfo"
-                        placeholder="Trường lớp công tác hoặc thông tin liên quan giúp ban quản trị phê duyệt nhanh hơn..."
-                        value={additionalInfo}
-                        onChange={(e) => setAdditionalInfo(e.target.value)}
-                        className="flex min-h-[90px] w-full rounded-md border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 pl-10 pr-3 py-2 text-sm focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-100"
+                      <Input
+                        id="phoneNumber"
+                        type="tel"
+                        placeholder="09xx xxx xxx"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        required
+                        className="bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:ring-blue-100 pl-10"
                       />
                     </div>
                   </div>
+
+                  <AnimatePresence mode="wait">
+                    {role === 'ROLE_TEACHER' && (
+                      <motion.div
+                        key="teacher-fields"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="space-y-4 rounded-lg border border-blue-100 bg-blue-50/40 p-3">
+                          <div className="space-y-1.5">
+                            <Label htmlFor="workplace" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
+                              Workplace
+                            </Label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                <School className="w-4 h-4" />
+                              </div>
+                              <Input
+                                id="workplace"
+                                type="text"
+                                placeholder="School or organization"
+                                value={workplace}
+                                onChange={(e) => setWorkplace(e.target.value)}
+                                required={role === 'ROLE_TEACHER'}
+                                className="bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:ring-blue-100 pl-10"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <Label htmlFor="degree" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
+                              Degree
+                            </Label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                <GraduationCap className="w-4 h-4" />
+                              </div>
+                              <select
+                                id="degree"
+                                value={degree}
+                                onChange={(e) => setDegree(e.target.value)}
+                                required={role === 'ROLE_TEACHER'}
+                                className="flex h-10 w-full rounded-md border border-slate-200 bg-white text-slate-900 pl-10 pr-3 py-2 text-sm focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-100"
+                              >
+                                <option value="">Select degree</option>
+                                <option value="Cử nhân">Cử nhân</option>
+                                <option value="Thạc sĩ">Thạc sĩ</option>
+                                <option value="Tiến sĩ">Tiến sĩ</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <Label htmlFor="specialization" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
+                              Specialization
+                            </Label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                <BookOpen className="w-4 h-4" />
+                              </div>
+                              <Input
+                                id="specialization"
+                                type="text"
+                                placeholder="Chemistry, organic chemistry..."
+                                value={specialization}
+                                onChange={(e) => setSpecialization(e.target.value)}
+                                required={role === 'ROLE_TEACHER'}
+                                className="bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:ring-blue-100 pl-10"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {role === 'ROLE_PARENT' && (
+                      <motion.div
+                        key="parent-fields"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="space-y-1.5 rounded-lg border border-teal-100 bg-teal-50/40 p-3">
+                          <Label htmlFor="jobTitle" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
+                            Job title
+                          </Label>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                              <Briefcase className="w-4 h-4" />
+                            </div>
+                            <Input
+                              id="jobTitle"
+                              type="text"
+                              placeholder="Engineer, business owner..."
+                              value={jobTitle}
+                              onChange={(e) => setJobTitle(e.target.value)}
+                              required={role === 'ROLE_PARENT'}
+                              className="bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:ring-blue-100 pl-10"
+                            />
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   <Button
                     type="submit"

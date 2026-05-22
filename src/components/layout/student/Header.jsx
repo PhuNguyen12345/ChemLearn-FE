@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Menu, User, Settings, LogOut, FlaskConical, Flame, Star, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,7 +19,8 @@ import { useLogout } from '@/stores/useLogout';
 import { translations } from '@/lib/translations';
 import { useStudentStore } from '../../../stores/useStudentStore';
 
-const Header = ({ setActiveTab }) => {
+const Header = () => {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const { language } = useLanguageStore();
   const t = translations[language] || translations['vi'];
@@ -43,7 +45,7 @@ const Header = ({ setActiveTab }) => {
           </SheetTrigger>
           <SheetContent side="left" className="p-0 w-64">
             <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-            <Sidebar className="border-r-0" setActiveTab={setActiveTab} />
+            <Sidebar className="border-r-0" />
           </SheetContent>
         </Sheet>
 
@@ -116,7 +118,7 @@ const Header = ({ setActiveTab }) => {
               <DropdownMenuSeparator className="my-1.5 bg-slate-100" />
 
               <DropdownMenuItem
-                onClick={() => { if (setActiveTab) setActiveTab('profile'); }}
+                onClick={() => navigate('/student/profile')}
                 className="cursor-pointer rounded-xl px-3 py-2.5 hover:bg-indigo-50 focus:bg-indigo-50 font-semibold"
               >
                 <User className="mr-2.5 h-4 w-4 text-indigo-500" />

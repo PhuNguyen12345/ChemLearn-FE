@@ -32,70 +32,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
-const VN_TIME_ZONE = 'Asia/Ho_Chi_Minh';
 
-const weekdayFormatter = new Intl.DateTimeFormat('en-US', {
-  weekday: 'long',
-  timeZone: VN_TIME_ZONE,
-});
-
-const dateFormatter = new Intl.DateTimeFormat('en-GB', {
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-  timeZone: VN_TIME_ZONE,
-});
-
-const parseDateValue = (dateValue) => {
-  const [year, month, day] = (dateValue || '').split('-').map(Number);
-  if (!year || !month || !day) return null;
-  return new Date(year, month - 1, day);
-};
-
-const getSchoolYearEndDate = (startDate) => {
-  const startMonth = startDate.getMonth() + 1;
-  const startYear = startDate.getFullYear();
-  const endYear = startMonth >= 9 ? startYear + 1 : startYear;
-  return new Date(endYear, 4, 31);
-};
-
-const calculateWeeklySessionCount = (startDate, endDate) => {
-  const diffMs = endDate.getTime() - startDate.getTime();
-  if (diffMs < 0) return 0;
-  return Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000)) + 1;
-};
-
-const toIsoDateTime = (value) => {
-  if (!value) return null;
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date.toISOString();
-};
-
-const buildVietnamSchoolYearSchedule = (dateValue, timeValue) => {
-  const startDate = parseDateValue(dateValue);
-  if (!startDate || !timeValue) {
-    return { scheduleText: '', endDate: null, sessionCount: 0, weekdayText: '' };
-  }
-
-  const endDate = getSchoolYearEndDate(startDate);
-  const weekdayText = weekdayFormatter.format(startDate);
-  const sessionCount = calculateWeeklySessionCount(startDate, endDate);
-
-  const scheduleText = `Weekly ${weekdayText} at ${timeValue} (ICT) from ${dateFormatter.format(startDate)} to ${dateFormatter.format(endDate)}`;
-
-  return {
-    scheduleText,
-    endDate,
-    sessionCount,
-    weekdayText,
-  };
-};
 
 const emptyForm = {
   name: '',
-  scheduleStartDate: '',
-  scheduleStartTime: '',
-  schedule: '',
+  grade: '',
+  classType: '',
   description: '',
 };
 
@@ -140,9 +82,8 @@ const TeacherClassManagement = () => {
     setEditingClassId(classRoom.id);
     setForm({
       name: classRoom.name || '',
-      scheduleStartDate: '',
-      scheduleStartTime: '',
-      schedule: classRoom.schedule || '',
+      grade: classRoom.grade || '',
+      classType: classRoom.classType || '',
       description: classRoom.description || '',
     });
     setIsModalOpen(true);
@@ -153,13 +94,10 @@ const TeacherClassManagement = () => {
     try {
       setSaving(true);
       setError('');
-      
-      const generatedSchedule = buildVietnamSchoolYearSchedule(form.scheduleStartDate, form.scheduleStartTime).scheduleText;
-      const finalSchedule = generatedSchedule || form.schedule.trim();
-
       const payload = {
         name: form.name.trim(),
-        schedule: finalSchedule,
+        grade: form.grade ? Number(form.grade) : null,
+        classType: form.classType,
         description: form.description.trim(),
       };
 
@@ -402,30 +340,38 @@ const TeacherClassManagement = () => {
                   />
                 </div>
 
-                {!editingClassId && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Start Date</label>
-                      <input
-                        type="date"
-                        value={form.scheduleStartDate}
-                        onChange={(e) => setForm((prev) => ({ ...prev, scheduleStartDate: e.target.value }))}
-                        className="w-full rounded-2xl bg-slate-50 border-none px-5 py-4 font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Start Time</label>
-                      <input
-                        type="time"
-                        value={form.scheduleStartTime}
-                        onChange={(e) => setForm((prev) => ({ ...prev, scheduleStartTime: e.target.value }))}
-                        className="w-full rounded-2xl bg-slate-50 border-none px-5 py-4 font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                        required
-                      />
-                    </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Grade</label>
+                    <select
+                      value={form.grade}
+                      onChange={(e) => setForm((prev) => ({ ...prev, grade: e.target.value }))}
+                      className="w-full rounded-2xl bg-slate-50 border-none px-5 py-4 font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                      required
+                    >
+                      <option value="" disabled>Select Grade</option>
+                      <option value="6">Grade 6</option>
+                      <option value="7">Grade 7</option>
+                      <option value="8">Grade 8</option>
+                      <option value="9">Grade 9</option>
+                    </select>
                   </div>
-                )}
+                  <div className="space-y-2">
+                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Class Type</label>
+                    <select
+                      value={form.classType}
+                      onChange={(e) => setForm((prev) => ({ ...prev, classType: e.target.value }))}
+                      className="w-full rounded-2xl bg-slate-50 border-none px-5 py-4 font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                      required
+                    >
+                      <option value="" disabled>Select Type</option>
+                      <option value="Kết nối tri thức">Kết nối tri thức</option>
+                      <option value="Chân trời sáng tạo">Chân trời sáng tạo</option>
+                      <option value="Cánh diều">Cánh diều</option>
+                    </select>
+                  </div>
+                </div>
+
 
                 <div className="space-y-2">
                   <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Description</label>

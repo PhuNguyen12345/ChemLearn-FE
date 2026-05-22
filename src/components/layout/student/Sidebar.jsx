@@ -18,9 +18,9 @@ import { useSidebarStore } from '../../../stores/useSidebarStore';
 
 const navItems = [
   { name: 'Dashboard',   icon: LayoutDashboard, path: '/student/home', id: 'dashboard', emoji: '🏠' },
-  { name: 'Progress Map',icon: Map,             path: '/student/home', id: 'progressMap', emoji: '🗺️' },
-  { name: 'Study Zone',  icon: BookOpen,        path: '/student/home', id: 'studyZone', emoji: '📚' },
-  { name: 'Virtual Lab', icon: Microscope,      path: '/student/home', id: 'labDashboard', emoji: '🧪' },
+  { name: 'Progress Map',icon: Map,             path: '/student/progress-map', id: 'progressMap', emoji: '🗺️' },
+  { name: 'Study Zone',  icon: BookOpen,        path: '/student/study-zone', id: 'studyZone', emoji: '📚' },
+  { name: 'Virtual Lab', icon: Microscope,      path: '/student/virtual-lab', id: 'labDashboard', emoji: '🧪' },
   { name: 'Missions',    icon: Target,          path: '/student/missions', id: 'missions', emoji: '🎯' },
   { name: 'PVP Battle',  icon: Swords,          path: '/student/pvp', id: 'pvp', emoji: '⚔️' },
   { name: 'Leaderboard', icon: Trophy,          path: '/student/leaderboard', id: 'leaderboard', emoji: '🏆' },
@@ -40,21 +40,11 @@ const itemAccent = {
   classes: { bg: 'bg-indigo-600', border: 'border-b-indigo-800', shadow: 'shadow-indigo-300/40' },
 };
 
-const Sidebar = ({ className = '', activeTab, setActiveTab }) => {
+const Sidebar = ({ className = '' }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { experience, level } = useStudentStore();
   const { isCollapsed, toggleSidebar } = useSidebarStore();
-
-  const homeTabIds = ['dashboard', 'studyZone', 'labDashboard', 'profile', 'progressMap', 'pvp'];
-
-  const handleNavClick = (e, item) => {
-    if (homeTabIds.includes(item.id)) {
-      e.preventDefault();
-      if (location.pathname !== '/student/home') navigate('/student/home');
-      if (setActiveTab) setActiveTab(item.id);
-    }
-  };
 
   const handleLogoClick = () => {
     navigate('/student/home');
@@ -94,17 +84,14 @@ const Sidebar = ({ className = '', activeTab, setActiveTab }) => {
       {/* ── Navigation ── */}
       <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-1.5">
         {navItems.map((item) => {
-          const isTabActive = location.pathname === '/student/home' && activeTab === item.id;
           const isClassRoute = item.id === 'classes' && (location.pathname === '/student/classes' || location.pathname.startsWith('/student/class/'));
-          const isRouteActive = isClassRoute || (location.pathname === item.path && !['dashboard', 'studyZone', 'labDashboard', 'classes'].includes(item.id));
-          const isActive = isTabActive || isRouteActive;
+          const isActive = isClassRoute || location.pathname === item.path;
           const accent = itemAccent[item.id] ?? itemAccent.dashboard;
 
           return (
             <NavLink
               key={item.name}
               to={item.path}
-              onClick={(e) => handleNavClick(e, item)}
               className={`
                 flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all duration-200 select-none
                 ${isCollapsed ? 'justify-center' : ''}

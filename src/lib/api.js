@@ -381,26 +381,6 @@ export const deleteUser = async (userId) => {
   return response.data;
 };
 
-export const getAdminClasses = async () => {
-  const response = await api.get('/api/admin/classes');
-  return response.data;
-};
-
-export const createAdminClass = async (payload) => {
-  const response = await api.post('/api/admin/classes', payload);
-  return response.data;
-};
-
-export const updateAdminClass = async (classId, payload) => {
-  const response = await api.put(`/api/admin/classes/${classId}`, payload);
-  return response.data;
-};
-
-export const deleteAdminClass = async (classId) => {
-  const response = await api.delete(`/api/admin/classes/${classId}`);
-  return response.data;
-};
-
 export const getParentChildren = async () => {
   const response = await api.get('/api/parent/children');
   return response.data;

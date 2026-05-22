@@ -290,13 +290,13 @@ export default function LoginPage() {
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-slate-50/50 font-sans">
       
       {/* LEFT SECTION: Graphics & Concept Showcase */}
-      <div className="relative w-full lg:w-1/2 bg-gradient-to-tr from-indigo-650 via-blue-600 to-teal-500 flex flex-col justify-between p-8 sm:p-16 text-white overflow-hidden shrink-0 min-h-[360px] lg:min-h-screen">
+      <div className="relative w-full lg:w-1/2 bg-gradient-to-b from-indigo-950 via-purple-900 to-slate-900 flex flex-col justify-between p-8 sm:p-16 text-white overflow-hidden shrink-0 min-h-[360px] lg:min-h-screen">
         {/* Floating chemistry grid background */}
         <GraphicCanvas />
 
         {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-teal-300/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-80 h-80 bg-violet-400/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-cyan-300/5 rounded-full blur-3xl pointer-events-none" />
 
         {/* Logo and branding */}
         <div className="relative z-10 flex items-center gap-2">
@@ -373,7 +373,6 @@ export default function LoginPage() {
           {/* Header Info */}
           <div>
             <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Đăng Nhập</h2>
-            <p className="text-slate-500 text-sm mt-2">Vui lòng điền thông tin tài khoản của bạn</p>
           </div>
 
           <AnimatePresence mode="wait">

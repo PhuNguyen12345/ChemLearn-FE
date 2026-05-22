@@ -1,5 +1,5 @@
 import React from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useStudentStore } from '../../stores/useStudentStore';
 import {
   PlayCircle,
@@ -47,7 +47,7 @@ const XPPill = ({ label }) => (
 ───────────────────────────────────────────── */
 const StudentHome = () => {
   const context = useOutletContext();
-  const setActiveTab = context?.setActiveTab;
+  const navigate = useNavigate();
   const { coins, experience, level, currentStreak, setGamificationProfile } = useStudentStore();
   const [dailyQuests, setDailyQuests] = React.useState([]);
 
@@ -86,14 +86,14 @@ const StudentHome = () => {
             <span className="font-black text-yellow-300">{coins} Vàng</span>
           </div>
           <button
-            onClick={() => setActiveTab && setActiveTab('island')}
+            onClick={() => navigate('/student/island')}
             className="flex items-center gap-2 bg-emerald-500/80 hover:bg-emerald-500 px-4 py-2 rounded-full border border-emerald-400/50 backdrop-blur-md transition-all shadow-lg shadow-emerald-500/20"
           >
             <span className="text-xl">🏝️</span>
             <span className="font-bold text-white uppercase text-sm tracking-wider">Đảo Thú Cưng</span>
           </button>
           <button
-            onClick={() => setActiveTab && setActiveTab('shop')}
+            onClick={() => navigate('/student/shop')}
             className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full border border-white/40 backdrop-blur-md transition-colors"
           >
             <span className="text-xl">🛍️</span>
@@ -201,7 +201,7 @@ const StudentHome = () => {
 
           {/* Portal 1 — Virtual Lab */}
           <button
-            onClick={() => setActiveTab && setActiveTab('labDashboard')}
+            onClick={() => navigate('/student/virtual-lab')}
             className="group flex flex-col items-center justify-center gap-3 p-7 rounded-[1.5rem] bg-white border-2 border-purple-200 border-b-[6px] border-b-purple-400 text-purple-700 hover:bg-purple-50 hover:border-b-purple-500 active:border-b-2 active:translate-y-1 transition-all duration-150 shadow-sm cursor-pointer"
           >
             <div className="w-16 h-16 rounded-[1rem] bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-300/50 group-hover:scale-110 transition-transform duration-200">
@@ -213,7 +213,7 @@ const StudentHome = () => {
 
           {/* Portal 2 — Quick Quiz */}
           <button
-            onClick={() => setActiveTab && setActiveTab('classes')}
+            onClick={() => navigate('/student/classes')}
             className="group flex flex-col items-center justify-center gap-3 p-7 rounded-[1.5rem] bg-white border-2 border-emerald-200 border-b-[6px] border-b-emerald-400 text-emerald-700 hover:bg-emerald-50 hover:border-b-emerald-500 active:border-b-2 active:translate-y-1 transition-all duration-150 shadow-sm cursor-pointer"
           >
             <div className="w-16 h-16 rounded-[1rem] bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-300/50 group-hover:scale-110 transition-transform duration-200">
@@ -225,7 +225,7 @@ const StudentHome = () => {
 
           {/* Portal 3 — Boss Raid */}
           <button
-            onClick={() => setActiveTab && setActiveTab('fireQuiz')}
+            onClick={() => navigate('/student/fire-quiz')}
             className="group flex flex-col items-center justify-center gap-3 p-7 rounded-[1.5rem] bg-white border-2 border-red-200 border-b-[6px] border-b-red-400 text-red-700 hover:bg-red-50 hover:border-b-red-500 active:border-b-2 active:translate-y-1 transition-all duration-150 shadow-sm cursor-pointer"
           >
             <div className="w-16 h-16 rounded-[1rem] bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-lg shadow-red-300/50 group-hover:scale-110 transition-transform duration-200">

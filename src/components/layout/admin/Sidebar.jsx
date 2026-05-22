@@ -1,11 +1,11 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Users, Settings, School, ShieldAlert, FlaskConical, BookOpen } from 'lucide-react';
+import { Users, Settings, ShieldAlert, FlaskConical, BookOpen, UserRoundCheck } from 'lucide-react';
 
 const navItems = [
   { name: 'Dashboard', icon: ShieldAlert, path: '/admin/dashboard' },
   { name: 'Study Zone', icon: BookOpen, path: '/admin/study' },
-  { name: 'Class Management', icon: School, path: '/admin/classes' },
+  { name: 'Account Requests', icon: UserRoundCheck, path: '/admin/account-requests' },
   { name: 'User Management', icon: Users, path: '/admin/users' },
   { name: 'System Config', icon: Settings, path: '/admin/settings' },
 ];
