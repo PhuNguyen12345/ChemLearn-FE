@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useStudentStore } from '../../stores/useStudentStore';
 import { getDailyQuests, claimQuest, getGamificationProfile } from '../../api/studentApi';
+import { toast } from 'sonner';
 
 /* ================================================================
    SUB-COMPONENTS
@@ -65,10 +66,10 @@ const Missions = () => {
       setQuests(qData);
       const pData = await getGamificationProfile();
       setGamificationProfile(pData);
-      alert("Claimed successfully!");
+      toast.success("Nhận thưởng thành công!");
     } catch (err) {
       console.error("Failed to claim quest", err);
-      alert("Failed to claim quest");
+      toast.error("Nhận thưởng thất bại");
     }
   };
 

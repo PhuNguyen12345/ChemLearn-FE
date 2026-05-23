@@ -82,9 +82,9 @@ export default function StudentProfile() {
         gender: infoForm.gender
       });
       setProfileData(data);
-      alert("Cập nhật thông tin thành công!");
+      toast.success("Cập nhật thông tin thành công!");
     } catch (error) {
-      alert("Có lỗi xảy ra khi cập nhật thông tin.");
+      toast.error("Có lỗi xảy ra khi cập nhật thông tin.");
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -93,7 +93,7 @@ export default function StudentProfile() {
 
   const handleChangePassword = async () => {
     if (passForm.newPassword !== passForm.confirm) {
-      alert("Mật khẩu xác nhận không khớp!");
+      toast.warning("Mật khẩu xác nhận không khớp!");
       return;
     }
     try {
@@ -102,10 +102,10 @@ export default function StudentProfile() {
         currentPassword: passForm.currentPassword,
         newPassword: passForm.newPassword
       });
-      alert("Đổi mật khẩu thành công!");
+      toast.success("Đổi mật khẩu thành công!");
       setPassForm({ currentPassword: '', newPassword: '', confirm: '' });
     } catch (error) {
-      alert("Có lỗi xảy ra khi đổi mật khẩu.");
+      toast.error("Có lỗi xảy ra khi đổi mật khẩu.");
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -390,8 +390,8 @@ export default function StudentProfile() {
                     <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-1.5">Họ và Tên</label>
                     <input 
                       type="text" 
-                      value={infoForm.name}
-                      onChange={(e) => setInfoForm({...infoForm, name: e.target.value})}
+                      value={infoForm.fullName}
+                      onChange={(e) => setInfoForm({...infoForm, fullName: e.target.value})}
                       className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 outline-none font-bold text-slate-700 transition-all"
                     />
                   </div>

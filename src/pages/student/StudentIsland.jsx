@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useStudentStore } from '../../stores/useStudentStore';
 import { Coins, ArrowLeft, Heart, Zap } from 'lucide-react';
 import { getMyPets, getMyCoins, getShopItems, buyItem, openEgg, feedPet, starUpPet, getMyInventory } from '../../api/studentApi';
+import { toast } from 'sonner';
 import islandBg from '../../assets/islandBg.png';
 import detailBg from '../../assets/detailBg.png';
 
@@ -120,7 +121,7 @@ const StudentIsland = ({ onBack }) => {
         // 3. Reload pets
         await loadData();
       } catch (error) {
-        alert("Có lỗi xảy ra: " + (error.response?.data?.message || error.message));
+        toast.error("Có lỗi xảy ra: " + (error.response?.data?.message || error.message));
       }
     }
   };
@@ -130,10 +131,10 @@ const StudentIsland = ({ onBack }) => {
       try {
         await buyItem(item.itemId, 1);
         spendCoins(item.quantity);
-        alert(`Mua thành công 1 ${item.name}!`);
+        toast.success(`Mua thành công 1 ${item.name}!`);
         await loadData();
       } catch (error) {
-        alert("Mua thất bại: " + (error.response?.data?.message || error.message));
+        toast.error("Mua thất bại: " + (error.response?.data?.message || error.message));
       }
     }
   };
@@ -149,10 +150,10 @@ const StudentIsland = ({ onBack }) => {
         const updatedPets = await getMyPets();
         setSelectedPet(updatedPets.find(p => p.id === selectedPet.id));
       } catch (error) {
-        alert("Lỗi cho ăn: " + (error.response?.data?.message || error.message));
+        toast.error("Lỗi cho ăn: " + (error.response?.data?.message || error.message));
       }
     } else {
-      alert("Bạn không có thức ăn! Hãy mua trong Cửa hàng.");
+      toast.warning("Bạn không có thức ăn! Hãy mua trong Cửa hàng.");
     }
   };
 
@@ -163,9 +164,9 @@ const StudentIsland = ({ onBack }) => {
 
       const updatedPets = await getMyPets();
       setSelectedPet(updatedPets.find(p => p.id === selectedPet.id));
-      alert("Nâng sao thành công! Chỉ số đã tăng vọt.");
+      toast.success("Nâng sao thành công! Chỉ số đã tăng vọt.");
     } catch (error) {
-      alert("Lỗi nâng sao: " + (error.response?.data?.message || error.message));
+      toast.error("Lỗi nâng sao: " + (error.response?.data?.message || error.message));
     }
   };
 
