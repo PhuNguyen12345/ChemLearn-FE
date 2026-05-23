@@ -17,14 +17,14 @@ import { useStudentStore } from '../../../stores/useStudentStore';
 import { useSidebarStore } from '../../../stores/useSidebarStore';
 
 const navItems = [
-  { name: 'Dashboard',   icon: LayoutDashboard, path: '/student/home', id: 'dashboard', emoji: '🏠' },
-  { name: 'Progress Map',icon: Map,             path: '/student/progress-map', id: 'progressMap', emoji: '🗺️' },
-  { name: 'Study Zone',  icon: BookOpen,        path: '/student/study-zone', id: 'studyZone', emoji: '📚' },
-  { name: 'Virtual Lab', icon: Microscope,      path: '/student/virtual-lab', id: 'labDashboard', emoji: '🧪' },
-  { name: 'Missions',    icon: Target,          path: '/student/missions', id: 'missions', emoji: '🎯' },
-  { name: 'PVP Battle',  icon: Swords,          path: '/student/pvp', id: 'pvp', emoji: '⚔️' },
-  { name: 'Leaderboard', icon: Trophy,          path: '/student/leaderboard', id: 'leaderboard', emoji: '🏆' },
-  { name: 'Classes',     icon: Users,           path: '/student/classes', id: 'classes', emoji: '👥' },
+  { name: 'Dashboard', icon: LayoutDashboard, path: '/student/home', id: 'dashboard', emoji: '🏠' },
+  { name: 'Progress Map', icon: Map, path: '/student/progress-map', id: 'progressMap', emoji: '🗺️' },
+  { name: 'Study Zone', icon: BookOpen, path: '/student/study-zone', id: 'studyZone', emoji: '📚' },
+  { name: 'Virtual Lab', icon: Microscope, path: '/student/virtual-lab', id: 'labDashboard', emoji: '🧪' },
+  // { name: 'Missions',    icon: Target,          path: '/student/missions', id: 'missions', emoji: '🎯' },
+  { name: 'PVP Battle', icon: Swords, path: '/student/pvp', id: 'pvp', emoji: '⚔️' },
+  { name: 'Leaderboard', icon: Trophy, path: '/student/leaderboard', id: 'leaderboard', emoji: '🏆' },
+  { name: 'Classes', icon: Users, path: '/student/classes', id: 'classes', emoji: '👥' },
 ];
 
 /* Colour accent per nav item for its active state */
@@ -33,7 +33,7 @@ const itemAccent = {
   progressMap: { bg: 'bg-cyan-500', border: 'border-b-cyan-700', shadow: 'shadow-cyan-300/40' },
   studyZone: { bg: 'bg-sky-500', border: 'border-b-sky-700', shadow: 'shadow-sky-300/40' },
   labDashboard: { bg: 'bg-purple-500', border: 'border-b-purple-700', shadow: 'shadow-purple-300/40' },
-  missions: { bg: 'bg-orange-500', border: 'border-b-orange-700', shadow: 'shadow-orange-300/40' },
+  // missions: { bg: 'bg-orange-500', border: 'border-b-orange-700', shadow: 'shadow-orange-300/40' },
   leaderboard: { bg: 'bg-amber-500', border: 'border-b-amber-700', shadow: 'shadow-amber-300/40' },
   profile: { bg: 'bg-pink-500', border: 'border-b-pink-700', shadow: 'shadow-pink-300/40' },
   pvp: { bg: 'bg-rose-600', border: 'border-b-rose-800', shadow: 'shadow-rose-300/40' },

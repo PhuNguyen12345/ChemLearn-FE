@@ -175,6 +175,10 @@ const StudentIsland = ({ onBack }) => {
 
   if (selectedPet) {
     const expPercentage = Math.min(100, (selectedPet.experience / selectedPet.nextLevelExp) * 100);
+    const totalFood = foodItems.reduce((acc, curr) => acc + curr.quantity, 0);
+    const canFeed = totalFood > 0;
+    const fragmentsNeeded = selectedPet.starLevel * 20;
+    const canStarUp = selectedPet.starLevel < 5 && (selectedPet.fragments || 0) >= fragmentsNeeded;
 
     return (
       <div className="flex w-full h-full items-center justify-center relative overflow-hidden bg-black animate-in fade-in duration-300">
@@ -182,52 +186,88 @@ const StudentIsland = ({ onBack }) => {
         <button onClick={() => setSelectedPet(null)} className="absolute top-6 left-6 z-10 p-3 bg-black/50 hover:bg-black/80 text-white rounded-full backdrop-blur-sm transition-all shadow-lg border border-white/10">
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <div className="z-10 flex flex-col items-center gap-6 p-8 bg-black/50 backdrop-blur-md rounded-3xl border border-white/20 text-white shadow-2xl max-w-lg w-full mx-4">
-          <div className="flex items-center gap-2">
-            <h2 className="text-4xl font-black text-amber-400 drop-shadow-lg">{selectedPet.species?.name}</h2>
-            <div className="flex text-yellow-400">
+        <div className="z-10 flex flex-col items-center gap-3 sm:gap-4 p-4 sm:p-5 bg-black/60 backdrop-blur-md rounded-3xl border border-white/20 text-white shadow-2xl max-w-sm sm:max-w-md w-full mx-4 overflow-y-auto max-h-[92vh]">
+          {/* Title & Stars */}
+          <div className="flex flex-col items-center gap-1">
+            <h2 className="text-2xl sm:text-3xl font-black text-amber-400 drop-shadow-lg text-center">{selectedPet.species?.name}</h2>
+            <div className="flex text-yellow-400 text-sm sm:text-base">
               {Array.from({ length: selectedPet.starLevel }).map((_, i) => <span key={i}>⭐</span>)}
+              {Array.from({ length: 5 - selectedPet.starLevel }).map((_, i) => <span key={i} className="opacity-30" style={{ filter: 'grayscale(100%) brightness(50%)' }}>⭐</span>)}
             </div>
           </div>
 
-          <div className="relative w-64 h-64 flex items-center justify-center animate-bounce" style={{ animationDuration: '3s' }}>
-            <div className="absolute bottom-0 w-48 h-12 bg-black/40 rounded-[100%] blur-md"></div>
+          {/* Pet Image */}
+          <div className="relative w-40 h-40 sm:w-48 sm:h-48 flex items-center justify-center animate-bounce mt-1" style={{ animationDuration: '3s' }}>
+            <div className="absolute bottom-0 w-32 h-8 bg-black/40 rounded-[100%] blur-md"></div>
             <img src={getPetImage(selectedPet.species?.imageUrl, selectedPet.species?.name)} alt={selectedPet.species?.name} className="relative z-10 max-w-full max-h-full object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]" draggable="false" />
           </div>
 
-          <div className="flex gap-4 w-full">
-            <div className="flex-1 bg-white/10 p-4 rounded-xl border border-white/20 text-center shadow-inner">
-              <p className="text-sm text-slate-300 font-semibold mb-1">Level</p>
-              <div className="flex justify-center items-end gap-1"><span className="text-3xl font-black text-blue-400">{selectedPet.level}</span></div>
+          {/* Level & EXP Section */}
+          <div className="flex gap-3 w-full mt-1">
+            <div className="flex-1 bg-white/10 p-2.5 rounded-xl border border-white/25 text-center shadow-inner flex flex-col justify-center">
+              <p className="text-xs text-slate-300 font-semibold mb-0.5">Cấp độ</p>
+              <div className="flex justify-center items-end gap-0.5">
+                <span className="text-2xl font-black text-blue-400">{selectedPet.level}</span>
+              </div>
             </div>
-            <div className="flex-1 bg-white/10 p-4 rounded-xl border border-white/20 text-center shadow-inner">
-              <p className="text-sm text-slate-300 font-semibold mb-1">EXP</p>
-              <div className="w-full bg-black/50 rounded-full h-3 mt-2 overflow-hidden border border-white/10">
+            <div className="flex-[2] bg-white/10 p-2.5 rounded-xl border border-white/25 text-center shadow-inner">
+              <p className="text-xs text-slate-300 font-semibold mb-0.5">Kinh Nghiệm (EXP)</p>
+              <div className="w-full bg-black/50 rounded-full h-2.5 mt-1.5 overflow-hidden border border-white/10">
                 <div className="bg-gradient-to-r from-blue-400 to-blue-600 h-full rounded-full transition-all duration-300" style={{ width: `${expPercentage}%` }}></div>
               </div>
-              <p className="text-xs font-bold text-blue-300 mt-1">{selectedPet.experience}/{selectedPet.nextLevelExp}</p>
+              <p className="text-[10px] font-bold text-blue-300 mt-1">{selectedPet.experience}/{selectedPet.nextLevelExp}</p>
             </div>
           </div>
 
-          <div className="flex gap-4 w-full">
-            <div className="flex-1 bg-red-500/20 p-2 rounded border border-red-500/30 text-center">
-              <p className="text-xs text-red-300">HP: {selectedPet.maxHp}</p>
+          {/* HP & Sát Thương Info */}
+          <div className="flex gap-3 w-full">
+            <div className="flex-1 bg-red-500/20 py-2 px-3 rounded border border-red-500/30 text-center flex items-center justify-center gap-1.5">
+              <Heart className="w-3.5 h-3.5 text-red-400 fill-red-400" />
+              <span className="text-xs text-red-200 font-bold">HP: {selectedPet.maxHp}</span>
             </div>
-            <div className="flex-1 bg-orange-500/20 p-2 rounded border border-orange-500/30 text-center">
-              <p className="text-xs text-orange-300">Sát Thương: {selectedPet.damage}</p>
+            <div className="flex-1 bg-orange-500/20 py-2 px-3 rounded border border-orange-500/30 text-center flex items-center justify-center gap-1.5">
+              <Zap className="w-3.5 h-3.5 text-orange-400 fill-orange-400" />
+              <span className="text-xs text-orange-200 font-bold">Sát Thương: {selectedPet.damage}</span>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 mt-4 w-full">
+          {/* Fragments Progression */}
+          <div className="w-full bg-indigo-950/40 border border-indigo-500/20 rounded-xl p-2 text-center">
+            {selectedPet.starLevel < 5 ? (
+              <p className="text-xs text-indigo-200 font-medium">
+                Mảnh Linh Hồn: <span className="text-amber-400 font-black text-sm">{selectedPet.fragments || 0}</span> / {fragmentsNeeded}
+              </p>
+            ) : (
+              <p className="text-xs text-green-400 font-black">
+                ✨ Linh thú đã đạt cấp sao tối đa! ✨
+              </p>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 w-full mt-1.5">
             <button
               onClick={handleFeedPet}
-              className={`flex-1 flex items-center justify-center gap-2 font-bold py-3 px-4 rounded-xl transition-all shadow-lg bg-green-500 hover:bg-green-600 hover:-translate-y-1 text-white border-b-4 border-green-700 active:border-b-0 active:translate-y-0`}>
-              <Heart className="w-5 h-5" /> Cho Ăn
+              disabled={!canFeed}
+              className={`flex-1 flex items-center justify-center gap-2 font-bold py-2.5 px-3 rounded-xl transition-all shadow-lg text-white ${
+                canFeed 
+                  ? 'bg-green-500 hover:bg-green-600 hover:-translate-y-0.5 border-b-4 border-green-700 active:border-b-0 active:translate-y-0 active:scale-95' 
+                  : 'bg-slate-700/60 text-slate-400 border-b-4 border-slate-800 cursor-not-allowed opacity-50'
+              }`}
+            >
+              <Heart className="w-4 h-4 fill-white/10" /> Cho Ăn ({totalFood})
             </button>
+            
             <button
               onClick={handleStarUp}
-              className={`flex-1 flex items-center justify-center gap-2 font-bold py-3 px-4 rounded-xl transition-all shadow-lg bg-yellow-500 hover:bg-yellow-600 hover:-translate-y-1 text-white border-b-4 border-yellow-700 active:border-b-0 active:translate-y-0`}>
-              <Zap className="w-5 h-5" /> Tăng Sao
+              disabled={!canStarUp}
+              className={`flex-1 flex items-center justify-center gap-2 font-bold py-2.5 px-3 rounded-xl transition-all shadow-lg text-white ${
+                canStarUp 
+                  ? 'bg-yellow-500 hover:bg-yellow-600 hover:-translate-y-0.5 border-b-4 border-yellow-700 active:border-b-0 active:translate-y-0 active:scale-95 text-amber-950' 
+                  : 'bg-slate-700/60 text-slate-400 border-b-4 border-slate-800 cursor-not-allowed opacity-50'
+              }`}
+            >
+              <Zap className="w-4 h-4 fill-white/10" /> Tăng Sao
             </button>
           </div>
         </div>
@@ -310,6 +350,11 @@ const StudentIsland = ({ onBack }) => {
               <div className="bg-orange-500/20 border border-orange-500 p-3 rounded-xl mb-6">
                 <p className="text-orange-300 font-semibold">Bạn đã có Pet này!</p>
                 <p className="text-white font-black">Nhận được {gachaResult.fragmentsReceived} mảnh linh hồn</p>
+                {gachaResult.coinsConverted > 0 && (
+                  <p className="text-yellow-400 font-bold mt-1 text-sm">
+                    Đạt giới hạn nâng sao! Đã quy đổi thành {gachaResult.coinsConverted} Vàng 🪙
+                  </p>
+                )}
               </div>
             ) : (
               <p className="text-green-400 font-bold mb-6">Pet đã được thêm vào đảo!</p>
