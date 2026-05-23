@@ -11,15 +11,25 @@ import pet2 from '../../assets/DogeWizard.png';
 import pet3 from '../../assets/SkibidiToilem.png';
 import pet4 from '../../assets/TungSahurWarrior.png';
 import egg1 from '../../assets/egg.png';
+import bottle1 from '../../assets/bottle1.png';
 
-const FALLBACK_IMAGES = [pet1, pet2, pet3, pet4, egg1];
-const getPetImage = (url, index) => url || FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
+const getPetImage = (url, name) => {
+  if (url) return url;
+  if (!name) return pet1;
+  const n = String(name).toLowerCase();
+  if (n.includes('capybara')) return pet1;
+  if (n.includes('doge')) return pet2;
+  if (n.includes('skibidi') || n.includes('tolem')) return pet3;
+  if (n.includes('tung') || n.includes('sahur') || n.includes('warrior')) return pet4;
+  if (n.includes('trứng') || n.includes('egg')) return egg1;
+  return pet1;
+};
 
 const StudentIsland = ({ onBack }) => {
   const { coins, setCoins, spendCoins } = useStudentStore();
 
   const [ownedPets, setOwnedPets] = useState([]);
-  const [shopEggs, setShopEggs] = useState([]);
+  const [shopItems, setShopItems] = useState([]);
   const [foodItems, setFoodItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -38,7 +48,7 @@ const StudentIsland = ({ onBack }) => {
         getMyCoins()
       ]);
       setOwnedPets(petsRes);
-      setShopEggs(shopRes.filter(item => item.itemType === 'EGG'));
+      setShopItems(shopRes);
       setFoodItems(invRes.filter(item => item.itemType === 'FOOD'));
       setCoins(coinsRes);
     } catch (error) {
@@ -115,6 +125,19 @@ const StudentIsland = ({ onBack }) => {
     }
   };
 
+  const handleBuyFood = async (item) => {
+    if (coins >= item.quantity) {
+      try {
+        await buyItem(item.itemId, 1);
+        spendCoins(item.quantity);
+        alert(`Mua thành công 1 ${item.name}!`);
+        await loadData();
+      } catch (error) {
+        alert("Mua thất bại: " + (error.response?.data?.message || error.message));
+      }
+    }
+  };
+
   const handleFeedPet = async () => {
     if (foodItems.length > 0) {
       try {
@@ -169,7 +192,7 @@ const StudentIsland = ({ onBack }) => {
 
           <div className="relative w-64 h-64 flex items-center justify-center animate-bounce" style={{ animationDuration: '3s' }}>
             <div className="absolute bottom-0 w-48 h-12 bg-black/40 rounded-[100%] blur-md"></div>
-            <img src={getPetImage(selectedPet.species?.imageUrl, selectedPet.species?.id)} alt={selectedPet.species?.name} className="relative z-10 max-w-full max-h-full object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]" draggable="false" />
+            <img src={getPetImage(selectedPet.species?.imageUrl, selectedPet.species?.name)} alt={selectedPet.species?.name} className="relative z-10 max-w-full max-h-full object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]" draggable="false" />
           </div>
 
           <div className="flex gap-4 w-full">
@@ -249,7 +272,7 @@ const StudentIsland = ({ onBack }) => {
               >
                 <div className={`w-full h-full transition-transform duration-200 ${petPositions[pet.id]?.flip ? 'scale-x-[-1]' : ''}`}>
                   <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-24 h-5 bg-black/30 rounded-[100%] blur-sm"></div>
-                  <img src={getPetImage(pet.species?.imageUrl, idx)} alt={pet.species?.name} className="relative z-10 w-full h-full object-contain drop-shadow-2xl" draggable="false" />
+                  <img src={getPetImage(pet.species?.imageUrl, pet.species?.name)} alt={pet.species?.name} className="relative z-10 w-full h-full object-contain drop-shadow-2xl" draggable="false" />
                 </div>
               </div>
             </div>
@@ -275,7 +298,7 @@ const StudentIsland = ({ onBack }) => {
             </h2>
 
             <div className="w-48 h-48 bg-white/10 rounded-full p-4 mb-6 shadow-inner">
-              <img src={getPetImage(gachaResult.species?.imageUrl, gachaResult.species?.id)} alt={gachaResult.species?.name} className="w-full h-full object-contain drop-shadow-2xl animate-pulse" />
+              <img src={getPetImage(gachaResult.species?.imageUrl, gachaResult.species?.name)} alt={gachaResult.species?.name} className="w-full h-full object-contain drop-shadow-2xl animate-pulse" />
             </div>
 
             <h3 className="text-2xl font-bold text-white mb-2">{gachaResult.species?.name}</h3>
@@ -307,7 +330,7 @@ const StudentIsland = ({ onBack }) => {
           <div className="bg-[#1a1c29] w-full max-w-4xl rounded-[2rem] border-4 border-amber-500/50 shadow-[0_0_50px_rgba(245,158,11,0.3)] overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-6 bg-gradient-to-r from-amber-600/30 to-orange-600/30 flex justify-between items-center border-b border-amber-500/30 relative">
               <h2 className="text-3xl font-black text-amber-400 drop-shadow-lg flex items-center gap-3">
-                <span className="text-4xl">🥚</span>Ấp Trứng Linh Thú
+                <span className="text-4xl">🛒</span>Cửa Hàng Linh Thú
               </h2>
               <button onClick={() => setShowShop(false)} className="w-12 h-12 bg-white/10 hover:bg-white/20 hover:rotate-90 rounded-full flex items-center justify-center text-white transition-all">
                 ✕
@@ -315,30 +338,31 @@ const StudentIsland = ({ onBack }) => {
             </div>
 
             <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-4 overflow-y-auto bg-slate-900/50">
-              {shopEggs.length === 0 ? (
+              {shopItems.length === 0 ? (
                 <div className="col-span-full text-center py-10 text-slate-400 italic">
-                  Chưa có trứng nào được bán hôm nay. Vui lòng quay lại sau!
+                  Chưa có vật phẩm nào được bán hôm nay. Vui lòng quay lại sau!
                 </div>
               ) : (
-                shopEggs.map((egg, idx) => {
+                shopItems.map((item, idx) => {
                   // Using quantity field to transport price from backend workaround
-                  const price = egg.quantity;
+                  const price = item.quantity;
                   const canAfford = coins >= price;
+                  const isEgg = item.itemType === 'EGG';
 
                   return (
-                    <div key={egg.id} className="bg-gradient-to-b from-indigo-900/40 to-black/60 rounded-2xl p-4 flex flex-col items-center border border-indigo-500/30 hover:border-amber-400/50 transition-all group shadow-lg hover:-translate-y-1">
+                    <div key={item.id} className="bg-gradient-to-b from-indigo-900/40 to-black/60 rounded-2xl p-4 flex flex-col items-center border border-indigo-500/30 hover:border-amber-400/50 transition-all group shadow-lg hover:-translate-y-1">
                       <div className="w-28 h-28 mb-4 bg-black/40 rounded-full p-3 flex items-center justify-center shadow-inner group-hover:bg-amber-500/10 transition-colors border border-white/5">
-                        <img src={egg.imageUrl || egg1} alt={egg.name} className="w-full h-full object-contain drop-shadow-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-300" />
+                        <img src={item.imageUrl || (isEgg ? egg1 : bottle1)} alt={item.name} className="w-full h-full object-contain drop-shadow-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-300" />
                       </div>
-                      <h3 className="text-sm font-black text-white text-center mb-1 leading-tight">{egg.name}</h3>
-                      <p className="text-xs text-indigo-300/80 font-medium mb-4 text-center line-clamp-2">{egg.description || "Mở để nhận pet ngẫu nhiên!"}</p>
+                      <h3 className="text-sm font-black text-white text-center mb-1 leading-tight">{item.name}</h3>
+                      <p className="text-xs text-indigo-300/80 font-medium mb-4 text-center line-clamp-2">{item.description || (isEgg ? "Mở để nhận pet ngẫu nhiên!" : "Thức ăn tăng EXP cho Pet")}</p>
 
                       <button
-                        onClick={() => handleBuyAndOpenEgg(egg)}
+                        onClick={() => isEgg ? handleBuyAndOpenEgg(item) : handleBuyFood(item)}
                         disabled={!canAfford}
                         className={`mt-auto px-4 py-3 rounded-xl font-black w-full flex items-center justify-center gap-2 transition-colors border shadow-lg ${canAfford ? 'bg-amber-500 hover:bg-amber-400 text-amber-950 border-amber-400' : 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed'}`}
                       >
-                        <Coins className="w-5 h-5" /> Ấp: {price}
+                        <Coins className="w-5 h-5" /> {isEgg ? 'Ấp' : 'Mua'}: {price}
                       </button>
                     </div>
                   )

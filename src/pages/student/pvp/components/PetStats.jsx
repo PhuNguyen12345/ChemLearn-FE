@@ -1,5 +1,22 @@
 import React from 'react';
 
+// Fallback images if DB doesn't have URLs
+import pet1 from '../../../../assets/CapybaraWizard.png';
+import pet2 from '../../../../assets/DogeWizard.png';
+import pet3 from '../../../../assets/SkibidiToilem.png';
+import pet4 from '../../../../assets/TungSahurWarrior.png';
+
+const getPetImage = (url, name) => {
+  if (url) return url;
+  if (!name) return pet1;
+  const n = String(name).toLowerCase();
+  if (n.includes('capybara')) return pet1;
+  if (n.includes('doge')) return pet2;
+  if (n.includes('skibidi') || n.includes('tolem')) return pet3;
+  if (n.includes('tung') || n.includes('sahur') || n.includes('warrior')) return pet4;
+  return pet1;
+};
+
 /**
  * PetStats — Displays a pet's avatar, name, owner name, and HP bar.
  * Pure presentational component.
@@ -65,15 +82,8 @@ export default function PetStats({ petName, ownerName, currentHp, maxHp, imageUr
         ${isCurrentTurn ? 'border-white/60' : 'border-white/20'}
         shadow-xl
       `}>
-        {imageUrl ? (
-          <img src={imageUrl} alt={petName}
-            className="w-full h-full object-contain p-1"
-          />
-        ) : (
-          <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${gradientClass} text-4xl`}>
-            {element === 'FIRE' ? '🔥' : element === 'WATER' ? '💧' : element === 'DARK' ? '🌑' : '✨'}
-          </div>
-        )}
+        <img src={getPetImage(imageUrl, petName)} alt={petName}
+          className="w-full h-full object-contain p-1" />
         {/* Damage flash overlay */}
         {isDamaged && (
           <div className="absolute inset-0 bg-red-500/70 flex items-center justify-center rounded-xl">
