@@ -38,8 +38,9 @@ const normalizeListResponse = (data) => {
   return [];
 };
 
-export const loginWithGoogle = async (idToken) => {
-  const response = await api.post('/api/auth/google', { idToken });
+export const loginWithGoogle = async (payload) => {
+  const body = typeof payload === 'string' ? { idToken: payload } : payload;
+  const response = await api.post('/api/auth/google', body);
   return response.data;
 };
 

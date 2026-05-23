@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, 
@@ -24,6 +25,21 @@ import { Label } from '@/components/ui/label';
 import api from '@/lib/api';
 
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_.]).{8,32}$/;
+const USERNAME_REGEX = /^\S+$/;
+const FULL_NAME_REGEX = /^[\p{L}]+(?: [\p{L}]+)*$/u;
+
+const getUsernameError = (value) => {
+  if (!value.trim()) return 'Tên đăng nhập là bắt buộc.';
+  if (!USERNAME_REGEX.test(value)) return 'Tên đăng nhập không được chứa khoảng trắng.';
+  return '';
+};
+
+const getFullNameError = (value) => {
+  const normalizedValue = value.trim();
+  if (!normalizedValue) return 'Họ và tên là bắt buộc.';
+  if (!FULL_NAME_REGEX.test(normalizedValue)) return 'Họ và tên chỉ được chứa chữ cái và khoảng trắng.';
+  return '';
+};
 
 // Interactive Light-mode Molecular Canvas for Left Panel Graphic
 function GraphicCanvas() {
@@ -115,14 +131,55 @@ export default function RegisterPage() {
     email: '',
     password: '',
     confirmPassword: '',
+    gradeLevel: '6',
+    gender: 'boy',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({
+    username: '',
+    fullName: '',
+  });
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const logout = useAuthStore((state) => state.logout);
+
+  const handleFieldChange = (field, value) => {
+    setFormData((current) => ({ ...current, [field]: value }));
+
+    if (field === 'username') {
+      setFieldErrors((current) => ({
+        ...current,
+        username: getUsernameError(value),
+      }));
+    }
+
+    if (field === 'fullName') {
+      setFieldErrors((current) => ({
+        ...current,
+        fullName: getFullNameError(value),
+      }));
+    }
+  };
+
+  const validateBeforeSubmit = () => {
+    const usernameError = getUsernameError(formData.username);
+    const fullNameError = getFullNameError(formData.fullName);
+
+    setFieldErrors({
+      username: usernameError,
+      fullName: fullNameError,
+    });
+
+    if (usernameError || fullNameError) {
+      setError(usernameError || fullNameError);
+      return false;
+    }
+
+    return true;
+  };
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -139,6 +196,10 @@ export default function RegisterPage() {
       return;
     }
 
+    if (!validateBeforeSubmit()) {
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -147,6 +208,8 @@ export default function RegisterPage() {
         email: formData.email,
         fullName: formData.fullName,
         password: formData.password,
+        gradeLevel: Number(formData.gradeLevel),
+        gender: formData.gender,
       });
 
       logout();
@@ -293,6 +356,43 @@ export default function RegisterPage() {
 
                 {/* Form fields */}
                 <form onSubmit={handleRegister} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="gradeLevel" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
+                        Khối lớp
+                      </Label>
+                      <select
+                        id="gradeLevel"
+                        value={formData.gradeLevel}
+                        onChange={(e) => setFormData({ ...formData, gradeLevel: e.target.value })}
+                        className="w-full h-11 rounded-md border border-slate-200 bg-slate-50 px-3 text-sm text-slate-900 focus:bg-white focus:border-blue-500 focus:ring-blue-100"
+                        required
+                      >
+                        {[6, 7, 8, 9, 10, 11, 12].map((grade) => (
+                          <option key={grade} value={String(grade)}>
+                            Lớp {grade}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label htmlFor="gender" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
+                        Giới tính
+                      </Label>
+                      <select
+                        id="gender"
+                        value={formData.gender}
+                        onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                        className="w-full h-11 rounded-md border border-slate-200 bg-slate-50 px-3 text-sm text-slate-900 focus:bg-white focus:border-blue-500 focus:ring-blue-100"
+                        required
+                      >
+                        <option value="boy">Nam</option>
+                        <option value="girl">Nữ</option>
+                      </select>
+                    </div>
+                  </div>
+
                   <div className="space-y-1.5">
                     <Label htmlFor="username" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
                       Tên đăng nhập
@@ -306,11 +406,16 @@ export default function RegisterPage() {
                         type="text"
                         placeholder="Nhập tên đăng nhập..."
                         value={formData.username}
-                        onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                        onChange={(e) => handleFieldChange('username', e.target.value)}
+                        pattern="^\\S+$"
+                        title="Tên đăng nhập không được chứa khoảng trắng"
                         required
-                        className="bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:ring-blue-100 pl-10"
+                        className={`bg-slate-50 text-slate-900 placeholder-slate-400 focus:bg-white focus:ring-blue-100 pl-10 ${fieldErrors.username ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-blue-500'}`}
                       />
                     </div>
+                    {fieldErrors.username && (
+                      <p className="text-xs font-medium text-red-600">{fieldErrors.username}</p>
+                    )}
                   </div>
 
                   <div className="space-y-1.5">
@@ -326,11 +431,16 @@ export default function RegisterPage() {
                         type="text"
                         placeholder="Nhập đầy đủ họ tên..."
                         value={formData.fullName}
-                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                        onChange={(e) => handleFieldChange('fullName', e.target.value)}
+                        pattern="^[\\p{L}]+(?: [\\p{L}]+)*$"
+                        title="Họ và tên chỉ được chứa chữ cái và khoảng trắng"
                         required
-                        className="bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:ring-blue-100 pl-10"
+                        className={`bg-slate-50 text-slate-900 placeholder-slate-400 focus:bg-white focus:ring-blue-100 pl-10 ${fieldErrors.fullName ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-blue-500'}`}
                       />
                     </div>
+                    {fieldErrors.fullName && (
+                      <p className="text-xs font-medium text-red-600">{fieldErrors.fullName}</p>
+                    )}
                   </div>
 
                   <div className="space-y-1.5">

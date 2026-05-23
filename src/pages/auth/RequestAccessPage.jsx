@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, 
@@ -27,6 +28,21 @@ import { Label } from '@/components/ui/label';
 import api from '@/lib/api';
 
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_.]).{8,32}$/;
+const USERNAME_REGEX = /^\S+$/;
+const FULL_NAME_REGEX = /^[\p{L}]+(?: [\p{L}]+)*$/u;
+
+const getUsernameError = (value) => {
+  if (!value.trim()) return 'Username is required.';
+  if (!USERNAME_REGEX.test(value)) return 'Username must not contain whitespace.';
+  return '';
+};
+
+const getFullNameError = (value) => {
+  const normalizedValue = value.trim();
+  if (!normalizedValue) return 'Họ và tên là bắt buộc.';
+  if (!FULL_NAME_REGEX.test(normalizedValue)) return 'Họ và tên chỉ được chứa chữ cái và khoảng trắng.';
+  return '';
+};
 
 // Interactive Light-mode Molecular Canvas for Left Panel Graphic
 function GraphicCanvas() {
@@ -128,11 +144,55 @@ export default function RequestAccessPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({
+    username: '',
+    fullName: '',
+  });
+
+  const handleFieldChange = (field, value) => {
+    if (field === 'username') {
+      setUsername(value);
+      setFieldErrors((current) => ({
+        ...current,
+        username: getUsernameError(value),
+      }));
+      return;
+    }
+
+    if (field === 'fullName') {
+      setFullName(value);
+      setFieldErrors((current) => ({
+        ...current,
+        fullName: getFullNameError(value),
+      }));
+    }
+  };
+
+  const validateBeforeSubmit = () => {
+    const usernameError = getUsernameError(username);
+    const fullNameError = getFullNameError(fullName);
+
+    setFieldErrors({
+      username: usernameError,
+      fullName: fullNameError,
+    });
+
+    if (usernameError || fullNameError) {
+      setError(usernameError || fullNameError);
+      return false;
+    }
+
+    return true;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+
+    if (!validateBeforeSubmit()) {
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError('Password confirmation does not match.');
@@ -325,11 +385,16 @@ export default function RequestAccessPage() {
                         type="text"
                         placeholder="Choose a username..."
                         value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        onChange={(e) => handleFieldChange('username', e.target.value)}
+                        pattern="^\\S+$"
+                        title="Username must not contain whitespace"
                         required
-                        className="bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:ring-blue-100 pl-10"
+                        className={`bg-slate-50 text-slate-900 placeholder-slate-400 focus:bg-white focus:ring-blue-100 pl-10 ${fieldErrors.username ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-blue-500'}`}
                       />
                     </div>
+                    {fieldErrors.username && (
+                      <p className="text-xs font-medium text-red-600">{fieldErrors.username}</p>
+                    )}
                   </div>
 
                   <div className="space-y-1.5">
@@ -345,11 +410,16 @@ export default function RequestAccessPage() {
                         type="text"
                         placeholder="Nhập họ và tên đầy đủ..."
                         value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
+                        onChange={(e) => handleFieldChange('fullName', e.target.value)}
+                        pattern="^[\\p{L}]+(?: [\\p{L}]+)*$"
+                        title="Họ và tên chỉ được chứa chữ cái và khoảng trắng"
                         required
-                        className="bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:ring-blue-100 pl-10"
+                        className={`bg-slate-50 text-slate-900 placeholder-slate-400 focus:bg-white focus:ring-blue-100 pl-10 ${fieldErrors.fullName ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-blue-500'}`}
                       />
                     </div>
+                    {fieldErrors.fullName && (
+                      <p className="text-xs font-medium text-red-600">{fieldErrors.fullName}</p>
+                    )}
                   </div>
 
                   <div className="space-y-1.5">
