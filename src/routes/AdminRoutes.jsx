@@ -1,6 +1,7 @@
 import React from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import AdminLayout from "../components/layout/admin/AdminLayout";
+import NotFoundPage from "../pages/shared/NotFoundPage";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import AdminUserManagement from "../pages/admin/AdminUserManagement";
 import AdminStudyZone from "../pages/admin/AdminStudyZone";
@@ -17,7 +18,9 @@ export default function AdminRoutes() {
         <Route path="study/:entityType/:entityId/edit" element={<AdminStudyEditPage />} />
         <Route path="account-requests" element={<AdminAccountRequests />} />
         <Route path="users" element={<AdminUserManagement />} />
-        <Route path="*" element={<Navigate to="dashboard" replace />} />
+        
+        {/* Fallback 404 inside Admin Layout */}
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
   );

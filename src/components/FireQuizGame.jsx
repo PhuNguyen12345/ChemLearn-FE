@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, ArrowLeft, ShoppingBag } from 'lucide-react';
 import { useStudentStore } from '../stores/useStudentStore';
 import bgImage from '../assets/quiz-background.png';
@@ -157,7 +157,7 @@ export default function FireQuizGame({ onBack, onGoShop }) {
 
   return (
     <div
-      className="relative w-screen h-screen overflow-hidden bg-black text-white selection:bg-red-500/30 font-sans"
+      className="relative w-full h-full overflow-hidden bg-black text-white selection:bg-red-500/30 font-sans"
     >
       {/* BACKGROUND IMAGE */}
       <div
