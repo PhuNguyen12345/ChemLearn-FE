@@ -13,6 +13,7 @@ import {
   Star,
   Sparkles,
   ChevronRight,
+  Flame
 } from 'lucide-react';
 
 import { getProgressMap, loginStudent, getGamificationProfile, logDailyActivity, getDailyQuests, claimQuest } from '../../api/studentApi';
@@ -70,7 +71,7 @@ const StudentHome = () => {
       // Tải lại hồ sơ gamification để cập nhật EXP & Vàng trên Header ngay lập tức
       const profile = await getGamificationProfile();
       setGamificationProfile(profile);
-      
+
       // Tải lại danh sách nhiệm vụ để hiển thị trạng thái mới nhất
       const quests = await getDailyQuests();
       setDailyQuests(sortQuests(quests));
@@ -88,7 +89,7 @@ const StudentHome = () => {
         await logDailyActivity();
         const profile = await getGamificationProfile();
         setGamificationProfile(profile);
-        
+
         const quests = await getDailyQuests();
         setDailyQuests(sortQuests(quests)); // Sắp xếp và hiển thị tất cả nhiệm vụ
       } catch (error) {
@@ -324,11 +325,11 @@ const StudentHome = () => {
           <div className="p-6 space-y-6">
 
             {dailyQuests.map((quest, index) => {
-              const Icon = quest.actionType === 'DO_LAB' ? Beaker : 
-                           quest.actionType === 'LEARN_LESSON' ? BookOpen : 
-                           quest.actionType === 'LOGIN' ? Clock : 
-                           quest.actionType === 'FEED_PET' ? Star : 
-                           Flame;
+              const Icon = quest.actionType === 'DO_LAB' ? Beaker :
+                quest.actionType === 'LEARN_LESSON' ? BookOpen :
+                  quest.actionType === 'LOGIN' ? Clock :
+                    quest.actionType === 'FEED_PET' ? Star :
+                      Flame;
               const colorClass = index % 3 === 0 ? 'emerald' : index % 3 === 1 ? 'blue' : 'pink';
               const fillPct = Math.round((quest.currentProgress / quest.targetValue) * 100);
               const isDone = quest.currentProgress >= quest.targetValue;
