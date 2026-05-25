@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Lock, Star, Sparkles, Zap, FlaskConical, BookOpen, Flame, Droplets, Building2, Atom, Heart, Skull, Crown, ShoppingBag, Shield } from 'lucide-react';
-import { getProgressMap, getNodeQuestions, completeNode } from '../../api/studentApi';
+import { getProgressMap, getNodeQuestions, completeNode, getGamificationProfile } from '../../api/studentApi';
 import { useStudentStore } from '../../stores/useStudentStore';
 
 /* ═══════════════════════════════════════════════════════════
@@ -334,7 +334,7 @@ const IslandDetailPanel = ({ island, onClose, onNavigate }) => {
    MAIN CONTAINER COMPONENT: ProgressMap
    ═══════════════════════════════════════════════════════════ */
 export default function ProgressMap({ onBack, setActiveTab }) {
-  const { coins, addCoins, inventory, consumeItem } = useStudentStore();
+  const { coins, addCoins, inventory, consumeItem, setGamificationProfile } = useStudentStore();
 
   const [activeView, setActiveView] = useState('world'); // 'world' | 'submap' | 'game'
   const [selectedIsland, setSelectedIsland] = useState(null);
@@ -516,11 +516,18 @@ export default function ProgressMap({ onBack, setActiveTab }) {
             // Re-fetch map data to immediately sync UI unlock states
             await fetchMapData();
 
-            // Local store synchronization for instant reward feedback
-            if (!currentGameNode.isCompleted) {
-              addCoins(isBoss ? 500 : 300);
-            } else {
-              addCoins(isBoss ? 50 : 30);
+            // Re-sync full gamification profile (XP, level, coins) from backend
+            try {
+              const profile = await getGamificationProfile();
+              setGamificationProfile(profile);
+            } catch (profileErr) {
+              console.error("Lỗi đồng bộ profile:", profileErr);
+              // Fallback: local coin adjustment
+              if (!currentGameNode.isCompleted) {
+                addCoins(isBoss ? 500 : 300);
+              } else {
+                addCoins(isBoss ? 50 : 30);
+              }
             }
           } catch (err) {
             console.error("Lỗi lưu tiến trình:", err);
