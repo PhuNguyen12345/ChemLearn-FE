@@ -16,7 +16,8 @@ import {
   ChevronRight,
 } from 'lucide-react';
 
-import { getProgressMap, loginStudent, getGamificationProfile, logDailyActivity, getDailyQuests } from '../../api/studentApi';
+import { getProgressMap, loginStudent, getGamificationProfile, logDailyActivity, getDailyQuests, claimQuest } from '../../api/studentApi';
+import { toast } from 'sonner';
 
 /* ─────────────────────────────────────────────
    Reusable: Neon XP / HP progress bar
@@ -51,6 +52,36 @@ const StudentHome = () => {
   const { coins, experience, level, currentStreak, setGamificationProfile } = useStudentStore();
   const [dailyQuests, setDailyQuests] = React.useState([]);
 
+  const sortQuests = (quests) => {
+    const sorted = [...quests].sort((a, b) => {
+      const getWeight = (q) => {
+        const isDone = q.currentProgress >= q.targetValue;
+        if (isDone && !q.isClaimed) return 0; // Hoàn thành nhưng chưa nhận
+        if (!isDone) return 1;                // Đang thực hiện
+        return 2;                             // Hoàn thành và đã nhận
+      };
+      return getWeight(a) - getWeight(b);
+    });
+    return sorted.slice(0, 3);
+  };
+
+  const handleClaim = async (questId) => {
+    try {
+      await claimQuest(questId);
+      // Tải lại hồ sơ gamification để cập nhật EXP & Vàng trên Header ngay lập tức
+      const profile = await getGamificationProfile();
+      setGamificationProfile(profile);
+      
+      // Tải lại danh sách nhiệm vụ để hiển thị trạng thái mới nhất
+      const quests = await getDailyQuests();
+      setDailyQuests(sortQuests(quests));
+      toast.success("Nhận thưởng thành công! 🎉");
+    } catch (err) {
+      console.error("Failed to claim quest:", err);
+      toast.error("Nhận thưởng thất bại. Vui lòng thử lại!");
+    }
+  };
+
   React.useEffect(() => {
     const initData = async () => {
       try {
@@ -60,7 +91,7 @@ const StudentHome = () => {
         setGamificationProfile(profile);
         
         const quests = await getDailyQuests();
-        setDailyQuests(quests.slice(0, 3)); // Display up to 3 quests on home
+        setDailyQuests(sortQuests(quests)); // Sắp xếp và hiển thị tất cả nhiệm vụ
       } catch (error) {
         console.error("Failed to fetch gamification data:", error);
       }
@@ -312,6 +343,8 @@ const StudentHome = () => {
                            Flame;
               const colorClass = index % 3 === 0 ? 'emerald' : index % 3 === 1 ? 'blue' : 'pink';
               const fillPct = Math.round((quest.currentProgress / quest.targetValue) * 100);
+              const isDone = quest.currentProgress >= quest.targetValue;
+              const isClaimed = quest.isClaimed;
 
               return (
                 <div key={quest.id} className="space-y-2.5">
@@ -330,6 +363,22 @@ const StudentHome = () => {
                     </div>
                   </div>
                   <XPBar fill={`${fillPct}%`} color={`bg-${colorClass}-400`} />
+
+                  {/* Nút bấm Nhận thưởng / Đã nhận thưởng */}
+                  {isDone && !isClaimed && (
+                    <button
+                      onClick={() => handleClaim(quest.id)}
+                      className="mt-2 w-full py-1.5 rounded-xl bg-amber-400 hover:bg-amber-500 text-amber-950 font-black text-xs border-b-[3px] border-amber-600 active:border-b-0 active:translate-y-0.5 transition-all duration-100 flex items-center justify-center gap-1 shadow-sm"
+                    >
+                      <Zap className="w-3.5 h-3.5 fill-amber-950/20" />
+                      NHẬN THƯỞNG!
+                    </button>
+                  )}
+                  {isClaimed && (
+                    <div className="mt-2 flex items-center justify-center gap-1 text-[11px] font-black text-slate-400 bg-slate-50 border border-slate-100 py-1 rounded-xl">
+                      ✅ Đã nhận thưởng!
+                    </div>
+                  )}
                 </div>
               );
             })}

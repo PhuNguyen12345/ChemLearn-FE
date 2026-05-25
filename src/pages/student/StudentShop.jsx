@@ -9,8 +9,8 @@ import staff1 from '../../assets/staff1.png';
 
 const SHOP_ITEMS = [
   { id: 'bottle1', type: 'consumable', name: 'Bình Khôi Phục', price: 50, icon: <img src={bottle1} alt="Bottle" className="w-full h-full object-contain drop-shadow-2xl" draggable="false" />, desc: 'Hồi phục sinh lực' },
-  { id: 'sword1', type: 'equipment', name: 'Kiếm Tân Binh', price: 150, icon: <img src={sword1} alt="Sword" className="w-full h-full object-contain drop-shadow-2xl" draggable="false" />, desc: 'Vũ khí cho người mới' },
-  { id: 'staff1', type: 'equipment', name: 'Trượng Pháp Thuật', price: 300, icon: <img src={staff1} alt="Staff" className="w-full h-full object-contain drop-shadow-2xl" draggable="false" />, desc: 'Tăng sát thương chí mạng' },
+  { id: 'sword1', type: 'equipment', name: 'Kiếm Tân Binh', price: 1000, icon: <img src={sword1} alt="Sword" className="w-full h-full object-contain drop-shadow-2xl" draggable="false" />, desc: 'Vũ khí cho người mới' },
+  { id: 'staff1', type: 'equipment', name: 'Trượng Pháp Thuật', price: 1500, icon: <img src={staff1} alt="Staff" className="w-full h-full object-contain drop-shadow-2xl" draggable="false" />, desc: 'Tăng sát thương chí mạng' },
 ];
 
 // Create total 16 slots for the 4x4 grid
