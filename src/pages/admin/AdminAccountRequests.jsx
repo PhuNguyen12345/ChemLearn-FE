@@ -99,9 +99,9 @@ export default function AdminAccountRequests() {
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">Admin review</p>
-              <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">Account Requests</h1>
-              <p className="mt-1 text-sm text-slate-500">Approve or decline pending teacher and parent accounts.</p>
+              <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">Phê duyệt</p>
+              <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">Yêu cầu phê duyệt tài khoản</h1>
+              <p className="mt-1 text-sm text-slate-500">Phê duyệt hoặc từ chối các yêu cầu tài khoản giáo viên và phụ huynh đang chờ xử lý.</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1.5 text-sm font-bold text-amber-700">
@@ -115,7 +115,7 @@ export default function AdminAccountRequests() {
                 className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
+                Tải lại
               </button>
             </div>
           </div>
@@ -126,7 +126,7 @@ export default function AdminAccountRequests() {
               <input
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Search name, email, role, or details..."
+                placeholder="Tìm kiếm theo tên, email, vai trò hoặc thông tin chi tiết..."
                 className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm outline-none transition focus:border-slate-400 focus:bg-white"
               />
             </label>
@@ -135,12 +135,12 @@ export default function AdminAccountRequests() {
               onChange={(event) => setStatusFilter(event.target.value)}
               className="h-10 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm outline-none transition focus:border-slate-400 focus:bg-white"
             >
-              <option value="PENDING">Pending</option>
-              <option value="APPROVED">Approved</option>
-              <option value="REJECTED">Declined</option>
-              <option value="ALL">All statuses</option>
+              <option value="PENDING">Chờ xử lý</option>
+              <option value="APPROVED">Đã phê duyệt</option>
+              <option value="REJECTED">Đã từ chối</option>
+              <option value="ALL">Tất cả trạng thái</option>
             </select>
-          </div>
+          </div>  
         </div>
 
         {error && <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-semibold text-rose-700">{error}</div>}
@@ -148,7 +148,7 @@ export default function AdminAccountRequests() {
 
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           {loading ? (
-            <div className="p-6 text-sm font-semibold text-slate-500">Loading account requests...</div>
+            <div className="p-6 text-sm font-semibold text-slate-500">Đang tải...</div>
           ) : filteredRequests.length ? (
             <div className="divide-y divide-slate-100">
               {filteredRequests.map((request) => {
@@ -173,7 +173,7 @@ export default function AdminAccountRequests() {
                             <Mail className="h-4 w-4" />
                             {request.email}
                           </span>
-                          <span>Submitted: {formatDate(request.createdAt)}</span>
+                          <span>Ngày tạo: {formatDate(request.createdAt)}</span>
                         </div>
 
                         {request.additionalInfo && (
@@ -191,7 +191,7 @@ export default function AdminAccountRequests() {
                           className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3.5 py-2 text-sm font-bold text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           <Check className="h-4 w-4" />
-                          Approve
+                          Phê duyệt
                         </button>
                         <button
                           type="button"
@@ -211,7 +211,7 @@ export default function AdminAccountRequests() {
           ) : (
             <div className="flex flex-col items-center justify-center gap-2 p-10 text-center">
               <UserRoundCheck className="h-10 w-10 text-slate-300" />
-              <p className="text-sm font-semibold text-slate-500">No account requests match the current filters.</p>
+              <p className="text-sm font-semibold text-slate-500">Không tìm được tài khoản hợp lệ.</p>
             </div>
           )}
         </div>

@@ -252,13 +252,13 @@ export default function StudentProfile() {
                   onClick={handleToggleGender}
                   className={`px-4 py-1.5 rounded-full text-sm font-black transition-all ${gender === 'boy' ? 'bg-white text-indigo-600 shadow-md scale-105' : 'text-white hover:bg-white/10'}`}
                 >
-                  Boy
+                  Nam
                 </button>
                 <button 
                   onClick={handleToggleGender}
                   className={`px-4 py-1.5 rounded-full text-sm font-black transition-all ${gender === 'girl' ? 'bg-white text-pink-600 shadow-md scale-105' : 'text-white hover:bg-white/10'}`}
                 >
-                  Girl
+                  Nữ
                 </button>
               </div>
               
@@ -272,7 +272,7 @@ export default function StudentProfile() {
                       className="w-full h-full object-contain filter drop-shadow-[0_10px_15px_rgba(0,0,0,0.3)] z-20"
                     />
                   ) : (
-                     <div className="text-white">Select an outfit!</div>
+                     <div className="text-white">Chọn 1 trang phục!</div>
                   )}
                 </div>
                 {/* Pedestal */}
@@ -293,7 +293,7 @@ export default function StudentProfile() {
                          <div className="absolute top-0 left-0 w-full h-1/2 bg-white/30 rounded-full" />
                       </div>
                    </div>
-                   <p className="text-white/80 font-bold text-xs mt-2">Level {level} — {level >= 4 ? 'Alchemist' : 'Chemist'}</p>
+                   <p className="text-white/80 font-bold text-xs mt-2">Cấp độ {level} — {level >= 4 ? 'Nhà giả kim' : 'Nhà hóa học'}</p>
                 </div>
               </div>
             </div>
@@ -303,8 +303,8 @@ export default function StudentProfile() {
                {/* Top Header: Coins */}
                <div className="flex items-center justify-between bg-white rounded-3xl p-6 shadow-sm border border-slate-100 shrink-0">
                   <div>
-                    <h1 className="text-2xl font-black text-slate-800">Wardrobe Shop</h1>
-                    <p className="text-slate-500 text-sm font-semibold">Customize your scientific style!</p>
+                    <h1 className="text-2xl font-black text-slate-800">Cửa hàng trang phục</h1>
+                    <p className="text-slate-500 text-sm font-semibold">Tùy chỉnh phong cách khoa học của bạn!</p>
                   </div>
                   
                   <div className="flex items-center gap-3 bg-indigo-50 px-5 py-3 rounded-2xl border-2 border-indigo-100 shadow-inner">
@@ -338,11 +338,11 @@ export default function StudentProfile() {
                                  <h3 className="font-black text-slate-800 truncate">{outfit.name}</h3>
                                  {!owned ? (
                                     <p className="text-indigo-600 font-bold text-sm flex items-center gap-1">
-                                       ⚛️ {outfit.price} Atoms
+                                       ⚛️ {outfit.price} Xu
                                     </p>
                                  ) : (
                                     <p className="text-emerald-500 font-bold text-sm flex items-center gap-1">
-                                       <ShieldCheck className="w-4 h-4" /> Owned
+                                       <ShieldCheck className="w-4 h-4" /> Đã sở hữu
                                     </p>
                                  )}
                               </div>
@@ -350,14 +350,14 @@ export default function StudentProfile() {
                               <div className="mt-2 text-right">
                                  {isActive ? (
                                     <button disabled className="bg-amber-400 text-white font-black px-4 py-1.5 rounded-xl text-xs uppercase tracking-wider flex items-center gap-1 opacity-80 cursor-default">
-                                       <Check className="w-4 h-4" /> Equipped
+                                       <Check className="w-4 h-4" /> Đã trang bị
                                     </button>
                                  ) : owned ? (
                                     <button 
                                        onClick={() => equipOutfit(outfit.id)}
                                        className="bg-slate-800 hover:bg-slate-700 text-white font-black px-4 py-1.5 rounded-xl text-xs uppercase tracking-wider transition-colors"
                                     >
-                                       Equip
+                                       Trang bị
                                     </button>
                                  ) : (
                                     <button 
@@ -383,7 +383,7 @@ export default function StudentProfile() {
             {/* Update Info Form */}
             <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-8">
                <h2 className="text-xl font-black text-slate-800 flex items-center gap-2 mb-6">
-                 <User className="w-5 h-5 text-indigo-500" /> Cập nhật Thông tin
+                 <User className="w-5 h-5 text-indigo-500" /> Cập nhật thông tin
                </h2>
                <div className="space-y-4">
                   <div>

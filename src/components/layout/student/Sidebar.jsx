@@ -17,14 +17,14 @@ import { useStudentStore } from '../../../stores/useStudentStore';
 import { useSidebarStore } from '../../../stores/useSidebarStore';
 
 const navItems = [
-  { name: 'Dashboard', icon: LayoutDashboard, path: '/student/home', id: 'dashboard', emoji: '🏠' },
-  { name: 'Progress Map', icon: Map, path: '/student/progress-map', id: 'progressMap', emoji: '🗺️' },
-  { name: 'Study Zone', icon: BookOpen, path: '/student/study-zone', id: 'studyZone', emoji: '📚' },
-  { name: 'Virtual Lab', icon: Microscope, path: '/student/virtual-lab', id: 'labDashboard', emoji: '🧪' },
-  // { name: 'Missions',    icon: Target,          path: '/student/missions', id: 'missions', emoji: '🎯' },
-  { name: 'PVP Battle', icon: Swords, path: '/student/pvp', id: 'pvp', emoji: '⚔️' },
-  { name: 'Leaderboard', icon: Trophy, path: '/student/leaderboard', id: 'leaderboard', emoji: '🏆' },
-  { name: 'Classes', icon: Users, path: '/student/classes', id: 'classes', emoji: '👥' },
+  { name: 'Trang chủ', icon: LayoutDashboard, path: '/student/home', id: 'dashboard', emoji: '🏠' },
+  { name: 'Bản đồ tiến độ', icon: Map, path: '/student/progress-map', id: 'progressMap', emoji: '🗺️' },
+  { name: 'Khu vực học tập', icon: BookOpen, path: '/student/study-zone', id: 'studyZone', emoji: '📚' },
+  { name: 'Phòng thí nghiệm ảo', icon: Microscope, path: '/student/virtual-lab', id: 'labDashboard', emoji: '🧪' },
+  // { name: 'Nhiệm vụ',    icon: Target,          path: '/student/missions', id: 'missions', emoji: '🎯' },
+  { name: 'Đấu trường PVP', icon: Swords, path: '/student/pvp', id: 'pvp', emoji: '⚔️' },
+  { name: 'Bảng xếp hạng', icon: Trophy, path: '/student/leaderboard', id: 'leaderboard', emoji: '🏆' },
+  { name: 'Lớp học', icon: Users, path: '/student/classes', id: 'classes', emoji: '👥' },
 ];
 
 /* Colour accent per nav item for its active state */

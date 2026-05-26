@@ -54,7 +54,7 @@ const TeacherClassStudents = () => {
   }, [classId]);
 
   const handleRemoveStudent = async (studentId, studentName) => {
-    if (window.confirm(`Are you sure you want to remove ${studentName} from this class?`)) {
+    if (window.confirm(`Bạn có chắc chắn muốn xóa ${studentName} khỏi lớp này không?`)) {
       try {
         await removeStudentFromTeacherClass(classId, studentId);
         // Remove from local state
@@ -63,8 +63,8 @@ const TeacherClassStudents = () => {
           students: prev.students.filter(s => s.id !== studentId)
         }));
       } catch (err) {
-        console.error('Failed to remove student:', err);
-        alert('Failed to remove student. Please try again.');
+        console.error('Không thể xóa sinh viên:', err);
+        alert('Không thể xóa sinh viên. Vui lòng thử lại sau.');
       }
     }
   };
@@ -91,8 +91,8 @@ const TeacherClassStudents = () => {
             <ChevronLeft className="h-6 w-6" />
           </Button>
           <div>
-            <h1 className="text-2xl font-black text-slate-800">Class Participants</h1>
-            <p className="text-slate-500 font-bold">{targetClass?.name} • {targetClass?.students?.length || 0} Students</p>
+            <h1 className="text-2xl font-black text-slate-800">Danh sách sinh viên tham gia lớp học</h1>
+            <p className="text-slate-500 font-bold">{targetClass?.name} • {targetClass?.students?.length || 0} Sinh viên</p>
           </div>
         </div>
       </div>
@@ -106,7 +106,7 @@ const TeacherClassStudents = () => {
             </div>
             <div>
               <div className="text-2xl font-black text-slate-800">{targetClass?.students?.length || 0}</div>
-              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Enrolled</div>
+              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tổng số sinh viên</div>
             </div>
           </CardContent>
         </Card>
@@ -120,7 +120,7 @@ const TeacherClassStudents = () => {
               <div className="text-2xl font-black text-slate-800">
                 {submissions.filter(s => targetClass.students.some(st => st.username === s.studentName)).length}
               </div>
-              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Quiz Attempts</div>
+              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tổng số bài đã nộp</div>
             </div>
           </CardContent>
         </Card>
@@ -134,7 +134,7 @@ const TeacherClassStudents = () => {
               <div className="text-2xl font-black text-slate-800">
                 {targetClass.classCode}
               </div>
-              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Class Code</div>
+              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Mã lớp học</div>
             </div>
           </CardContent>
         </Card>
@@ -145,8 +145,8 @@ const TeacherClassStudents = () => {
         <CardHeader className="border-b border-slate-50 bg-slate-50/30 p-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <CardTitle className="text-xl font-black text-slate-800">Student Directory</CardTitle>
-              <CardDescription className="font-bold">Manage and view information of all students in this class.</CardDescription>
+              <CardTitle className="text-xl font-black text-slate-800">Danh sách sinh viên tham gia lớp học</CardTitle>
+              <CardDescription className="font-bold">Quản lý và xem thông tin của tất cả sinh viên trong lớp.</CardDescription>
             </div>
             <div className="relative w-full md:w-72">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -175,7 +175,7 @@ const TeacherClassStudents = () => {
                 {filteredStudents.length === 0 ? (
                   <tr>
                     <td colSpan="4" className="px-8 py-20 text-center text-slate-400 font-bold italic">
-                      No students found in this class.
+                      Không tìm thấy sinh viên nào trong lớp.
                     </td>
                   </tr>
                 ) : (
@@ -205,11 +205,11 @@ const TeacherClassStudents = () => {
                         <td className="px-8 py-5">
                           <div className="flex items-center gap-2">
                             <span className="px-2 py-0.5 rounded-full bg-slate-100 text-[10px] font-black text-slate-500 uppercase">
-                              {studentSubs.length} Attempts
+                              {studentSubs.length} Bài kiểm tra
                             </span>
                             {studentSubs.length > 0 && (
                                <span className="text-[10px] font-black text-emerald-600">
-                                 Avg: {Math.round(studentSubs.reduce((acc, curr) => acc + curr.score, 0) / studentSubs.length)}%
+                                 Trung bình: {Math.round(studentSubs.reduce((acc, curr) => acc + curr.score, 0) / studentSubs.length)}%
                                </span>
                             )}
                           </div>
@@ -218,7 +218,7 @@ const TeacherClassStudents = () => {
                           <div className="flex justify-end gap-2">
                             <Link to={`/teacher/students/${student.id}`}>
                               <Button variant="outline" size="sm" className="rounded-xl border-slate-200 hover:border-indigo-200 hover:bg-indigo-50 gap-2 font-bold h-9">
-                                View Profile
+                                Xem hồ sơ
                                 <ExternalLink className="h-3 w-3" />
                               </Button>
                             </Link>
@@ -228,7 +228,7 @@ const TeacherClassStudents = () => {
                               onClick={() => handleRemoveStudent(student.id, student.username)}
                               className="rounded-xl border-slate-200 text-rose-500 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 gap-2 font-bold h-9"
                             >
-                              Remove
+                              Xóa
                               <UserMinus className="h-3 w-3" />
                             </Button>
                           </div>

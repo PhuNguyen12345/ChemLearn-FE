@@ -148,13 +148,13 @@ const StudentHome = () => {
             {/* Level badge */}
             <div className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-black tracking-widest uppercase border border-white/30 mb-1">
               <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
-              Level {level} · Chemist
+              Cấp {level} · Hóa học gia
             </div>
             <h1 className="text-3xl md:text-4xl font-black tracking-tight drop-shadow-sm">
-              Welcome back! 🎉
+              Chào mừng trở lại! 🎉
             </h1>
             <p className="text-purple-100 text-base md:text-lg font-semibold opacity-90 max-w-xl">
-              You're on fire! 🔥 Keep the streak going and earn bonus XP today.
+              Bạn đang cực cháy! 🔥 Hãy giữ vững chuỗi ngày học để nhận thêm XP nhé.
             </p>
           </div>
 
@@ -167,7 +167,7 @@ const StudentHome = () => {
         {/* XP progress toward next level */}
         <div className="relative z-10 mt-6 space-y-1.5">
           <div className="flex justify-between text-xs font-black text-purple-100 uppercase tracking-wider">
-            <span>Progress to Level {level + 1}</span>
+            <span>Tiến trình đến Cấp {level + 1}</span>
             <span>{experience} XP</span>
           </div>
           <div className="h-4 w-full bg-white/20 rounded-full overflow-hidden">
@@ -189,8 +189,8 @@ const StudentHome = () => {
             <Flame className="w-7 h-7 text-white fill-orange-200" />
           </div>
           <div>
-            <p className="text-xs font-black text-orange-500 uppercase tracking-widest">Daily Streak</p>
-            <h3 className="text-2xl font-black text-slate-800">{currentStreak} Days 🔥</h3>
+            <p className="text-xs font-black text-orange-500 uppercase tracking-widest">Chuỗi ngày học</p>
+            <h3 className="text-2xl font-black text-slate-800">{currentStreak} Ngày 🔥</h3>
           </div>
         </div>
 
@@ -200,7 +200,7 @@ const StudentHome = () => {
             <Zap className="w-7 h-7 text-white fill-yellow-100" />
           </div>
           <div>
-            <p className="text-xs font-black text-yellow-600 uppercase tracking-widest">Total EXP</p>
+            <p className="text-xs font-black text-yellow-600 uppercase tracking-widest">Tổng EXP</p>
             <h3 className="text-2xl font-black text-slate-800">{experience} XP ⚡</h3>
           </div>
         </div>
@@ -211,9 +211,9 @@ const StudentHome = () => {
             <Shield className="w-7 h-7 text-white fill-indigo-200" />
           </div>
           <div>
-            <p className="text-xs font-black text-indigo-500 uppercase tracking-widest">Current Rank</p>
+            <p className="text-xs font-black text-indigo-500 uppercase tracking-widest">Thứ hạng</p>
             <h3 className="text-lg font-black text-slate-800">
-              {level >= 10 ? '🥇 Gold Alchemist' : level >= 7 ? '🥈 Silver Alchemist' : level >= 4 ? '🥉 Bronze Alchemist' : '🌱 Novice Chemist'}
+              {level >= 10 ? '🥇 Giả kim thuật sư Vàng' : level >= 7 ? '🥈 Giả kim thuật sư Bạc' : level >= 4 ? '🥉 Giả kim thuật sư Đồng' : '🌱 Nhà hóa học tập sự'}
             </h3>
           </div>
         </div>
@@ -226,7 +226,7 @@ const StudentHome = () => {
       <div>
         <h2 className="text-xl font-black text-slate-800 mb-4 flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-purple-500" />
-          Quick Explore
+          Khám phá nhanh
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
@@ -238,8 +238,8 @@ const StudentHome = () => {
             <div className="w-16 h-16 rounded-[1rem] bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-300/50 group-hover:scale-110 transition-transform duration-200">
               <Beaker className="w-8 h-8 text-white" />
             </div>
-            <span className="font-black text-base tracking-tight">🧪 Virtual Lab</span>
-            <span className="text-xs font-bold text-purple-400">Mix & React</span>
+            <span className="font-black text-base tracking-tight">🧪 Phòng thí nghiệm ảo</span>
+            <span className="text-xs font-bold text-purple-400">Pha chế & Phản ứng</span>
           </button>
 
           {/* Portal 2 — Quick Quiz */}
@@ -250,8 +250,8 @@ const StudentHome = () => {
             <div className="w-16 h-16 rounded-[1rem] bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-300/50 group-hover:scale-110 transition-transform duration-200">
               <HelpCircle className="w-8 h-8 text-white" />
             </div>
-            <span className="font-black text-base tracking-tight">❓ Class Work</span>
-            <span className="text-xs font-bold text-emerald-400">Open class quizzes and tasks</span>
+            <span className="font-black text-base tracking-tight">❓ Lớp học của tôi</span>
+            <span className="text-xs font-bold text-emerald-400">Bài tập & bài kiểm tra được giao</span>
           </button>
 
 
@@ -269,9 +269,9 @@ const StudentHome = () => {
           <div className="bg-gradient-to-r from-sky-500 to-blue-600 px-6 pt-5 pb-4">
             <div className="flex items-center gap-2 text-white">
               <PlayCircle className="w-5 h-5 fill-white text-sky-600" />
-              <h2 className="text-base font-black uppercase tracking-widest">⚔️ Main Quest</h2>
+              <h2 className="text-base font-black uppercase tracking-widest">⚔️ Nhiệm vụ chính</h2>
             </div>
-            <p className="text-sky-100 text-sm font-semibold mt-0.5">Pick up right where you left off</p>
+            <p className="text-sky-100 text-sm font-semibold mt-0.5">Tiếp tục bài học đang dang dở</p>
           </div>
 
           {/* Quest body */}
@@ -286,23 +286,23 @@ const StudentHome = () => {
 
               {/* Info */}
               <div className="flex-grow text-center sm:text-left space-y-1">
-                <h3 className="text-lg font-black text-slate-800">⚗️ Chapter 4: The Periodic Table</h3>
-                <p className="text-sm font-semibold text-slate-500">Understanding Groups and Periods</p>
+                <h3 className="text-lg font-black text-slate-800">⚗️ Chương 4: Bảng tuần hoàn</h3>
+                <p className="text-sm font-semibold text-slate-500">Tìm hiểu về các Nhóm và Chu kỳ</p>
                 <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs font-bold text-sky-600">
                   <Clock className="w-3.5 h-3.5" />
-                  <span>15 mins remaining</span>
+                  <span>Còn 15 phút</span>
                 </div>
                 {/* Mini progress bar */}
                 <div className="pt-2">
                   <XPBar fill="60%" color="bg-sky-400" />
                 </div>
-                <p className="text-xs font-bold text-sky-500">60% complete</p>
+                <p className="text-xs font-bold text-sky-500">Hoàn thành 60%</p>
               </div>
 
               {/* PLAY button */}
               <button className="group flex items-center gap-2 w-full sm:w-auto bg-gradient-to-b from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 text-white font-black rounded-2xl border-b-[5px] border-green-700 active:border-b active:translate-y-1 transition-all duration-150 px-7 h-14 text-base shadow-md shadow-green-300/40 shrink-0 justify-center">
                 <PlayCircle className="w-6 h-6 fill-white text-green-600 shrink-0" />
-                <span>PLAY</span>
+                <span>TIẾP TỤC</span>
                 <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
 
@@ -316,9 +316,9 @@ const StudentHome = () => {
           <div className="bg-gradient-to-r from-amber-400 to-orange-400 px-6 pt-5 pb-4">
             <div className="flex items-center gap-2 text-white">
               <Award className="w-5 h-5 fill-white text-amber-600" />
-              <h2 className="text-base font-black uppercase tracking-widest">🏆 Daily Quests</h2>
+              <h2 className="text-base font-black uppercase tracking-widest">🏆 Nhiệm vụ hàng ngày</h2>
             </div>
-            <p className="text-amber-100 text-sm font-semibold mt-0.5">Complete missions to earn XP</p>
+            <p className="text-amber-100 text-sm font-semibold mt-0.5">Hoàn thành nhiệm vụ để nhận EXP</p>
           </div>
 
           {/* Quest list */}

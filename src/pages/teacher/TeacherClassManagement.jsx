@@ -171,15 +171,15 @@ const TeacherClassManagement = () => {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-black text-slate-800 tracking-tight">Classes</h1>
-          <p className="text-slate-500 font-bold mt-1">Manage your classrooms and student engagement.</p>
+          <h1 className="text-4xl font-black text-slate-800 tracking-tight">Quản lý lớp học</h1>
+          <p className="text-slate-500 font-bold mt-1">Quản lý lớp học và tương tác học tập của học sinh.</p>
         </div>
         <Button 
           onClick={() => { resetForm(); setIsModalOpen(true); }}
           className="rounded-2xl h-12 px-6 bg-indigo-600 hover:bg-indigo-700 font-black shadow-lg shadow-indigo-100 gap-2"
         >
           <Plus className="h-5 w-5" />
-          Create New Class
+          Thêm lớp mới
         </Button>
       </div>
 
@@ -202,7 +202,7 @@ const TeacherClassManagement = () => {
           >
             <option value="name-asc">A - Z</option>
             <option value="name-desc">Z - A</option>
-            <option value="students-desc">Most Students</option>
+            <option value="students-desc">Nhiều học sinh nhất</option>
           </select>
         </div>
       </div>
@@ -258,7 +258,7 @@ const TeacherClassManagement = () => {
                   </button>
                   <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
                     <Users className="h-3 w-3" />
-                    {(classRoom.students || []).length} Participants
+                    {(classRoom.students || []).length} Học sinh
                   </span>
                 </div>
 
@@ -325,46 +325,46 @@ const TeacherClassManagement = () => {
                 {editingClassId ? 'Edit Classroom' : 'New Classroom'}
               </h2>
               <p className="text-slate-500 font-bold mb-8">
-                {editingClassId ? 'Update your classroom details below.' : 'Create a new learning space for your students.'}
+                {editingClassId ? 'Cập nhật thông tin lớp học.' : 'Tạo một không gian học tập mới cho học sinh.'}
               </p>
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Class Name</label>
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Tên lớp học</label>
                   <input
                     value={form.name}
                     onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
                     className="w-full rounded-2xl bg-slate-50 border-none px-5 py-4 font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none"
-                    placeholder="Chemistry 101..."
+                    placeholder="Hóa học lớp 10..."
                     required
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Grade</label>
+                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Khối</label>
                     <select
                       value={form.grade}
                       onChange={(e) => setForm((prev) => ({ ...prev, grade: e.target.value }))}
                       className="w-full rounded-2xl bg-slate-50 border-none px-5 py-4 font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 outline-none"
                       required
                     >
-                      <option value="" disabled>Select Grade</option>
-                      <option value="6">Grade 6</option>
-                      <option value="7">Grade 7</option>
-                      <option value="8">Grade 8</option>
-                      <option value="9">Grade 9</option>
+                      <option value="" disabled>Chọn khối</option>
+                      <option value="6">Lớp 6</option>
+                      <option value="7">Lớp 7</option>
+                      <option value="8">Lớp 8</option>
+                      <option value="9">Lớp 9</option>
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Class Type</label>
+                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Loại sách</label>
                     <select
                       value={form.classType}
                       onChange={(e) => setForm((prev) => ({ ...prev, classType: e.target.value }))}
                       className="w-full rounded-2xl bg-slate-50 border-none px-5 py-4 font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 outline-none"
                       required
                     >
-                      <option value="" disabled>Select Type</option>
+                      <option value="" disabled>Chọn loại sách</option>
                       <option value="Kết nối tri thức">Kết nối tri thức</option>
                       <option value="Chân trời sáng tạo">Chân trời sáng tạo</option>
                       <option value="Cánh diều">Cánh diều</option>
@@ -374,12 +374,12 @@ const TeacherClassManagement = () => {
 
 
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Description</label>
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Mô tả</label>
                   <textarea
                     value={form.description}
                     onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
                     className="w-full min-h-[120px] rounded-2xl bg-slate-50 border-none px-5 py-4 font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none resize-none"
-                    placeholder="What will students learn here?"
+                    placeholder="Mô tả chi tiết về lớp học..."
                   />
                 </div>
 
@@ -390,7 +390,7 @@ const TeacherClassManagement = () => {
                     onClick={() => setIsModalOpen(false)}
                     className="flex-1 h-14 rounded-2xl font-black text-slate-500 hover:bg-slate-50"
                   >
-                    Cancel
+                    Hủy
                   </Button>
                   <Button 
                     type="submit" 

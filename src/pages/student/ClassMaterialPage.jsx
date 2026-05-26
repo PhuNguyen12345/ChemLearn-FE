@@ -49,7 +49,7 @@ const ClassMaterialPage = () => {
         onClick={() => navigate(`/student/class/${classId}`)}
         className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50 hover:border-slate-300"
       >
-        <ArrowLeft className="h-4 w-4" /> Back to class
+        <ArrowLeft className="h-4 w-4" /> Quay lại lớp học
       </button>
 
       {/* Header strip (shown while loading or when lesson loaded) */}
@@ -59,24 +59,24 @@ const ClassMaterialPage = () => {
           <div className="relative z-10">
             {loading ? (
               <div className="flex items-center gap-2 text-sm font-semibold text-sky-100">
-                <LoaderCircle className="h-4 w-4 animate-spin" /> Loading material...
+                <LoaderCircle className="h-4 w-4 animate-spin" /> Đang tải tài liệu...
               </div>
             ) : mappedLesson ? (
               <>
                 <div className="flex items-center gap-2 text-xs font-bold text-sky-200 mb-1.5">
                   <BookOpen className="h-3.5 w-3.5" />
-                  {mappedLesson.chapterTitle || 'Class Document'}
+                  {mappedLesson.chapterTitle || 'Tài liệu lớp học'}
                 </div>
                 <h1 className="text-xl md:text-2xl font-black tracking-tight">{mappedLesson.title}</h1>
                 {mappedLesson.estimatedMinutes > 0 && (
                   <div className="mt-2 inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1 text-xs font-bold border border-white/20">
                     <Clock className="h-3 w-3" />
-                    ~{mappedLesson.estimatedMinutes} min read
+                    ~{mappedLesson.estimatedMinutes} phút đọc
                   </div>
                 )}
               </>
             ) : (
-              <p className="text-sm font-semibold text-sky-100">Material not found.</p>
+              <p className="text-sm font-semibold text-sky-100">Không tìm thấy tài liệu.</p>
             )}
           </div>
         </div>
@@ -101,9 +101,9 @@ const ClassMaterialPage = () => {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100">
             <BookOpen className="h-8 w-8 text-slate-400" />
           </div>
-          <h3 className="text-lg font-black text-slate-700">Material not found</h3>
+          <h3 className="text-lg font-black text-slate-700">Không tìm thấy tài liệu</h3>
           <p className="mt-2 text-sm text-slate-500">
-            This lesson may have been removed or isn't available yet.
+            Bài học này có thể đã bị xóa hoặc chưa khả dụng.
           </p>
         </div>
       )}

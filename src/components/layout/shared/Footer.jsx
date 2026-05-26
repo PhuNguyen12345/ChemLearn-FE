@@ -12,12 +12,12 @@ const Footer = () => {
             <FlaskConical className="w-3.5 h-3.5 text-indigo-200" />
           </div>
           <span className="text-indigo-100 font-black">ChemLearn</span>
-          <span className="text-indigo-500 text-xs">· FPT University © {new Date().getFullYear()}</span>
+          <span className="text-indigo-500 text-xs">· Đại học FPT © {new Date().getFullYear()}</span>
         </div>
 
         {/* Made with love */}
         <div className="hidden md:flex items-center gap-1.5 text-indigo-500 text-xs font-semibold">
-          Made with <Heart className="w-3 h-3 fill-pink-500 text-pink-500 animate-pulse" /> for young scientists
+          Dành cho <Heart className="w-3 h-3 fill-pink-500 text-pink-500 animate-pulse" /> những nhà hoá học nhí
         </div>
 
         {/* Links */}
@@ -26,13 +26,13 @@ const Footer = () => {
             href="#"
             className="hover:text-cyan-400 hover:scale-110 transition-all duration-200 underline-offset-4 hover:underline"
           >
-            Privacy Policy
+            Chính sách bảo mật
           </a>
           <a
             href="#"
             className="hover:text-cyan-400 hover:scale-110 transition-all duration-200 underline-offset-4 hover:underline"
           >
-            Terms of Service
+            Điều khoản dịch vụ
           </a>
         </div>
 

@@ -38,14 +38,14 @@ const TeacherClassChapters = () => {
       
       const foundClass = classes.find(c => c.id === classId);
       if (!foundClass) {
-        setError('Class not found');
+        setError('Không tìm thấy lớp học');
         return;
       }
       
       setTargetClass(foundClass);
       setAllChapters(chapters || []);
     } catch (err) {
-      setError('Failed to load data');
+      setError('Không thể tải dữ liệu');
     } finally {
       setLoading(false);
     }
@@ -65,7 +65,7 @@ const TeacherClassChapters = () => {
       }
       await loadData();
     } catch (err) {
-      alert('Failed to update assignment');
+      alert('Không thể cập nhật bài học');
     } finally {
       setProcessingId(null);
     }
@@ -89,8 +89,8 @@ const TeacherClassChapters = () => {
             <ChevronLeft className="h-6 w-6" />
           </Button>
           <div>
-            <h1 className="text-2xl font-black text-slate-800">Manage Chapters</h1>
-            <p className="text-slate-500 font-bold">Class: {targetClass?.name}</p>
+            <h1 className="text-2xl font-black text-slate-800">Quản lý chương</h1>
+            <p className="text-slate-500 font-bold">Lớp học: {targetClass?.name}</p>
           </div>
         </div>
       </div>
@@ -101,16 +101,16 @@ const TeacherClassChapters = () => {
           <CardHeader>
             <CardTitle className="text-lg font-black text-emerald-800 flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5" />
-              Assigned to Class
+              Đã gán cho lớp
             </CardTitle>
             <CardDescription className="text-emerald-600/70 font-semibold">
-              Content visible to students in this class.
+              Nội dung hiển thị cho học sinh trong lớp.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {targetClass?.chapters?.length === 0 ? (
               <div className="py-8 text-center text-emerald-600/50 font-bold italic">
-                No chapters assigned yet.
+                Chưa có chương nào.
               </div>
             ) : (
               targetClass.chapters.map(chapter => (
@@ -144,16 +144,16 @@ const TeacherClassChapters = () => {
           <CardHeader>
             <CardTitle className="text-lg font-black text-slate-800 flex items-center gap-2">
               <Plus className="h-5 w-5 text-indigo-500" />
-              Available Chapters
+              Các chương khả dụng
             </CardTitle>
             <CardDescription className="font-semibold">
-              Select chapters to add to this class.
+              Chọn các chương để thêm vào lớp học.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {allChapters.filter(c => !assignedChapterIds.has(c.id)).length === 0 ? (
               <div className="py-8 text-center text-slate-400 font-bold italic">
-                All available chapters are assigned.
+                Đã gán hết các chương.
               </div>
             ) : (
               allChapters.filter(c => !assignedChapterIds.has(c.id)).map(chapter => (

@@ -104,15 +104,15 @@ const Missions = () => {
               <Target className="w-5 h-5 text-white" />
             </div>
             <span className="text-white/80 text-xs font-black uppercase tracking-widest">
-              Quest Board
+              Bảng nhiệm vụ
             </span>
           </div>
 
           <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight drop-shadow-sm">
-            Daily Quests & Badges 🏆
+            Nhiệm vụ hàng ngày & Huy hiệu 🏆
           </h1>
           <p className="text-orange-100 mt-1.5 font-semibold text-base max-w-lg">
-            Complete quests to earn XP and unlock achievement badges. Let's go!
+            Hoàn thành nhiệm vụ để kiếm XP và mở khóa huy hiệu. Let's go!
           </p>
 
           {/* XP Overview pills */}
@@ -120,19 +120,19 @@ const Missions = () => {
             <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl px-4 py-2">
               <Zap className="w-4 h-4 text-yellow-300 fill-yellow-300" />
               <span className="text-white font-black text-sm">
-                {experience.toLocaleString()} XP Total
+                {experience.toLocaleString()} XP
               </span>
             </div>
             <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl px-4 py-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-300" />
               <span className="text-white font-black text-sm">
-                {completedQuests.length} / {quests.length} Quests Done
+                {completedQuests.length} / {quests.length} Nhiệm vụ hoàn thành
               </span>
             </div>
             <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl px-4 py-2">
               <Trophy className="w-4 h-4 text-amber-300 fill-amber-300/40" />
               <span className="text-white font-black text-sm">
-                {unlockedBadges} Badges Unlocked
+                {unlockedBadges} Huy hiệu đã mở
               </span>
             </div>
           </div>
@@ -149,9 +149,9 @@ const Missions = () => {
             <div className="p-2 bg-orange-500 rounded-xl shadow-md shadow-orange-300/40">
               <Target className="w-4 h-4 text-white" />
             </div>
-            <h2 className="text-xl font-black text-slate-800">Daily Quests</h2>
+            <h2 className="text-xl font-black text-slate-800">Nhiệm vụ hàng ngày</h2>
             <span className="ml-auto text-xs font-black text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
-              Resets in 08:42:17
+              Reset sau 08:42:17
             </span>
           </div>
 
@@ -192,7 +192,7 @@ const Missions = () => {
                           ⭐ +{quest.rewardXp} XP
                         </span>
                       </div>
-                      <p className="text-slate-400 text-xs font-semibold mt-0.5">Reach target: {quest.targetValue}</p>
+                      <p className="text-slate-400 text-xs font-semibold mt-0.5">Mục tiêu: {quest.targetValue}</p>
                     </div>
                   </div>
 
@@ -201,7 +201,7 @@ const Missions = () => {
                     <XPBar fill={fillPct} color={barColor} />
                     <div className="flex justify-between text-[11px] font-black">
                       <span className={isDone ? 'text-emerald-600' : 'text-slate-400'}>
-                        {isDone ? '✅ Complete!' : `${quest.currentProgress} / ${quest.targetValue}`}
+                        {isDone ? '✅ Hoàn thành!' : `${quest.currentProgress} / ${quest.targetValue}`}
                       </span>
                       <span className="text-slate-400">{fillPct}%</span>
                     </div>
@@ -212,7 +212,7 @@ const Missions = () => {
                     {isClaimed ? (
                       <div className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-2xl bg-slate-100 text-slate-400 text-sm font-black">
                         <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                        Claimed!
+                        Đã nhận!
                       </div>
                     ) : isDone ? (
                       <button
@@ -220,12 +220,12 @@ const Missions = () => {
                         className="w-full py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-500 text-amber-900 font-black text-sm border-b-4 border-amber-600 hover:border-amber-700 hover:-translate-y-1 hover:border-b-[6px] active:border-b-0 active:translate-y-1 transition-all duration-150 shadow-md shadow-amber-200/60 flex items-center justify-center gap-2"
                       >
                         <Zap className="w-4 h-4 fill-amber-900/30" />
-                        CLAIM XP!
+                        NHẬN XP!
                       </button>
                     ) : (
                       <div className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-2xl bg-slate-100 text-slate-400 text-sm font-black border border-slate-200 cursor-not-allowed">
                         <Clock className="w-4 h-4" />
-                        In Progress…
+                        Đang làm…
                       </div>
                     )}
                   </div>
@@ -243,9 +243,9 @@ const Missions = () => {
             <div className="p-2 bg-amber-500 rounded-xl shadow-md shadow-amber-300/40">
               <Trophy className="w-4 h-4 text-white" />
             </div>
-            <h2 className="text-xl font-black text-slate-800">Trophy Room</h2>
+            <h2 className="text-xl font-black text-slate-800">Phòng lưu niệm</h2>
             <span className="ml-2 text-xs font-black text-amber-700 bg-amber-100 border border-amber-200 px-3 py-1 rounded-full">
-              {unlockedBadges} / {mockBadges.length} Unlocked
+              {unlockedBadges} / {mockBadges.length} Huy hiệu đã mở
             </span>
           </div>
 
@@ -283,7 +283,7 @@ const Missions = () => {
                   {badge.unlocked && (
                     <div className="mt-2.5">
                       <span className="inline-flex items-center gap-1 text-[10px] font-black text-amber-700 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-full">
-                        <Sparkles className="w-2.5 h-2.5" /> Unlocked
+                        <Sparkles className="w-2.5 h-2.5" /> Đã mở khóa
                       </span>
                     </div>
                   )}

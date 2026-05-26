@@ -12,15 +12,10 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import Sidebar from './Sidebar';
-import LanguageSwitcher from '../shared/LanguageSwitcher';
-import useLanguageStore from '@/stores/useLanguageStore';
 import { useLogout } from '@/stores/useLogout';
-import { translations } from '@/lib/translations';
 
 const Header = () => {
   const [open, setOpen] = useState(false);
-  const { language } = useLanguageStore();
-  const t = translations[language] || translations['vi'];
   const logout = useLogout();
 
   return (
@@ -31,11 +26,11 @@ const Header = () => {
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="md:hidden mr-2">
               <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle navigation menu</span>
+              <span className="sr-only">Mở menu điều hướng</span>
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="p-0 w-64">
-            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+            <SheetTitle className="sr-only">Menu điều hướng</SheetTitle>
             <Sidebar className="border-r-0" />
           </SheetContent>
         </Sheet>
@@ -49,11 +44,11 @@ const Header = () => {
         {/* Right side controls */}
         <div className="ml-auto flex items-center gap-2 sm:gap-4">
           
-          <LanguageSwitcher />
+
 
           <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground relative">
             <Bell className="h-5 w-5" />
-            <span className="sr-only">Notifications</span>
+            <span className="sr-only">Thông báo</span>
           </Button>
 
           <DropdownMenu>
@@ -68,23 +63,23 @@ const Header = () => {
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">Jane Parent</p>
-                  <p className="text-xs leading-none text-muted-foreground">Alex's Account</p>
+                  <p className="text-sm font-medium leading-none">Cha mẹ</p>
+                  <p className="text-xs leading-none text-muted-foreground">Tài khoản của con bạn</p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="cursor-pointer">
                 <User className="mr-2 h-4 w-4" />
-                <span>{t.profile || 'My Profile'}</span>
+                <span>Hồ sơ</span>
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer">
                 <Settings className="mr-2 h-4 w-4" />
-                <span>{t.settings || 'Settings'}</span>
+                <span>Cài đặt</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={logout} className="cursor-pointer text-destructive focus:text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>{t.logout || 'Log out'}</span>
+                <span>Đăng xuất</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
