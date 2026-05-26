@@ -90,7 +90,11 @@ const LabWorkspaceHeader = ({
             <div className="flex items-center justify-between w-full text-xs font-bold text-slate-500">
               <span className="uppercase tracking-wider">Tiến độ Lab</span>
               <span className={`transition-colors duration-300 ${isFinished ? "text-amber-500" : "text-blue-600"} flex items-center gap-1`}>
-                {isFinished && "⭐"} {score}/{maxScore} EXP
+                {isFinished ? (
+                  <>⭐ 100% Hoàn thành</>
+                ) : (
+                  <>{score}/{maxScore} Điểm</>
+                )}
               </span>
             </div>
             <div className="h-3.5 w-full bg-slate-200 rounded-full p-0.5 shadow-inner relative overflow-hidden">
