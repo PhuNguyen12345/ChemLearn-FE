@@ -379,7 +379,7 @@ export default function RequestAccessPage() {
                 <form onSubmit={handleSubmit} noValidate className="space-y-4">
                   <div className="space-y-1.5">
                     <Label htmlFor="username" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
-                      Username
+                      Tên đăng nhập
                     </Label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -449,7 +449,7 @@ export default function RequestAccessPage() {
 
                   <div className="space-y-1.5">
                     <Label htmlFor="password" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
-                      Password
+                      Mật khẩu
                     </Label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -476,7 +476,7 @@ export default function RequestAccessPage() {
 
                   <div className="space-y-1.5">
                     <Label htmlFor="confirmPassword" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
-                      Confirm password
+                      Xác nhận mật khẩu
                     </Label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -524,7 +524,7 @@ export default function RequestAccessPage() {
 
                   <div className="space-y-1.5">
                     <Label htmlFor="phoneNumber" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
-                      Phone number
+                      Số điện thoại
                     </Label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -554,7 +554,7 @@ export default function RequestAccessPage() {
                         <div className="space-y-4 rounded-lg border border-blue-100 bg-blue-50/40 p-3">
                           <div className="space-y-1.5">
                             <Label htmlFor="workplace" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
-                              Workplace
+                              Nơi làm việc
                             </Label>
                             <div className="relative">
                               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -574,7 +574,7 @@ export default function RequestAccessPage() {
 
                           <div className="space-y-1.5">
                             <Label htmlFor="degree" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
-                              Degree
+                              Học hàm/ Học vị
                             </Label>
                             <div className="relative">
                               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -587,7 +587,7 @@ export default function RequestAccessPage() {
                                 required={role === 'ROLE_TEACHER'}
                                 className="flex h-10 w-full rounded-md border border-slate-200 bg-white text-slate-900 pl-10 pr-3 py-2 text-sm focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-100"
                               >
-                                <option value="">Select degree</option>
+                                <option value="">Chọn bậc học</option>
                                 <option value="Cử nhân">Cử nhân</option>
                                 <option value="Thạc sĩ">Thạc sĩ</option>
                                 <option value="Tiến sĩ">Tiến sĩ</option>
@@ -597,7 +597,7 @@ export default function RequestAccessPage() {
 
                           <div className="space-y-1.5">
                             <Label htmlFor="specialization" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
-                              Specialization
+                              Chuyên ngành
                             </Label>
                             <div className="relative">
                               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -628,7 +628,7 @@ export default function RequestAccessPage() {
                       >
                         <div className="space-y-1.5 rounded-lg border border-teal-100 bg-teal-50/40 p-3">
                           <Label htmlFor="jobTitle" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
-                            Job title
+                            Nghề nghiệp
                           </Label>
                           <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">

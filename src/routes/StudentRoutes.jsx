@@ -1,6 +1,7 @@
 import React from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import StudentLayout from "../components/layout/student/StudentLayout";
+import NotFoundPage from "../pages/shared/NotFoundPage";
 import StudentHome from "../pages/student/StudentHome";
 import Missions from "../pages/student/Missions";
 import Leaderboard from "../pages/student/Leaderboard";
@@ -39,6 +40,9 @@ export default function StudentRoutes() {
         <Route path="profile" element={<StudentProfile />} />
         <Route path="progress-map" element={<ProgressMap />} />
         <Route path="pvp" element={<PvpLobbyPage />} />
+        
+        {/* Fallback 404 inside Student Layout */}
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
   );

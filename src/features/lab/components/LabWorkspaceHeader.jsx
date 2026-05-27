@@ -53,7 +53,7 @@ const LabWorkspaceHeader = ({
           title="Back to Dashboard"
         >
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
-          <span className="font-bold text-sm hidden sm:block">Dashboard</span>
+          <span className="font-bold text-sm hidden sm:block">Tổng quan</span>
         </button>
         <div className="h-6 w-[2px] bg-slate-200 mx-1 rounded-full hidden sm:block"></div>
         <div className="flex items-center">
@@ -90,7 +90,11 @@ const LabWorkspaceHeader = ({
             <div className="flex items-center justify-between w-full text-xs font-bold text-slate-500">
               <span className="uppercase tracking-wider">Tiến độ Lab</span>
               <span className={`transition-colors duration-300 ${isFinished ? "text-amber-500" : "text-blue-600"} flex items-center gap-1`}>
-                {isFinished && "⭐"} {score}/{maxScore} EXP
+                {isFinished ? (
+                  <>⭐ 100% Hoàn thành</>
+                ) : (
+                  <>{score}/{maxScore} Điểm</>
+                )}
               </span>
             </div>
             <div className="h-3.5 w-full bg-slate-200 rounded-full p-0.5 shadow-inner relative overflow-hidden">
@@ -124,7 +128,7 @@ const LabWorkspaceHeader = ({
           className="text-destructive hover:bg-red-50 hover:text-red-600 border-slate-200 h-9 px-3" 
           onClick={clearWorkspace}
         >
-          <Trash2 className="w-4 h-4 mr-2" /> Clear Desk
+          <Trash2 className="w-4 h-4 mr-2" /> Dọn dẹp
         </Button>
 
         <Button 
@@ -132,7 +136,7 @@ const LabWorkspaceHeader = ({
           className="text-blue-600 hover:bg-blue-50 border-blue-200 h-9 px-3 hidden md:flex" 
           onClick={onResetClick}
         >
-          <RotateCcw className="w-4 h-4 mr-2" /> Reset Lab
+          <RotateCcw className="w-4 h-4 mr-2" /> Tạo lại
         </Button>
 
         <div className="flex items-center gap-2 border-l pl-3 ml-1 border-slate-200">
@@ -167,11 +171,11 @@ const LabWorkspaceHeader = ({
             >
               {saveState === 'saving' ? (
                 <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Saving...
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Đang lưu...
                 </>
               ) : saveState === 'saved' ? (
                 <>
-                  <CheckCircle2 className="w-4 h-4 mr-2" /> Saved
+                  <CheckCircle2 className="w-4 h-4 mr-2" /> Đã lưu
                 </>
               ) : (
                 <>

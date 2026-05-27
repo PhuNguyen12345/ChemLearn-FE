@@ -19,6 +19,7 @@ import useAuthStore from "./stores/useAuthStore";
 import ConfirmLinkPage from "./pages/shared/ConfirmLinkPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
+import NotFoundPage from "./pages/shared/NotFoundPage";
 
 // Áp dụng Lazy Load cho các cụm Route theo Role
 const StudentRoutes = lazy(() => import("./routes/StudentRoutes"));
@@ -111,7 +112,7 @@ function App() {
           </Route>
 
           {/* Catch-all Redirect */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>
     </>

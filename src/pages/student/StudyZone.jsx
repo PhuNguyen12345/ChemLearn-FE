@@ -69,7 +69,7 @@ const StudyZone = () => {
 
         {loadingLesson && (
           <div className="p-8 text-slate-500 font-semibold flex items-center gap-2">
-            <LoaderCircle className="w-4 h-4 animate-spin" /> Loading lesson...
+            <LoaderCircle className="w-4 h-4 animate-spin" /> Đang tải bài học...
           </div>
         )}
 

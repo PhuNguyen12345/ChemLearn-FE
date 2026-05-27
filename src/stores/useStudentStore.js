@@ -60,5 +60,7 @@ export const useStudentStore = create((set) => ({
       return { inventory: newInventory };
     }
     return state;
-  })
+  }),
+  
+  setCoins: (amount) => set({ coins: amount }),
 }));

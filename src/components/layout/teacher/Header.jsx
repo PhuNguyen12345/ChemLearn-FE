@@ -13,16 +13,11 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import Sidebar from './Sidebar';
-import LanguageSwitcher from '../shared/LanguageSwitcher';
-import useLanguageStore from '@/stores/useLanguageStore';
 import { useLogout } from '@/stores/useLogout';
-import { translations } from '@/lib/translations';
 import useAuthStore from '@/stores/useAuthStore';
 
 const Header = () => {
   const [open, setOpen] = useState(false);
-  const { language } = useLanguageStore();
-  const t = translations[language] || translations['vi'];
   const logout = useLogout();
   const { user } = useAuthStore();
 
@@ -49,11 +44,11 @@ const Header = () => {
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="md:hidden mr-2">
               <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle navigation menu</span>
+              <span className="sr-only">Mở menu điều hướng</span>
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="p-0 w-64">
-            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+            <SheetTitle className="sr-only">Menu điều hướng</SheetTitle>
             <Sidebar className="border-r-0" />
           </SheetContent>
         </Sheet>
@@ -69,15 +64,15 @@ const Header = () => {
           
           <Button size="sm" className="hidden sm:flex gap-1.5 rounded-full">
             <Plus className="w-4 h-4" />
-            Create Class
+            Tạo lớp học
           </Button>
 
-          <LanguageSwitcher />
+
 
           <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground relative">
             <Bell className="h-5 w-5" />
             <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive"></span>
-            <span className="sr-only">Notifications</span>
+            <span className="sr-only">Thông báo</span>
           </Button>
 
           <DropdownMenu>
@@ -100,17 +95,17 @@ const Header = () => {
               <DropdownMenuItem asChild className="cursor-pointer">
                 <Link to="/teacher/profile">
                   <User className="mr-2 h-4 w-4" />
-                  <span>{t.profile || 'My Profile'}</span>
+                  <span>Hồ sơ</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer">
                 <Settings className="mr-2 h-4 w-4" />
-                <span>{t.settings || 'Settings'}</span>
+                <span>Cài đặt</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={logout} className="cursor-pointer text-destructive focus:text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>{t.logout || 'Log out'}</span>
+                <span>Đăng xuất</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

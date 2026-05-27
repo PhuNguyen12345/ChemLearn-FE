@@ -182,33 +182,33 @@ const Leaderboard = () => {
               <Trophy className="w-5 h-5 text-white" />
             </div>
             <span className="text-white/80 text-xs font-black uppercase tracking-widest">
-              Rankings
+              Bảng xếp hạng
             </span>
           </div>
 
           <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight drop-shadow-sm">
-            ChemLearn Leaderboard 🏆
+            Bảng xếp hạng ChemLearn 🏆
           </h1>
           <p className="text-indigo-200 mt-1.5 font-semibold text-base flex items-center gap-2">
             <Medal className="w-4 h-4 text-amber-300" />
-            Daily Updated Rankings
+            Bảng xếp hạng được cập nhật hàng ngày
           </p>
 
           <div className="flex flex-wrap gap-3 mt-5">
             <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl px-4 py-2">
               <Users className="w-4 h-4 text-indigo-200" />
-              <span className="text-white font-black text-sm">{data?.totalStudents || 0} Students</span>
+              <span className="text-white font-black text-sm">{data?.totalStudents || 0} Học sinh</span>
             </div>
             {currentUser && (
               <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl px-4 py-2">
                 <Star className="w-4 h-4 text-amber-300 fill-amber-300/60" />
-                <span className="text-white font-black text-sm">You're Rank #{currentUser.rank}</span>
+                <span className="text-white font-black text-sm">Thứ hạng của bạn #{currentUser.rank}</span>
               </div>
             )}
             {scoreDiff > 0 && currentUser && (
               <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl px-4 py-2">
                 <Flame className="w-4 h-4 text-orange-300 fill-orange-300/40" />
-                <span className="text-white font-black text-sm">{scoreDiff} {statLabel} behind #{currentUser.rank - 1}</span>
+                <span className="text-white font-black text-sm">{scoreDiff} {statLabel} nữa là tới #{currentUser.rank - 1}</span>
               </div>
             )}
           </div>
@@ -267,7 +267,7 @@ const Leaderboard = () => {
                   </div>
                   <div className="bg-slate-800 py-2 text-center">
                     <span className="text-slate-400 text-[11px] font-black uppercase tracking-widest">
-                      🏟️ Champions Stage
+                      🏟️ Sân khấu vinh quang
                     </span>
                   </div>
                 </div>
@@ -283,7 +283,7 @@ const Leaderboard = () => {
                   <div className="p-2 bg-indigo-500 rounded-xl shadow-md shadow-indigo-300/40">
                     <Users className="w-4 h-4 text-white" />
                   </div>
-                  <h2 className="text-xl font-black text-slate-800">Full Rankings</h2>
+                  <h2 className="text-xl font-black text-slate-800">Danh sách xếp hạng</h2>
                 </div>
 
                 <div className="space-y-2.5">
@@ -321,7 +321,7 @@ const Leaderboard = () => {
                             )}
                           </p>
                           <p className={`text-[11px] font-semibold ${user.isCurrentUser ? 'text-indigo-400' : 'text-slate-400'}`}>
-                            Student
+                            Học sinh
                           </p>
                         </div>
 
@@ -345,9 +345,9 @@ const Leaderboard = () => {
             {/* ── Motivational footer nudge ── */}
             {currentUser && scoreDiff > 0 && (
               <div className="rounded-3xl bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-center shadow-xl shadow-indigo-300/30">
-                <p className="text-white font-black text-lg mb-1">⚡ Keep it up, {currentUser.initials}!</p>
+                <p className="text-white font-black text-lg mb-1">⚡ Cố lên, {currentUser.initials}!</p>
                 <p className="text-indigo-100 font-semibold text-sm">
-                  You're only <span className="text-yellow-300 font-black">{scoreDiff} {statLabel}</span> behind Rank #{currentUser.rank - 1}.
+                  Chỉ còn <span className="text-yellow-300 font-black">{scoreDiff} {statLabel}</span> nữa là tới #{currentUser.rank - 1}.
                 </p>
                 <div className="mt-4 h-3 w-full max-w-xs mx-auto bg-white/20 rounded-full overflow-hidden">
                   <div className="h-full bg-gradient-to-r from-yellow-300 to-amber-400 rounded-full" style={{ width: `${Math.max(10, (userScore / nextRankScore) * 100)}%` }}>
@@ -355,7 +355,7 @@ const Leaderboard = () => {
                   </div>
                 </div>
                 <p className="text-indigo-200 text-[11px] font-black mt-1.5 uppercase tracking-wider">
-                  {userScore.toLocaleString()} / {nextRankScore.toLocaleString()} {statLabel} to next rank
+                  {userScore.toLocaleString()} / {nextRankScore.toLocaleString()} {statLabel} để lên hạng tiếp theo
                 </p>
               </div>
             )}

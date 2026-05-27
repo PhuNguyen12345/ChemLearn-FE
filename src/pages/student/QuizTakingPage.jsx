@@ -189,7 +189,7 @@ const QuizTakingPage = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-[500px] gap-4">
         <LoaderCircle className="h-10 w-10 animate-spin text-indigo-500" />
-        <p className="text-lg font-bold text-slate-500">Preparing your quiz environment...</p>
+        <p className="text-lg font-bold text-slate-500">Đang chuẩn bị môi trường đố vui...</p>
       </div>
     );
   }
@@ -212,7 +212,7 @@ const QuizTakingPage = () => {
         <Card className="border-slate-200 shadow-md">
           <CardHeader>
             <CardTitle className="text-lg font-black">{quiz?.title}</CardTitle>
-            <CardDescription className="text-sm">Attempts history</CardDescription>
+            <CardDescription className="text-sm">Lịch sử đố vui</CardDescription>
           </CardHeader>
           <CardContent>
             {error && (
@@ -222,7 +222,7 @@ const QuizTakingPage = () => {
               </div>
             )}
             {attemptHistory.length === 0 ? (
-              <p className="text-sm text-slate-500 font-bold">No previous attempts. You may start the quiz.</p>
+              <p className="text-sm text-slate-500 font-bold">Không có lần thử nào trước đó. Bạn có thể bắt đầu bài kiểm tra.</p>
             ) : (
               <div className="space-y-3">
                 {attemptHistory.map((a) => (
@@ -251,9 +251,9 @@ const QuizTakingPage = () => {
                 setLoading(false);
               }
             }} disabled={!canStart} className="rounded-xl font-black">
-              {canStart ? 'Start Quiz' : 'Cannot Retake'}
+              {canStart ? 'Bắt đầu' : 'Không thể làm lại'}
             </Button>
-            <Button variant="outline" onClick={() => navigate(-1)}>Back</Button>
+            <Button variant="outline" onClick={() => navigate(-1)}>Quay lại</Button>
           </CardFooter>
         </Card>
       </div>
@@ -270,7 +270,7 @@ const QuizTakingPage = () => {
         <div>
           <h1 className="text-xl font-black text-slate-800">{quiz?.title}</h1>
           <p className="text-sm text-slate-500 font-semibold mt-1">
-            Question {currentQuestionIndex + 1} of {questions.length}
+            Câu hỏi {currentQuestionIndex + 1} của {questions.length}
           </p>
         </div>
         
@@ -309,7 +309,7 @@ const QuizTakingPage = () => {
                   </h2>
                 </>
               ) : (
-                <div className="py-4 text-center text-slate-400 font-bold italic">No question found.</div>
+                <div className="py-4 text-center text-slate-400 font-bold italic">Không tìm thấy câu hỏi.</div>
               )}
             </CardHeader>
 
@@ -370,7 +370,7 @@ const QuizTakingPage = () => {
                 onClick={() => setCurrentQuestionIndex(prev => prev - 1)}
                 className="rounded-xl font-bold gap-2"
               >
-                <ChevronLeft className="h-4 w-4" /> Previous
+                <ChevronLeft className="h-4 w-4" /> Trước
               </Button>
 
               {currentQuestionIndex === questions.length - 1 ? (
@@ -380,14 +380,14 @@ const QuizTakingPage = () => {
                   className="rounded-xl font-black gap-2 bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-200"
                 >
                   {submitting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  Finish Quiz
+                  Hoàn thành
                 </Button>
               ) : (
                 <Button
                   onClick={() => setCurrentQuestionIndex(prev => prev + 1)}
                   className="rounded-xl font-bold gap-2"
                 >
-                  Next <ChevronRight className="h-4 w-4" />
+                  Tiếp theo <ChevronRight className="h-4 w-4" />
                 </Button>
               )}
             </CardFooter>
@@ -399,7 +399,7 @@ const QuizTakingPage = () => {
           <Card className="border-slate-200 shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-black text-slate-500 uppercase tracking-widest">
-                Question Map
+                Bản đồ câu hỏi
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -431,10 +431,10 @@ const QuizTakingPage = () => {
           <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 space-y-2">
             <div className="flex items-center gap-2 text-amber-700">
               <AlertCircle className="h-4 w-4" />
-              <span className="text-xs font-black uppercase tracking-widest">Notice</span>
+              <span className="text-xs font-black uppercase tracking-widest">Chú ý</span>
             </div>
             <p className="text-xs font-bold text-amber-600 leading-relaxed">
-              Ensure you have a stable connection. Do not refresh or close the page while the quiz is in progress.
+              Đảm bảo bạn có kết nối ổn định. Không làm mới hoặc đóng trang khi bài kiểm tra đang diễn ra.
             </p>
           </div>
         </div>
@@ -481,7 +481,7 @@ const QuizResultView = ({ results, quiz, onBack }) => {
               {isPending ? 'Submission Success!' : isExcellent ? 'Outstanding!' : isGood ? 'Good Job!' : 'Keep Practicing!'}
             </h2>
             <p className="text-slate-500 font-bold">
-              You've completed <span className="text-indigo-600">{quiz?.title}</span>
+              Bạn đã hoàn thành <span className="text-indigo-600">{quiz?.title}</span>
             </p>
           </div>
 
@@ -489,7 +489,7 @@ const QuizResultView = ({ results, quiz, onBack }) => {
             <div className="p-6 rounded-2xl bg-blue-50 border border-blue-200 text-blue-700 text-sm font-bold flex flex-col items-center gap-3">
               <span className="text-xl font-black">{results?.message || 'Please wait for your teacher to grade.'}</span>
               <p className="text-blue-600/80 font-semibold leading-relaxed">
-                Your multiple-choice questions have been auto-calculated, but the essay portion requires manual review before your final score is released.
+                Các câu hỏi trắc nghiệm của bạn đã được tính điểm tự động, nhưng phần tự luận cần được đánh giá thủ công trước khi điểm số cuối cùng được công bố.
               </p>
               <div className="mt-2 pt-4 border-t border-blue-100 w-full flex justify-around">
                 <div className="text-center">
@@ -516,7 +516,7 @@ const QuizResultView = ({ results, quiz, onBack }) => {
               onClick={onBack}
               className="flex-1 rounded-2xl font-black h-12 bg-slate-800 hover:bg-slate-900"
             >
-              Back to Course
+              Quay lại bài học
             </Button>
           </div>
         </CardContent>

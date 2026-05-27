@@ -123,7 +123,7 @@ export default function CentralWorkspace({ placedItems, scale, setScale, selecte
       </div>
 
       <div className="absolute top-6 left-6 font-bold text-slate-300/80 pointer-events-none text-2xl uppercase tracking-widest select-none z-10">
-         Experiment Canvas
+         Không gian thực hành
       </div>
 
       {/* KHUNG INNER: Cái này sẽ bay lượn và phóng to thu nhỏ */}

@@ -56,19 +56,19 @@ const LabCard = ({
     if (lab.status === 'UNCOMPLETED') {
       return (
         <div className="flex items-center gap-1.5 px-2.5 py-1 bg-rose-50/90 backdrop-blur-sm border border-rose-100 text-rose-600 rounded-lg text-xs font-bold absolute top-3 right-3 shadow-sm z-10">
-          <CircleDashed className="w-3.5 h-3.5" /> Not Started
+          <CircleDashed className="w-3.5 h-3.5" /> Chưa bắt đầu
         </div>
       );
     } else if (lab.status === 'IN_PROGRESS') {
       return (
         <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-50/90 backdrop-blur-sm border border-amber-100 text-amber-600 rounded-lg text-xs font-bold absolute top-3 right-3 shadow-sm z-10">
-          <Clock className="w-3.5 h-3.5" /> In Progress
+          <Clock className="w-3.5 h-3.5" /> Đang tiến hành
         </div>
       );
     } else if (lab.status === 'SUBMITTED') {
       return (
         <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50/90 backdrop-blur-sm border border-emerald-100 text-emerald-600 rounded-lg text-xs font-bold absolute top-3 right-3 shadow-sm z-10">
-          <CheckCircle2 className="w-3.5 h-3.5" /> Submitted
+          <CheckCircle2 className="w-3.5 h-3.5" /> Đã nộp bài
         </div>
       );
     }
@@ -129,7 +129,7 @@ const LabCard = ({
         {/* Open button that appears on hover */}
         <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <div className="text-xs font-black text-indigo-500 flex items-center gap-1">
-            Open Lab <span className="group-hover:translate-x-1 inline-block transition-transform">→</span>
+            Thực hành <span className="group-hover:translate-x-1 inline-block transition-transform">→</span>
           </div>
         </div>
 
@@ -160,7 +160,7 @@ const LabCard = ({
               <div className="w-6 h-6 rounded-lg bg-indigo-100 flex items-center justify-center">
                 <Edit2 className="w-3.5 h-3.5 text-indigo-600" />
               </div>
-              Rename
+              Đổi tên
             </button>
             <button
               className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-sky-50 hover:text-sky-700 text-left w-full transition-colors"
@@ -169,7 +169,7 @@ const LabCard = ({
               <div className="w-6 h-6 rounded-lg bg-sky-100 flex items-center justify-center">
                 <Copy className="w-3.5 h-3.5 text-sky-600" />
               </div>
-              Duplicate
+              Nhân bản
             </button>
             <div className="mx-3 border-t border-slate-100 my-1" />
             <button
@@ -179,7 +179,7 @@ const LabCard = ({
               <div className="w-6 h-6 rounded-lg bg-rose-100 flex items-center justify-center">
                 <Trash className="w-3.5 h-3.5 text-rose-600" />
               </div>
-              Delete
+              Xóa
             </button>
           </div>
         )}

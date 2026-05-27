@@ -66,7 +66,7 @@ const TeacherContentManagement = () => {
         if (updatedSelected) setSelectedChapter(updatedSelected);
       }
     } catch (err) {
-      setError('Failed to load content data.');
+      setError('Tải nội dung không thành công.');
     } finally {
       setLoading(false);
     }
@@ -116,20 +116,20 @@ const TeacherContentManagement = () => {
       await loadData();
       setShowChapterModal(false);
     } catch (err) {
-      setError('Failed to save chapter.');
+      setError('Lưu chương không thành công.');
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDeleteChapter = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this chapter and all its lessons?')) return;
+    if (!window.confirm('Bạn có chắc chắn muốn xóa chương này và tất cả các bài học trong chương không?')) return;
     try {
       await deleteTeacherChapter(id);
       await loadData();
       if (selectedChapter?.id === id) setSelectedChapter(null);
     } catch (err) {
-      setError('Failed to delete chapter.');
+      setError('Xóa chương không thành công.');
     }
   };
 
@@ -142,7 +142,7 @@ const TeacherContentManagement = () => {
       }
       await loadData();
     } catch (err) {
-      setError('Failed to update chapter assignment.');
+      setError('Cập nhật chương không thành công.');
     }
   };
 
@@ -185,19 +185,19 @@ const TeacherContentManagement = () => {
       await loadData();
       setShowLessonModal(false);
     } catch (err) {
-      setError('Failed to save lesson.');
+      setError('Lưu bài học không thành công.');
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDeleteLesson = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this lesson?')) return;
+    if (!window.confirm('Bạn có chắc chắn muốn xóa bài học này?')) return;
     try {
       await deleteTeacherLesson(id);
       await loadData();
     } catch (err) {
-      setError('Failed to delete lesson.');
+      setError('Xóa bài học không thành công.');
     }
   };
 
@@ -213,14 +213,14 @@ const TeacherContentManagement = () => {
     <div className="p-8 space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-black text-slate-800">Content Management</h1>
-          <p className="text-slate-500 mt-1 font-medium">Create and organize your chapters and lessons.</p>
+          <h1 className="text-3xl font-black text-slate-800">Quản lý nội dung</h1>
+          <p className="text-slate-500 mt-1 font-medium">Tạo và tổ chức các chương và bài học.</p>
         </div>
         <button
           onClick={() => handleOpenChapterModal()}
           className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all font-bold shadow-lg shadow-indigo-200"
         >
-          <Plus className="h-5 w-5" /> New Chapter
+          <Plus className="h-5 w-5" /> Tạo chương mới
         </button>
       </div>
 
@@ -235,13 +235,13 @@ const TeacherContentManagement = () => {
         {/* Chapters Column */}
         <div className="lg:col-span-4 space-y-4">
           <h2 className="text-sm font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
-            <BookOpen className="h-4 w-4" /> Chapters
+            <BookOpen className="h-4 w-4" /> Chương học
           </h2>
           <div className="space-y-3">
             {chapters.length === 0 ? (
               <Card className="border-dashed border-slate-200 bg-slate-50/50">
                 <CardContent className="p-8 text-center text-slate-400 font-bold">
-                  No chapters created yet.
+                  Chưa có chương nào được tạo.
                 </CardContent>
               </Card>
             ) : (
@@ -295,14 +295,14 @@ const TeacherContentManagement = () => {
         <div className="lg:col-span-8 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
-              <FileText className="h-4 w-4" /> Lessons in {selectedChapter?.title || 'Selected Chapter'}
+              <FileText className="h-4 w-4" /> Bài học trong {selectedChapter?.title || 'Selected Chapter'}
             </h2>
             <button
               disabled={!selectedChapter}
               onClick={() => handleOpenLessonModal()}
               className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-xl hover:bg-indigo-100 transition-all font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Plus className="h-4 w-4" /> Add Lesson
+              <Plus className="h-4 w-4" /> Tạo bài học
             </button>
           </div>
 
@@ -312,8 +312,8 @@ const TeacherContentManagement = () => {
                 <div className="mx-auto w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-4">
                   <BookOpen className="h-6 w-6 text-slate-400" />
                 </div>
-                <h3 className="font-black text-slate-700">No Chapter Selected</h3>
-                <p className="text-sm text-slate-500 mt-1">Select a chapter to manage its lessons.</p>
+                <h3 className="font-black text-slate-700">Chọn chương học</h3>
+                <p className="text-sm text-slate-500 mt-1">Chọn một chương để quản lý các bài học của nó.</p>
               </CardContent>
             </Card>
           ) : (
@@ -321,8 +321,8 @@ const TeacherContentManagement = () => {
               {filteredLessons.length === 0 ? (
                 <Card className="border-dashed border-slate-200 bg-slate-50/50">
                   <CardContent className="p-12 text-center">
-                    <h3 className="font-black text-slate-700">Empty Chapter</h3>
-                    <p className="text-sm text-slate-500 mt-1">No lessons have been added to this chapter yet.</p>
+                    <h3 className="font-black text-slate-700">Chưa có bài học</h3>
+                    <p className="text-sm text-slate-500 mt-1">Bài học này chưa có bài nào được thêm vào.</p>
                   </CardContent>
                 </Card>
               ) : (
@@ -338,15 +338,15 @@ const TeacherContentManagement = () => {
                             <div className="font-black text-slate-800">{lesson.title}</div>
                             <div className="flex items-center gap-3 mt-1">
                               <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
-                                {lesson.durationMinutes ?? lesson.estimatedMinutes ?? 0} mins
+                                {lesson.durationMinutes ?? lesson.estimatedMinutes ?? 0} phút
                               </span>
                               {lesson.published ? (
                                 <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-                                  Published
+                                  Đã xuất bản
                                 </span>
                               ) : (
                                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">
-                                  Draft
+                                  Nháp
                                 </span>
                               )}
                             </div>
@@ -392,7 +392,7 @@ const TeacherContentManagement = () => {
             <form onSubmit={handleSaveChapter}>
               <CardContent className="p-6 space-y-5">
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">Chapter Title</label>
+                  <label className="block text-sm font-bold text-slate-700 mb-1.5">Tiêu đề chương</label>
                   <input
                     required
                     value={chapterForm.title}
@@ -402,7 +402,7 @@ const TeacherContentManagement = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">Description</label>
+                  <label className="block text-sm font-bold text-slate-700 mb-1.5">Mô tả</label>
                   <textarea
                     rows={3}
                     value={chapterForm.description}
@@ -413,7 +413,7 @@ const TeacherContentManagement = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">Display Order</label>
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5">Thứ tự</label>
                     <input
                       type="number"
                       value={chapterForm.orderIndex}
@@ -429,7 +429,7 @@ const TeacherContentManagement = () => {
                         checked={chapterForm.published}
                         onChange={e => setChapterForm({ ...chapterForm, published: e.target.checked })}
                       />
-                      <span className="text-sm font-bold text-slate-700">Published</span>
+                      <span className="text-sm font-bold text-slate-700">Đã xuất bản</span>
                     </label>
                   </div>
                 </div>
@@ -440,7 +440,7 @@ const TeacherContentManagement = () => {
                   onClick={() => setShowChapterModal(false)}
                   className="px-6 py-2.5 rounded-xl font-bold text-slate-500 hover:text-slate-700 transition-colors"
                 >
-                  Cancel
+                  Hủy
                 </button>
                 <button
                   type="submit"
@@ -463,7 +463,7 @@ const TeacherContentManagement = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-xl font-black">{editingLesson ? 'Edit Lesson' : 'Create New Lesson'}</CardTitle>
-                  <p className="text-sm text-slate-500 font-bold mt-0.5">Chapter: {selectedChapter.title}</p>
+                  <p className="text-sm text-slate-500 font-bold mt-0.5">Chương: {selectedChapter.title}</p>
                 </div>
                 <button onClick={() => setShowLessonModal(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
                   <X className="h-6 w-6 text-slate-400" />
@@ -494,7 +494,7 @@ const TeacherContentManagement = () => {
                 onClick={() => setShowLessonModal(false)}
                 className="px-6 py-2.5 rounded-xl font-bold text-slate-500 hover:text-slate-700 transition-colors"
               >
-                Cancel
+                Hủy
               </button>
               <button
                 form="lessonForm"

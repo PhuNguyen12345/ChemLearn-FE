@@ -108,8 +108,8 @@ const TeacherClassQuizzes = () => {
             <ChevronLeft className="h-6 w-6" />
           </Button>
           <div>
-            <h1 className="text-2xl font-black text-slate-800">Manage Quizzes</h1>
-            <p className="text-slate-500 font-bold">Class: {targetClass?.name}</p>
+            <h1 className="text-2xl font-black text-slate-800">Quản lý bài kiểm tra</h1>
+            <p className="text-slate-500 font-bold">Lớp học: {targetClass?.name}</p>
           </div>
         </div>
       </div>
@@ -119,9 +119,9 @@ const TeacherClassQuizzes = () => {
         <div className="lg:col-span-1">
           <Card className="sticky top-6">
             <CardHeader>
-              <CardTitle className="text-lg font-black text-slate-800">Assign New Quiz</CardTitle>
+              <CardTitle className="text-lg font-black text-slate-800">Thêm bài kiểm tra mới</CardTitle>
               <CardDescription className="font-semibold text-slate-500 text-xs uppercase tracking-wider">
-                Select a quiz from your library
+                Chọn bài kiểm tra từ thư viện của bạn
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -132,7 +132,7 @@ const TeacherClassQuizzes = () => {
                   value={selectedQuizId}
                   onChange={(e) => setSelectedQuizId(e.target.value)}
                 >
-                  <option value="">Select a quiz...</option>
+                  <option value="">Chọn một bài kiểm tra...</option>
                   {allQuizzes.filter(q => !assignedQuizIds.has(q.id)).map(q => (
                     <option key={q.id} value={q.id}>{q.title}</option>
                   ))}
@@ -155,7 +155,7 @@ const TeacherClassQuizzes = () => {
                 onClick={handleAssignQuiz}
               >
                 {processingId && !processingId.length > 20 ? <LoaderCircle className="animate-spin mr-2" /> : <Plus className="mr-2 h-4 w-4" />}
-                Assign Quiz
+                Thêm bài kiểm tra
               </Button>
             </CardContent>
           </Card>
@@ -169,7 +169,7 @@ const TeacherClassQuizzes = () => {
               <div className="mx-auto w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mb-3">
                 <FilePenLine className="h-6 w-6 text-slate-300" />
               </div>
-              <p className="text-slate-400 font-bold italic text-sm">No quizzes assigned to this class.</p>
+              <p className="text-slate-400 font-bold italic text-sm">Không có bài kiểm tra được giao cho lớp này.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4">
@@ -193,7 +193,7 @@ const TeacherClassQuizzes = () => {
                             {assign.dueDate && (
                               <span className="flex items-center gap-1 text-[11px] font-bold text-amber-600">
                                 <Calendar className="h-3 w-3" />
-                                Due {new Date(assign.dueDate).toLocaleDateString()}
+                                Hết hạn: {new Date(assign.dueDate).toLocaleDateString()}
                               </span>
                             )}
                           </div>
@@ -204,7 +204,7 @@ const TeacherClassQuizzes = () => {
                         <Link to={`/teacher/classes/${classId}/quizzes/${quiz?.id}/submissions`}>
                           <Button variant="outline" size="sm" className="rounded-lg h-9 font-bold gap-2">
                             <Eye className="h-4 w-4" />
-                            Submissions
+                            Bài làm của sinh viên
                           </Button>
                         </Link>
                         <Button 

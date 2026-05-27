@@ -228,7 +228,7 @@ const ClassDetail = () => {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-3">
           <LoaderCircle className="h-10 w-10 animate-spin text-indigo-500" />
-          <p className="text-sm font-black uppercase tracking-widest text-slate-500">Loading Workspace...</p>
+          <p className="text-sm font-black uppercase tracking-widest text-slate-500">Đang tải...</p>
         </div>
       </div>
     );
@@ -242,7 +242,7 @@ const ClassDetail = () => {
         className="inline-flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-4 py-2 text-sm font-black text-slate-600 transition hover:bg-slate-50 hover:border-slate-300 hover:-translate-x-1"
       >
         <ArrowLeft className="h-4 w-4" />
-        BACK TO CLASSES
+        QUAY LẠI LỚP HỌC
       </button>
 
       {/* Class Header Card (Gamified) */}
@@ -260,7 +260,7 @@ const ClassDetail = () => {
           <div>
             <div className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-[10px] font-black tracking-widest uppercase border border-white/30 mb-3">
               <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
-              Class Workspace
+              Khu vực lớp học
             </div>
             <h1 className="text-3xl md:text-4xl font-black tracking-tight drop-shadow-sm mb-2">
               {classInfo?.name || 'Class'}
@@ -271,15 +271,15 @@ const ClassDetail = () => {
             
             <div className="mt-5 flex flex-wrap items-center gap-3 text-sm">
               <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-xl font-bold border border-white/20">
-                Code: {classInfo?.classCode || 'N/A'}
+                Mã lớp: {classInfo?.classCode || 'N/A'}
               </span>
               <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-xl font-bold border border-white/20">
                 <BookOpen className="h-4 w-4" />
-                {chapters.length} Chapter{chapters.length !== 1 ? 's' : ''} · {totalLessons} Lesson{totalLessons !== 1 ? 's' : ''}
+                {chapters.length} Chương{chapters.length !== 1 ? 's' : ''} · {totalLessons} Bài{totalLessons !== 1 ? 's' : ''}
               </span>
               <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-xl font-bold border border-white/20">
                 <ClipboardList className="h-4 w-4" />
-                {quizzes.length} Quiz{quizzes.length !== 1 ? 'zes' : ''}
+                {quizzes.length} Bài kiểm tra{quizzes.length !== 1 ? 's' : ''}
               </span>
             </div>
           </div>
@@ -434,7 +434,7 @@ const DocumentsTab = ({ chapters, lessonsByChapter, expandedChapters, toggleChap
               <div className="border-t-2 border-slate-100 bg-slate-50/50 p-2">
                 {lessons.length === 0 ? (
                   <div className="px-5 py-6 text-center text-sm font-bold text-slate-400">
-                    No lessons in this chapter yet.
+                    Chương này chưa có bài học.
                   </div>
                 ) : (
                   <div className="space-y-1">
@@ -521,12 +521,12 @@ const QuizzesTab = ({ quizzes, totalCount, quizSort, setQuizSort, quizSearch, se
            <div className="w-20 h-20 mx-auto bg-slate-100 rounded-[1.5rem] flex items-center justify-center mb-4">
               <ClipboardList className="w-10 h-10 text-slate-300" />
            </div>
-           <h3 className="text-xl font-black text-slate-700 mb-2">No quizzes yet</h3>
-           <p className="text-slate-500 font-semibold max-w-sm mx-auto">Your teacher hasn't published any quizzes to this class yet. Check back later!</p>
+           <h3 className="text-xl font-black text-slate-700 mb-2">Chưa có bài kiểm tra</h3>
+           <p className="text-slate-500 font-semibold max-w-sm mx-auto">Giáo viên chưa xuất bản bài kiểm tra cho lớp này. Hãy kiểm tra lại sau!</p>
         </div>
       ) : quizzes.length === 0 ? (
         <div className="p-8 bg-white rounded-[1.5rem] border-2 border-slate-200 text-center">
-          <p className="text-sm font-bold text-slate-500">No quizzes match your search.</p>
+          <p className="text-sm font-bold text-slate-500">Chưa có bài kiểm tra nào khớp với tìm kiếm của bạn.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -579,11 +579,11 @@ const QuizCard = ({ quiz, onClick, onHistory }) => {
         <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-slate-500 mb-4">
           <span className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-lg">
             <Clock className="h-3.5 w-3.5 text-slate-400" />
-            {quiz.durationMinutes || '—'} MIN
+            {quiz.durationMinutes || '—'} phút
           </span>
           <span className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-lg">
             <ClipboardList className="h-3.5 w-3.5 text-slate-400" />
-            {quiz.questionCount || 0} Qs
+            {quiz.questionCount || 0} câu hỏi
           </span>
           {deadlineLabel && (
             <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border ${deadline.tone}`}>
@@ -598,7 +598,7 @@ const QuizCard = ({ quiz, onClick, onHistory }) => {
             onClick={onClick}
             className="flex-1 py-2.5 px-4 rounded-xl font-black text-white bg-gradient-to-b from-indigo-500 to-indigo-600 border-b-[4px] border-indigo-800 hover:from-indigo-600 hover:to-indigo-700 shadow-sm shadow-indigo-300/50 text-sm"
           >
-            TAKE QUIZ
+            BẮT ĐẦU
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onHistory(); }}

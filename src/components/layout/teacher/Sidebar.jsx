@@ -3,11 +3,11 @@ import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, Library, LayoutTemplate, FlaskConical, FilePenLine, BookOpen } from 'lucide-react';
 
 const navItems = [
-  { name: 'Dashboard', icon: LayoutDashboard, path: '/teacher/dashboard' },
-  { name: 'Classes', icon: LayoutTemplate, path: '/teacher/classes' },
-  { name: 'Content Management', icon: BookOpen, path: '/teacher/content' },
-  { name: 'Quiz Creation', icon: FilePenLine, path: '/teacher/quiz-creation' },
-  { name: 'Question Bank', icon: Library, path: '/teacher/questions' },
+  { name: 'Bảng điều khiển', icon: LayoutDashboard, path: '/teacher/dashboard' },
+  { name: 'Lớp học', icon: LayoutTemplate, path: '/teacher/classes' },
+  { name: 'Quản lý nội dung', icon: BookOpen, path: '/teacher/content' },
+  { name: 'Tạo bài kiểm tra', icon: FilePenLine, path: '/teacher/quiz-creation' },
+  { name: 'Ngân hàng câu hỏi', icon: Library, path: '/teacher/questions' },
 ];
 
 const Sidebar = ({ className = '' }) => {

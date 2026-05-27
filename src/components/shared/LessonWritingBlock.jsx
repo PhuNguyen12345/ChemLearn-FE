@@ -27,8 +27,8 @@ const LessonWritingBlock = ({
             <FileText className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-sm font-black text-slate-900">Lesson draft</h3>
-            <p className="mt-0.5 text-xs font-semibold text-slate-500">Write the lesson details and body content.</p>
+            <h3 className="text-sm font-black text-slate-900">Bài soạn</h3>
+            <p className="mt-0.5 text-xs font-semibold text-slate-500">Nhập chi tiết bài học và nội dung.</p>
           </div>
         </div>
       </div>
@@ -90,7 +90,7 @@ const LessonWritingBlock = ({
       <div>
         <div className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-wide text-slate-500">
           <RadioTower className="h-4 w-4" />
-          Content
+          Nội dung
         </div>
         <RichTextEditor value={content} onChange={onContentChange} placeholder={contentPlaceholder} />
       </div>

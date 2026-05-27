@@ -13,6 +13,16 @@ export const getProgressMap = async () => {
   return response.data;
 };
 
+export const getNodeQuestions = async (nodeId) => {
+  const response = await api.get(`/api/student/gamification/map/nodes/${nodeId}/questions`);
+  return response.data;
+};
+
+export const completeNode = async (nodeId, stars) => {
+  const response = await api.post(`/api/student/gamification/map/nodes/${nodeId}/complete`, { stars });
+  return response.data;
+};
+
 // --- Student Profile APIs ---
 export const getStudentProfileData = async () => {
   const response = await api.get('/api/student/profile');

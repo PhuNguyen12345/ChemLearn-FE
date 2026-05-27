@@ -48,11 +48,7 @@ export default function BattleArenaPage({ selectedPetId, onBack }) {
   useEffect(() => {
     if (!connected || !myId) return;
 
-    // Join queue
-    send('/app/battle/join', { studentPetId: selectedPetId });
-    addLog('⚔️ Đang tìm đối thủ...');
-
-    // Subscribe to global match topic
+    // Subscribe to global match topic FIRST to avoid race conditions
     const unsubMatch = subscribe('/topic/battle/match', (state) => {
       if (!roomId && (state.player1Id === myId || state.player2Id === myId)) {
         console.log('[PVP] Match found! Room ID:', state.roomId);
@@ -60,6 +56,10 @@ export default function BattleArenaPage({ selectedPetId, onBack }) {
         handleGameState(state);
       }
     });
+
+    // Join queue AFTER subscribing
+    send('/app/battle/join', { studentPetId: selectedPetId });
+    addLog('⚔️ Đang tìm đối thủ...');
 
     return () => {
       unsubMatch();

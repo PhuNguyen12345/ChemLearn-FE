@@ -5,6 +5,23 @@ import { useStudentStore } from '../../../stores/useStudentStore';
 import BattleArenaPage from './BattleArenaPage';
 import { WebSocketProvider } from '../../../context/WebSocketProvider';
 
+// Fallback images if DB doesn't have URLs
+import pet1 from '../../../assets/CapybaraWizard.png';
+import pet2 from '../../../assets/DogeWizard.png';
+import pet3 from '../../../assets/SkibidiToilem.png';
+import pet4 from '../../../assets/TungSahurWarrior.png';
+
+const getPetImage = (url, name) => {
+  if (url) return url;
+  if (!name) return pet1;
+  const n = String(name).toLowerCase();
+  if (n.includes('capybara')) return pet1;
+  if (n.includes('doge')) return pet2;
+  if (n.includes('skibidi') || n.includes('tolem')) return pet3;
+  if (n.includes('tung') || n.includes('sahur') || n.includes('warrior')) return pet4;
+  return pet1;
+};
+
 /**
  * PvpLobbyPage — Matchmaking lobby where student selects a pet and enters queue.
  * Wraps BattleArenaPage inside WebSocketProvider.
@@ -121,14 +138,8 @@ export default function PvpLobbyPage({ onBack }) {
                     w-14 h-14 rounded-xl overflow-hidden border-2 shrink-0
                     ${isSelected ? 'border-indigo-300' : 'border-slate-100'}
                   `}>
-                    {pet.species?.imageUrl ? (
-                      <img src={pet.species.imageUrl} alt={pet.species.name}
-                        className="w-full h-full object-contain p-1" />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-2xl">
-                        🐾
-                      </div>
-                    )}
+                    <img src={getPetImage(pet.species?.imageUrl, pet.species?.name)} alt={pet.species?.name}
+                      className="w-full h-full object-contain p-1" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-black text-slate-800 truncate">{pet.species?.name ?? 'Unknown'}</p>

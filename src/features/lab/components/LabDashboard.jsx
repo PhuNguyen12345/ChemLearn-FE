@@ -76,18 +76,18 @@ const LabDashboard = () => {
   const bannerContent = {
     PREMADE: {
       icon: <Compass className="w-6 h-6 text-white" />,
-      title: "Discovery Labs 🧭",
-      desc: "Learn from standard laboratory experiments, pre-designed to help you get acquainted."
+      title: "Các bài lab tham khảo 🧭",
+      desc: "Hãy bắt đầu từ những thí nghiệm cơ bản nhất!"
     },
     SANDBOX: {
       icon: <Sparkles className="w-6 h-6 text-white" />,
-      title: "Your Experiments ✨",
-      desc: "Create and formulate freely without limits. Record every new discovery!"
+      title: "Phòng lab của bạn ✨",
+      desc: "Tự do sáng tạo công thức và ghi lại khám phá!"
     },
     ASSIGNMENT: {
       icon: <ClipboardList className="w-6 h-6 text-white" />,
-      title: "Assignments 📝",
-      desc: "Complete assigned tasks to accumulate EXP and unlock achievements."
+      title: "Bài tập được giao 📝",
+      desc: "Hoàn thành bài tập để tích lũy điểm và mở khóa thành tích."
     }
   };
 
@@ -177,7 +177,7 @@ const LabDashboard = () => {
               : 'bg-white text-slate-500 border-2 border-slate-200 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50'
           }`}
         >
-          <Compass className="w-4 h-4" /> Discovery
+          <Compass className="w-4 h-4" /> Khám phá
         </button>
 
         {/* Tab: Sandbox */}
@@ -189,7 +189,7 @@ const LabDashboard = () => {
               : 'bg-white text-slate-500 border-2 border-slate-200 hover:border-pink-300 hover:text-pink-600 hover:bg-pink-50'
           }`}
         >
-          <Sparkles className="w-4 h-4" /> Your Experiment
+          <Sparkles className="w-4 h-4" /> Phòng thí nghiệm của bạn
         </button>
 
         {/* Tab: Assignments */}
@@ -201,7 +201,7 @@ const LabDashboard = () => {
               : 'bg-white text-slate-500 border-2 border-slate-200 hover:border-rose-300 hover:text-rose-600 hover:bg-rose-50'
           }`}
         >
-          <ClipboardList className="w-4 h-4" /> Assignments
+          <ClipboardList className="w-4 h-4" /> Bài tập được giao
           {hasUncompletedAssignment && (
             <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-rose-500 border-2 border-white rounded-full animate-pulse" />
           )}
@@ -234,7 +234,7 @@ const LabDashboard = () => {
               <h3 className="font-black text-indigo-600 group-hover:text-indigo-700 text-base text-center">
                 {isCreating ? 'Đang tạo...' : 'New Experiment'}
               </h3>
-              <p className="text-indigo-400 text-xs font-semibold mt-1 text-center">Start from scratch</p>
+              <p className="text-indigo-400 text-xs font-semibold mt-1 text-center">Thực hành mới</p>
             </div>
           )}
 
@@ -259,11 +259,11 @@ const LabDashboard = () => {
         {filteredLabs.length === 0 && !isLoading && (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="text-6xl mb-4 animate-bounce" style={{ animationDuration: '2s' }}>🔍</div>
-            <h3 className="font-black text-slate-700 text-xl mb-2">No experiments found</h3>
+            <h3 className="font-black text-slate-700 text-xl mb-2">Không tìm thấy bài thực hành nào</h3>
             <p className="text-slate-400 font-semibold text-sm">
               {activeTab === 'SANDBOX' 
-                ? 'Try searching with different keywords, or create a new experiment!'
-                : 'Try searching with different keywords, there seem to be no tasks here.'}
+                ? 'Thử tìm kiếm với các từ khóa khác, hoặc tạo một bài thực hành mới!'
+                : 'Thử tìm kiếm với các từ khóa khác, dường như không có bài tập nào ở đây.'}
             </p>
           </div>
         )}
@@ -341,7 +341,7 @@ const LabDashboard = () => {
                 )}
                 {selectedLabDetails.max_score && (
                   <span className="px-3 py-1 bg-slate-50 text-slate-600 rounded-lg text-xs font-bold border border-slate-200">
-                    Max Score: {selectedLabDetails.max_score} EXP
+                    Điểm tối đa: {selectedLabDetails.max_score} EXP
                   </span>
                 )}
               </div>

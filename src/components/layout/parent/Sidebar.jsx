@@ -3,10 +3,10 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { LineChart, Activity, BellRing, FlaskConical, LayoutDashboard } from 'lucide-react';
 
 const navItems = [
-  { name: 'Dashboard', icon: LayoutDashboard, path: '/parent/dashboard', id: 'dashboard' },
-  { name: 'Child Progress', icon: LineChart, path: '/parent/dashboard', id: 'progress' },
-  { name: 'Activity Log', icon: Activity, path: '/parent/activity', id: 'activity' },
-  { name: 'Alerts', icon: BellRing, path: '/parent/alerts', id: 'alerts' },
+  { name: 'Bảng điều khiển', icon: LayoutDashboard, path: '/parent/dashboard', id: 'dashboard' },
+  { name: 'Tiến độ học tập của con', icon: LineChart, path: '/parent/dashboard', id: 'progress' },
+  { name: 'Nhật ký hoạt động', icon: Activity, path: '/parent/activity', id: 'activity' },
+  { name: 'Cảnh báo', icon: BellRing, path: '/parent/alerts', id: 'alerts' },
 ];
 
 const Sidebar = ({ className = '', activeTab, setActiveTab }) => {

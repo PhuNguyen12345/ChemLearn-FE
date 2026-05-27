@@ -149,7 +149,7 @@ export default function ClassesLanding() {
         <div className="relative z-10">
           <h1 className="text-3xl md:text-4xl font-black tracking-tight drop-shadow-sm mb-2">My Classes 📚</h1>
           <p className="text-purple-100 text-base md:text-lg font-semibold opacity-90 max-w-xl">
-            Manage your enrolled classes and jump back into your learning journey!
+            Quản lý các lớp học của bạn và quay lại hành trình học tập của bạn!
           </p>
         </div>
       </div>
@@ -159,9 +159,9 @@ export default function ClassesLanding() {
         <div className="p-6 bg-white rounded-[1.5rem] border-2 border-sky-200 border-b-[6px] border-b-sky-400 shadow-sm hover:-translate-y-1 transition-transform duration-300">
           <div className="flex items-center gap-2 mb-2">
             <Lock className="w-6 h-6 text-sky-500 fill-sky-100" />
-            <h2 className="text-xl font-black text-slate-800">Join a New Class</h2>
+            <h2 className="text-xl font-black text-slate-800">Tham gia lớp mới</h2>
           </div>
-          <p className="text-sm font-semibold text-slate-500 mb-5">Enter the class code provided by your instructor to join</p>
+          <p className="text-sm font-semibold text-slate-500 mb-5">Nhập mã lớp học được cung cấp bởi giảng viên để tham gia</p>
           <form onSubmit={handleJoinClass} className="flex gap-3">
             <input
               type="text"
@@ -179,10 +179,10 @@ export default function ClassesLanding() {
               {joiningClass ? (
                 <>
                   <Loader className="w-5 h-5 animate-spin" />
-                  JOINING...
+                  Đang tham gia...
                 </>
               ) : (
-                'JOIN CLASS'
+                'Tham gia lớp học'
               )}
             </button>
           </form>
@@ -202,8 +202,8 @@ export default function ClassesLanding() {
              <div className="w-20 h-20 mx-auto bg-slate-100 rounded-[1.5rem] flex items-center justify-center mb-4">
                 <Users className="w-10 h-10 text-slate-300" />
              </div>
-             <h3 className="text-xl font-black text-slate-700 mb-2">No Classes Yet</h3>
-             <p className="text-slate-500 font-semibold max-w-sm mx-auto">Join a class using the code above to start your adventure!</p>
+             <h3 className="text-xl font-black text-slate-700 mb-2">Chưa có lớp học</h3>
+             <p className="text-slate-500 font-semibold max-w-sm mx-auto">Tham gia lớp học bằng mã lớp ở trên để bắt đầu hành trình của bạn!</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -241,7 +241,7 @@ export default function ClassesLanding() {
                     <div className="flex items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
                       <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
                         <Users className="w-4 h-4 text-slate-400" />
-                        {cls.enrollmentCount || 0} members
+                        {cls.enrollmentCount || 0} thành viên
                       </div>
                       {cls.enrollmentDate && (
                         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
@@ -278,8 +278,8 @@ export default function ClassesLanding() {
              <div className="w-14 h-14 bg-red-100 rounded-[1.25rem] flex items-center justify-center mb-4">
                 <AlertCircle className="w-7 h-7 text-red-500" />
              </div>
-             <h2 className="text-2xl font-black text-slate-800 mb-2">Leave Class?</h2>
-             <p className="text-sm font-semibold text-slate-500 mb-6">You will be removed from this class and will need the code to rejoin.</p>
+             <h2 className="text-2xl font-black text-slate-800 mb-2">Rời khỏi lớp học?</h2>
+             <p className="text-sm font-semibold text-slate-500 mb-6">Bạn sẽ bị xóa khỏi lớp học này và sẽ cần mã để tham gia lại.</p>
              
              <label className="flex items-center gap-3 p-4 bg-slate-50 border-2 border-slate-200 rounded-[1rem] cursor-pointer mb-6 hover:bg-slate-100 transition-colors">
                <input
@@ -288,7 +288,7 @@ export default function ClassesLanding() {
                  onChange={(e) => setLeaveAcknowledged(e.target.checked)}
                  className="w-5 h-5 rounded-[0.4rem] border-2 border-slate-300 text-red-500 focus:ring-red-500/20 focus:ring-offset-0"
                />
-               <span className="text-sm font-bold text-slate-700">I understand the consequences</span>
+               <span className="text-sm font-bold text-slate-700">Em hiểu những hậu quả</span>
              </label>
 
              <div className="flex gap-3">
@@ -298,7 +298,7 @@ export default function ClassesLanding() {
                  disabled={leavingClassId === leaveConfirmClass}
                  className="flex-1 py-3 px-4 rounded-xl font-black text-slate-600 bg-white border-2 border-slate-200 hover:bg-slate-50 transition-colors"
                >
-                 CANCEL
+                 Hủy
                </button>
                <button
                  type="button"
@@ -306,7 +306,7 @@ export default function ClassesLanding() {
                  disabled={!leaveAcknowledged || leavingClassId === leaveConfirmClass}
                  className="flex-1 py-3 px-4 rounded-xl font-black text-white bg-red-500 border-b-[4px] border-red-700 hover:bg-red-600 active:border-b-0 active:translate-y-1 transition-all disabled:opacity-50 disabled:pointer-events-none disabled:translate-y-0 disabled:border-b-[4px]"
                >
-                 LEAVE
+                 Rời khỏi
                </button>
              </div>
            </div>

@@ -60,7 +60,7 @@ const AdminUserManagement = () => {
       const data = await getUsers();
       setUsers(data || []);
     } catch (err) {
-      setError(err?.response?.data?.message || 'Failed to load users.');
+      setError(err?.response?.data?.message || 'Lỗi khi tải danh sách người dùng.');
     } finally {
       setLoading(false);
     }
@@ -136,13 +136,13 @@ const AdminUserManagement = () => {
 
       if (editingUserId) {
         await updateUser(editingUserId, payload);
-        setSuccess('User account updated.');
+        setSuccess('Cập nhật tài khoản người dùng thành công.');
       } else {
         if (!payload.password) {
-          throw new Error('Password is required when creating a new account.');
+          throw new Error('Mật khẩu là bắt buộc khi tạo tài khoản mới.');
         }
         await createUser(payload);
-        setSuccess('User account created.');
+        setSuccess('Tạo tài khoản người dùng thành công.');
       }
 
       await loadUsers();
@@ -150,7 +150,7 @@ const AdminUserManagement = () => {
       setEditingUserId(null);
       setCreateOpen(false);
     } catch (err) {
-      setError(err?.response?.data?.message || err.message || 'Failed to save user.');
+      setError(err?.response?.data?.message || err.message || 'Lỗi khi lưu thông tin người dùng.');
     } finally {
       setSaving(false);
     }
@@ -163,10 +163,10 @@ const AdminUserManagement = () => {
       setError('');
       setSuccess('');
       await deactivateUser(user.id);
-      setSuccess(`${user.username} has been deactivated.`);
+      setSuccess(`${user.username} đã bị vô hiệu hóa.`);
       await loadUsers();
     } catch (err) {
-      setError(err?.response?.data?.message || 'Failed to deactivate user.');
+      setError(err?.response?.data?.message || 'Lỗi khi vô hiệu hóa người dùng.');
     } finally {
       setSaving(false);
     }
@@ -178,29 +178,29 @@ const AdminUserManagement = () => {
       setError('');
       setSuccess('');
       await updateUser(user.id, { enabled: true });
-      setSuccess(`${user.username} has been reactivated.`);
+      setSuccess(`${user.username} đã được kích hoạt lại.`);
       await loadUsers();
     } catch (err) {
-      setError(err?.response?.data?.message || 'Failed to reactivate user.');
+      setError(err?.response?.data?.message || 'Lỗi khi kích hoạt lại người dùng.');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (user) => {
-    if (!window.confirm(`Permanently delete ${user.username}?`)) return;
+    if (!window.confirm(`Xóa vĩnh viễn ${user.username}?`)) return;
     try {
       setSaving(true);
       setError('');
       setSuccess('');
       await deleteUser(user.id);
-      setSuccess(`${user.username} was deleted.`);
+      setSuccess(`${user.username} đã bị xóa.`);
       await loadUsers();
       if (editingUserId === user.id) {
         resetForm();
       }
     } catch (err) {
-      setError(err?.response?.data?.message || 'Failed to delete user.');
+      setError(err?.response?.data?.message || 'Lỗi khi xóa người dùng.');
     } finally {
       setSaving(false);
     }
@@ -212,13 +212,13 @@ const AdminUserManagement = () => {
         <div className="flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur">
           <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
-              <h1 className="text-3xl font-black tracking-tight text-slate-900">User Management</h1>
-              <p className="mt-1 text-sm text-slate-500">Create, update, view, and deactivate account access from one place.</p>
+              <h1 className="text-3xl font-black tracking-tight text-slate-900">Quản lý người dùng</h1>
+              <p className="mt-1 text-sm text-slate-500">Tạo, cập nhật, xem và vô hiệu hóa quyền truy cập tài khoản từ một nơi.</p>
             </div>
 
             <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-              <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">{activeCount} active</span>
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-700">{inactiveCount} inactive</span>
+              <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">{activeCount} Hoạt động</span>
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-700">{inactiveCount} Ngưng hoạt động</span>
             </div>
           </div>
 
@@ -236,8 +236,8 @@ const AdminUserManagement = () => {
                 <form onSubmit={handleSubmit} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-xl shadow-slate-200/50">
                   <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
                     <div>
-                      <h2 className="text-base font-bold text-slate-900">{editingUserId ? 'Edit user' : 'New user'}</h2>
-                      <p className="text-xs text-slate-500">Quick create panel for admin account control.</p>
+                      <h2 className="text-base font-bold text-slate-900">{editingUserId ? 'Chỉnh sửa thông tin người dùng' : 'Tạo tài khoản mới'}</h2>
+                      <p className="text-xs text-slate-500">Khung tạo nhanh để quản lý tài khoản quản trị.</p>
                     </div>
                     {editingUserId && (
                       <button
@@ -245,7 +245,7 @@ const AdminUserManagement = () => {
                         onClick={resetForm}
                         className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600"
                       >
-                        Cancel edit
+                        Hủy chỉnh sửa
                       </button>
                     )}
                   </div>
@@ -305,7 +305,7 @@ const AdminUserManagement = () => {
                         checked={form.enabled}
                         onChange={(e) => setForm((prev) => ({ ...prev, enabled: e.target.checked }))}
                       />
-                      Account active
+                      Tài khoản hoạt động
                     </label>
 
                     <button
@@ -322,7 +322,7 @@ const AdminUserManagement = () => {
                         onClick={resetForm}
                         className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600"
                       >
-                        Close
+                        Hủy
                       </button>
                     )}
                   </div>
@@ -348,11 +348,11 @@ const AdminUserManagement = () => {
 
             <div className="rounded-3xl border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-100 px-5 py-4 bg-secondary">
-                <h2 className="text-lg font-bold text-slate-900">Users</h2>
+                <h2 className="text-lg font-bold text-slate-900">Danh sách người dùng</h2>
               </div>
 
               {loading ? (
-                <div className="p-6 text-sm font-semibold text-slate-500">Loading users...</div>
+                <div className="p-6 text-sm font-semibold text-slate-500">Đang tải danh sách người dùng...</div>
               ) : (
                 <div className="divide-y divide-slate-100">
                   {filteredUsers.map((user) => (
@@ -371,7 +371,7 @@ const AdminUserManagement = () => {
 
                           <p className="mt-1 text-sm text-slate-500">@{user.username} · {user.email}</p>
                           <p className="mt-1 text-xs text-slate-400">
-                            Created: {user.created ? new Date(user.created).toLocaleString() : 'Unknown'}
+                            Tạo lúc: {user.created ? new Date(user.created).toLocaleString() : 'Không rõ'}
                           </p>
                         </div>
 
@@ -381,7 +381,7 @@ const AdminUserManagement = () => {
                             onClick={() => openEdit(user)}
                             className="rounded-full border border-slate-300 px-3.5 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-100"
                           >
-                            Edit
+                            Chỉnh sửa
                           </button>
                           {user.isActive ? (
                             <button
@@ -389,7 +389,7 @@ const AdminUserManagement = () => {
                               onClick={() => handleDeactivate(user)}
                               className="rounded-full border border-amber-300 px-3.5 py-2 text-sm font-semibold text-amber-700 transition hover:bg-amber-50"
                             >
-                              Deactivate
+                              Ngưng hoạt động
                             </button>
                           ) : (
                             <button
@@ -397,7 +397,7 @@ const AdminUserManagement = () => {
                               onClick={() => handleReactivate(user)}
                               className="rounded-full border border-emerald-300 px-3.5 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50"
                             >
-                              Reactivate
+                              Hoạt động
                             </button>
                           )}
                           
@@ -407,7 +407,7 @@ const AdminUserManagement = () => {
                   ))}
 
                   {!filteredUsers.length && (
-                    <div className="p-6 text-sm font-semibold text-slate-500">No matching users found.</div>
+                    <div className="p-6 text-sm font-semibold text-slate-500">Không tìm thấy tài khoản hợp lệ.</div>
                   )}
                 </div>
               )}
@@ -416,12 +416,12 @@ const AdminUserManagement = () => {
 
           <aside className="lg:sticky lg:top-6 space-y-4 self-start">
             <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-              <p className="text-xs font-bold uppercase tracking-[0.25em] text-slate-400">Search & Filter</p>
+              <p className="text-xs font-bold uppercase tracking-[0.25em] text-slate-400">Tìm kiếm & Lọc</p>
               <div className="mt-3 space-y-3">
                 <input
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search users..."
+                  placeholder="Tìm kiếm tài khoản..."
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-400 focus:bg-white"
                 />
                 <select
@@ -429,7 +429,7 @@ const AdminUserManagement = () => {
                   onChange={(e) => setRoleFilter(e.target.value)}
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-400 focus:bg-white"
                 >
-                  <option value="ALL">All roles</option>
+                  <option value="ALL">Tất cả các vai trò</option>
                   {roleOptions.map((role) => (
                     <option key={role} value={role}>{roleLabels[role]}</option>
                   ))}
@@ -443,7 +443,7 @@ const AdminUserManagement = () => {
                   }}
                   className="w-full rounded-2xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
                 >
-                  Clear filters
+                  Xoá bộ lọc
                 </button>
               </div>
             </div>

@@ -82,15 +82,15 @@ const MiniQuizSection = ({ lessonId, questions = [] }) => {
             <HelpCircle className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-base font-black text-slate-900">Knowledge Check</h3>
+            <h3 className="text-base font-black text-slate-900">Kiểm tra kiến thức</h3>
             <p className="mt-0.5 text-xs font-semibold text-slate-500">
-              {questions.length} question{questions.length === 1 ? '' : 's'} • single and multiple choice
+              {questions.length} câu • chọn 1 hoặc nhiều đáp án
             </p>
           </div>
         </div>
 
         <div className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-600">
-          {answeredCount}/{questions.length} answered
+          Đã trả lời {answeredCount}/{questions.length}
         </div>
       </div>
 
@@ -104,12 +104,12 @@ const MiniQuizSection = ({ lessonId, questions = [] }) => {
               <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div className="text-xs font-black uppercase tracking-wide text-indigo-600">
-                    Question {index + 1}
+                    Câu hỏi {index + 1}
                   </div>
                   <p className="mt-1 text-sm font-bold leading-6 text-slate-800">{question.prompt}</p>
                 </div>
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black uppercase text-slate-500">
-                  {type === 'MULTIPLE_CHOICE' ? 'Choose all' : 'Choose one'}
+                  {type === 'MULTIPLE_CHOICE' ? 'Chọn tất cả' : 'Chọn một'}
                 </span>
               </div>
 
@@ -158,7 +158,7 @@ const MiniQuizSection = ({ lessonId, questions = [] }) => {
           }`}>
             <div className="flex items-center gap-2 text-sm font-black">
               <CheckCircle2 className="h-4 w-4" />
-              Score: {result.score}% ({result.correctAnswers}/{result.totalQuestions})
+              Điểm số: {result.score}% ({result.correctAnswers}/{result.totalQuestions})
             </div>
             <p className="mt-1 text-xs font-semibold opacity-80">
               {result.passed ? 'Passed. Nice work.' : 'Not passed yet. Review the lesson and try again.'}
@@ -174,7 +174,7 @@ const MiniQuizSection = ({ lessonId, questions = [] }) => {
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-black text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300"
           >
             {submitting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            Submit answers
+            Nộp câu trả lời
           </button>
           <button
             type="button"
@@ -182,7 +182,7 @@ const MiniQuizSection = ({ lessonId, questions = [] }) => {
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-black text-slate-700 transition hover:bg-slate-50"
           >
             <RefreshCcw className="h-4 w-4" />
-            Try again
+            Thử lại
           </button>
         </div>
       </div>

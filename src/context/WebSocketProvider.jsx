@@ -28,7 +28,13 @@ export const WebSocketProvider = ({ children }) => {
     const token = localStorage.getItem('auth_token');
 
     const client = new Client({
-      webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+      webSocketFactory: () => {
+        let baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+        if (baseUrl.endsWith('/')) {
+          baseUrl = baseUrl.slice(0, -1);
+        }
+        return new SockJS(`${baseUrl}/ws`);
+      },
       connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
       reconnectDelay: 5000,
 

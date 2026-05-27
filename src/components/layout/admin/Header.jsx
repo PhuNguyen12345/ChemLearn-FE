@@ -12,15 +12,10 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import Sidebar from './Sidebar';
-import LanguageSwitcher from '../shared/LanguageSwitcher';
-import useLanguageStore from '@/stores/useLanguageStore';
 import { useLogout } from '@/stores/useLogout';
-import { translations } from '@/lib/translations';
 
 const Header = () => {
   const [open, setOpen] = useState(false);
-  const { language } = useLanguageStore();
-  const t = translations[language] || translations['vi'];
   const logout = useLogout();
 
   return (
@@ -49,7 +44,7 @@ const Header = () => {
         {/* Right side controls */}
         <div className="ml-auto flex items-center gap-2 sm:gap-4">
           
-          <LanguageSwitcher />
+
 
           {/* Admin System Alerts */}
           <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive/80 relative">
@@ -77,16 +72,16 @@ const Header = () => {
               <DropdownMenuSeparator />
               <DropdownMenuItem className="cursor-pointer">
                 <User className="mr-2 h-4 w-4" />
-                <span>{t.profile || 'My Profile'}</span>
+                <span>Hồ sơ</span>
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer">
                 <Settings className="mr-2 h-4 w-4" />
-                <span>{t.settings || 'System Settings'}</span>
+                <span>Cài đặt hệ thống</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={logout} className="cursor-pointer text-destructive focus:text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>{t.logout || 'Log out'}</span>
+                <span>Đăng xuất</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

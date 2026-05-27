@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useStudentStore } from '../../stores/useStudentStore';
 import { Coins, ArrowLeft, Heart, Zap } from 'lucide-react';
 import { getMyPets, getMyCoins, getShopItems, buyItem, openEgg, feedPet, starUpPet, getMyInventory } from '../../api/studentApi';
+import { toast } from 'sonner';
 import islandBg from '../../assets/islandBg.png';
 import detailBg from '../../assets/detailBg.png';
 
@@ -11,15 +12,25 @@ import pet2 from '../../assets/DogeWizard.png';
 import pet3 from '../../assets/SkibidiToilem.png';
 import pet4 from '../../assets/TungSahurWarrior.png';
 import egg1 from '../../assets/egg.png';
+import bottle1 from '../../assets/bottle1.png';
 
-const FALLBACK_IMAGES = [pet1, pet2, pet3, pet4, egg1];
-const getPetImage = (url, index) => url || FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
+const getPetImage = (url, name) => {
+  if (url) return url;
+  if (!name) return pet1;
+  const n = String(name).toLowerCase();
+  if (n.includes('capybara')) return pet1;
+  if (n.includes('doge')) return pet2;
+  if (n.includes('skibidi') || n.includes('tolem')) return pet3;
+  if (n.includes('tung') || n.includes('sahur') || n.includes('warrior')) return pet4;
+  if (n.includes('trứng') || n.includes('egg')) return egg1;
+  return pet1;
+};
 
 const StudentIsland = ({ onBack }) => {
   const { coins, setCoins, spendCoins } = useStudentStore();
 
   const [ownedPets, setOwnedPets] = useState([]);
-  const [shopEggs, setShopEggs] = useState([]);
+  const [shopItems, setShopItems] = useState([]);
   const [foodItems, setFoodItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -38,7 +49,7 @@ const StudentIsland = ({ onBack }) => {
         getMyCoins()
       ]);
       setOwnedPets(petsRes);
-      setShopEggs(shopRes.filter(item => item.itemType === 'EGG'));
+      setShopItems(shopRes);
       setFoodItems(invRes.filter(item => item.itemType === 'FOOD'));
       setCoins(coinsRes);
     } catch (error) {
@@ -110,7 +121,20 @@ const StudentIsland = ({ onBack }) => {
         // 3. Reload pets
         await loadData();
       } catch (error) {
-        alert("Có lỗi xảy ra: " + (error.response?.data?.message || error.message));
+        toast.error("Có lỗi xảy ra: " + (error.response?.data?.message || error.message));
+      }
+    }
+  };
+
+  const handleBuyFood = async (item) => {
+    if (coins >= item.quantity) {
+      try {
+        await buyItem(item.itemId, 1);
+        spendCoins(item.quantity);
+        toast.success(`Mua thành công 1 ${item.name}!`);
+        await loadData();
+      } catch (error) {
+        toast.error("Mua thất bại: " + (error.response?.data?.message || error.message));
       }
     }
   };
@@ -126,10 +150,10 @@ const StudentIsland = ({ onBack }) => {
         const updatedPets = await getMyPets();
         setSelectedPet(updatedPets.find(p => p.id === selectedPet.id));
       } catch (error) {
-        alert("Lỗi cho ăn: " + (error.response?.data?.message || error.message));
+        toast.error("Lỗi cho ăn: " + (error.response?.data?.message || error.message));
       }
     } else {
-      alert("Bạn không có thức ăn! Hãy mua trong Cửa hàng.");
+      toast.warning("Bạn không có thức ăn! Hãy mua trong Cửa hàng.");
     }
   };
 
@@ -140,9 +164,9 @@ const StudentIsland = ({ onBack }) => {
 
       const updatedPets = await getMyPets();
       setSelectedPet(updatedPets.find(p => p.id === selectedPet.id));
-      alert("Nâng sao thành công! Chỉ số đã tăng vọt.");
+      toast.success("Nâng sao thành công! Chỉ số đã tăng vọt.");
     } catch (error) {
-      alert("Lỗi nâng sao: " + (error.response?.data?.message || error.message));
+      toast.error("Lỗi nâng sao: " + (error.response?.data?.message || error.message));
     }
   };
 
@@ -152,6 +176,10 @@ const StudentIsland = ({ onBack }) => {
 
   if (selectedPet) {
     const expPercentage = Math.min(100, (selectedPet.experience / selectedPet.nextLevelExp) * 100);
+    const totalFood = foodItems.reduce((acc, curr) => acc + curr.quantity, 0);
+    const canFeed = totalFood > 0;
+    const fragmentsNeeded = selectedPet.starLevel * 20;
+    const canStarUp = selectedPet.starLevel < 5 && (selectedPet.fragments || 0) >= fragmentsNeeded;
 
     return (
       <div className="flex w-full h-full items-center justify-center relative overflow-hidden bg-black animate-in fade-in duration-300">
@@ -159,52 +187,88 @@ const StudentIsland = ({ onBack }) => {
         <button onClick={() => setSelectedPet(null)} className="absolute top-6 left-6 z-10 p-3 bg-black/50 hover:bg-black/80 text-white rounded-full backdrop-blur-sm transition-all shadow-lg border border-white/10">
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <div className="z-10 flex flex-col items-center gap-6 p-8 bg-black/50 backdrop-blur-md rounded-3xl border border-white/20 text-white shadow-2xl max-w-lg w-full mx-4">
-          <div className="flex items-center gap-2">
-            <h2 className="text-4xl font-black text-amber-400 drop-shadow-lg">{selectedPet.species?.name}</h2>
-            <div className="flex text-yellow-400">
+        <div className="z-10 flex flex-col items-center gap-3 sm:gap-4 p-4 sm:p-5 bg-black/60 backdrop-blur-md rounded-3xl border border-white/20 text-white shadow-2xl max-w-sm sm:max-w-md w-full mx-4 overflow-y-auto max-h-[92vh]">
+          {/* Title & Stars */}
+          <div className="flex flex-col items-center gap-1">
+            <h2 className="text-2xl sm:text-3xl font-black text-amber-400 drop-shadow-lg text-center">{selectedPet.species?.name}</h2>
+            <div className="flex text-yellow-400 text-sm sm:text-base">
               {Array.from({ length: selectedPet.starLevel }).map((_, i) => <span key={i}>⭐</span>)}
+              {Array.from({ length: 5 - selectedPet.starLevel }).map((_, i) => <span key={i} className="opacity-30" style={{ filter: 'grayscale(100%) brightness(50%)' }}>⭐</span>)}
             </div>
           </div>
 
-          <div className="relative w-64 h-64 flex items-center justify-center animate-bounce" style={{ animationDuration: '3s' }}>
-            <div className="absolute bottom-0 w-48 h-12 bg-black/40 rounded-[100%] blur-md"></div>
-            <img src={getPetImage(selectedPet.species?.imageUrl, selectedPet.species?.id)} alt={selectedPet.species?.name} className="relative z-10 max-w-full max-h-full object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]" draggable="false" />
+          {/* Pet Image */}
+          <div className="relative w-40 h-40 sm:w-48 sm:h-48 flex items-center justify-center animate-bounce mt-1" style={{ animationDuration: '3s' }}>
+            <div className="absolute bottom-0 w-32 h-8 bg-black/40 rounded-[100%] blur-md"></div>
+            <img src={getPetImage(selectedPet.species?.imageUrl, selectedPet.species?.name)} alt={selectedPet.species?.name} className="relative z-10 max-w-full max-h-full object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]" draggable="false" />
           </div>
 
-          <div className="flex gap-4 w-full">
-            <div className="flex-1 bg-white/10 p-4 rounded-xl border border-white/20 text-center shadow-inner">
-              <p className="text-sm text-slate-300 font-semibold mb-1">Level</p>
-              <div className="flex justify-center items-end gap-1"><span className="text-3xl font-black text-blue-400">{selectedPet.level}</span></div>
+          {/* Level & EXP Section */}
+          <div className="flex gap-3 w-full mt-1">
+            <div className="flex-1 bg-white/10 p-2.5 rounded-xl border border-white/25 text-center shadow-inner flex flex-col justify-center">
+              <p className="text-xs text-slate-300 font-semibold mb-0.5">Cấp độ</p>
+              <div className="flex justify-center items-end gap-0.5">
+                <span className="text-2xl font-black text-blue-400">{selectedPet.level}</span>
+              </div>
             </div>
-            <div className="flex-1 bg-white/10 p-4 rounded-xl border border-white/20 text-center shadow-inner">
-              <p className="text-sm text-slate-300 font-semibold mb-1">EXP</p>
-              <div className="w-full bg-black/50 rounded-full h-3 mt-2 overflow-hidden border border-white/10">
+            <div className="flex-[2] bg-white/10 p-2.5 rounded-xl border border-white/25 text-center shadow-inner">
+              <p className="text-xs text-slate-300 font-semibold mb-0.5">Kinh Nghiệm (EXP)</p>
+              <div className="w-full bg-black/50 rounded-full h-2.5 mt-1.5 overflow-hidden border border-white/10">
                 <div className="bg-gradient-to-r from-blue-400 to-blue-600 h-full rounded-full transition-all duration-300" style={{ width: `${expPercentage}%` }}></div>
               </div>
-              <p className="text-xs font-bold text-blue-300 mt-1">{selectedPet.experience}/{selectedPet.nextLevelExp}</p>
+              <p className="text-[10px] font-bold text-blue-300 mt-1">{selectedPet.experience}/{selectedPet.nextLevelExp}</p>
             </div>
           </div>
 
-          <div className="flex gap-4 w-full">
-            <div className="flex-1 bg-red-500/20 p-2 rounded border border-red-500/30 text-center">
-              <p className="text-xs text-red-300">HP: {selectedPet.maxHp}</p>
+          {/* HP & Sát Thương Info */}
+          <div className="flex gap-3 w-full">
+            <div className="flex-1 bg-red-500/20 py-2 px-3 rounded border border-red-500/30 text-center flex items-center justify-center gap-1.5">
+              <Heart className="w-3.5 h-3.5 text-red-400 fill-red-400" />
+              <span className="text-xs text-red-200 font-bold">HP: {selectedPet.maxHp}</span>
             </div>
-            <div className="flex-1 bg-orange-500/20 p-2 rounded border border-orange-500/30 text-center">
-              <p className="text-xs text-orange-300">Sát Thương: {selectedPet.damage}</p>
+            <div className="flex-1 bg-orange-500/20 py-2 px-3 rounded border border-orange-500/30 text-center flex items-center justify-center gap-1.5">
+              <Zap className="w-3.5 h-3.5 text-orange-400 fill-orange-400" />
+              <span className="text-xs text-orange-200 font-bold">Sát Thương: {selectedPet.damage}</span>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 mt-4 w-full">
+          {/* Fragments Progression */}
+          <div className="w-full bg-indigo-950/40 border border-indigo-500/20 rounded-xl p-2 text-center">
+            {selectedPet.starLevel < 5 ? (
+              <p className="text-xs text-indigo-200 font-medium">
+                Mảnh Linh Hồn: <span className="text-amber-400 font-black text-sm">{selectedPet.fragments || 0}</span> / {fragmentsNeeded}
+              </p>
+            ) : (
+              <p className="text-xs text-green-400 font-black">
+                ✨ Linh thú đã đạt cấp sao tối đa! ✨
+              </p>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 w-full mt-1.5">
             <button
               onClick={handleFeedPet}
-              className={`flex-1 flex items-center justify-center gap-2 font-bold py-3 px-4 rounded-xl transition-all shadow-lg bg-green-500 hover:bg-green-600 hover:-translate-y-1 text-white border-b-4 border-green-700 active:border-b-0 active:translate-y-0`}>
-              <Heart className="w-5 h-5" /> Cho Ăn
+              disabled={!canFeed}
+              className={`flex-1 flex items-center justify-center gap-2 font-bold py-2.5 px-3 rounded-xl transition-all shadow-lg text-white ${
+                canFeed 
+                  ? 'bg-green-500 hover:bg-green-600 hover:-translate-y-0.5 border-b-4 border-green-700 active:border-b-0 active:translate-y-0 active:scale-95' 
+                  : 'bg-slate-700/60 text-slate-400 border-b-4 border-slate-800 cursor-not-allowed opacity-50'
+              }`}
+            >
+              <Heart className="w-4 h-4 fill-white/10" /> Cho Ăn ({totalFood})
             </button>
+            
             <button
               onClick={handleStarUp}
-              className={`flex-1 flex items-center justify-center gap-2 font-bold py-3 px-4 rounded-xl transition-all shadow-lg bg-yellow-500 hover:bg-yellow-600 hover:-translate-y-1 text-white border-b-4 border-yellow-700 active:border-b-0 active:translate-y-0`}>
-              <Zap className="w-5 h-5" /> Tăng Sao
+              disabled={!canStarUp}
+              className={`flex-1 flex items-center justify-center gap-2 font-bold py-2.5 px-3 rounded-xl transition-all shadow-lg text-white ${
+                canStarUp 
+                  ? 'bg-yellow-500 hover:bg-yellow-600 hover:-translate-y-0.5 border-b-4 border-yellow-700 active:border-b-0 active:translate-y-0 active:scale-95 text-amber-950' 
+                  : 'bg-slate-700/60 text-slate-400 border-b-4 border-slate-800 cursor-not-allowed opacity-50'
+              }`}
+            >
+              <Zap className="w-4 h-4 fill-white/10" /> Tăng Sao
             </button>
           </div>
         </div>
@@ -249,7 +313,7 @@ const StudentIsland = ({ onBack }) => {
               >
                 <div className={`w-full h-full transition-transform duration-200 ${petPositions[pet.id]?.flip ? 'scale-x-[-1]' : ''}`}>
                   <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-24 h-5 bg-black/30 rounded-[100%] blur-sm"></div>
-                  <img src={getPetImage(pet.species?.imageUrl, idx)} alt={pet.species?.name} className="relative z-10 w-full h-full object-contain drop-shadow-2xl" draggable="false" />
+                  <img src={getPetImage(pet.species?.imageUrl, pet.species?.name)} alt={pet.species?.name} className="relative z-10 w-full h-full object-contain drop-shadow-2xl" draggable="false" />
                 </div>
               </div>
             </div>
@@ -275,7 +339,7 @@ const StudentIsland = ({ onBack }) => {
             </h2>
 
             <div className="w-48 h-48 bg-white/10 rounded-full p-4 mb-6 shadow-inner">
-              <img src={getPetImage(gachaResult.species?.imageUrl, gachaResult.species?.id)} alt={gachaResult.species?.name} className="w-full h-full object-contain drop-shadow-2xl animate-pulse" />
+              <img src={getPetImage(gachaResult.species?.imageUrl, gachaResult.species?.name)} alt={gachaResult.species?.name} className="w-full h-full object-contain drop-shadow-2xl animate-pulse" />
             </div>
 
             <h3 className="text-2xl font-bold text-white mb-2">{gachaResult.species?.name}</h3>
@@ -287,6 +351,11 @@ const StudentIsland = ({ onBack }) => {
               <div className="bg-orange-500/20 border border-orange-500 p-3 rounded-xl mb-6">
                 <p className="text-orange-300 font-semibold">Bạn đã có Pet này!</p>
                 <p className="text-white font-black">Nhận được {gachaResult.fragmentsReceived} mảnh linh hồn</p>
+                {gachaResult.coinsConverted > 0 && (
+                  <p className="text-yellow-400 font-bold mt-1 text-sm">
+                    Đạt giới hạn nâng sao! Đã quy đổi thành {gachaResult.coinsConverted} Vàng 🪙
+                  </p>
+                )}
               </div>
             ) : (
               <p className="text-green-400 font-bold mb-6">Pet đã được thêm vào đảo!</p>
@@ -307,7 +376,7 @@ const StudentIsland = ({ onBack }) => {
           <div className="bg-[#1a1c29] w-full max-w-4xl rounded-[2rem] border-4 border-amber-500/50 shadow-[0_0_50px_rgba(245,158,11,0.3)] overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-6 bg-gradient-to-r from-amber-600/30 to-orange-600/30 flex justify-between items-center border-b border-amber-500/30 relative">
               <h2 className="text-3xl font-black text-amber-400 drop-shadow-lg flex items-center gap-3">
-                <span className="text-4xl">🥚</span>Ấp Trứng Linh Thú
+                <span className="text-4xl">🛒</span>Cửa Hàng Linh Thú
               </h2>
               <button onClick={() => setShowShop(false)} className="w-12 h-12 bg-white/10 hover:bg-white/20 hover:rotate-90 rounded-full flex items-center justify-center text-white transition-all">
                 ✕
@@ -315,30 +384,31 @@ const StudentIsland = ({ onBack }) => {
             </div>
 
             <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-4 overflow-y-auto bg-slate-900/50">
-              {shopEggs.length === 0 ? (
+              {shopItems.length === 0 ? (
                 <div className="col-span-full text-center py-10 text-slate-400 italic">
-                  Chưa có trứng nào được bán hôm nay. Vui lòng quay lại sau!
+                  Chưa có vật phẩm nào được bán hôm nay. Vui lòng quay lại sau!
                 </div>
               ) : (
-                shopEggs.map((egg, idx) => {
+                shopItems.map((item, idx) => {
                   // Using quantity field to transport price from backend workaround
-                  const price = egg.quantity;
+                  const price = item.quantity;
                   const canAfford = coins >= price;
+                  const isEgg = item.itemType === 'EGG';
 
                   return (
-                    <div key={egg.id} className="bg-gradient-to-b from-indigo-900/40 to-black/60 rounded-2xl p-4 flex flex-col items-center border border-indigo-500/30 hover:border-amber-400/50 transition-all group shadow-lg hover:-translate-y-1">
+                    <div key={item.id} className="bg-gradient-to-b from-indigo-900/40 to-black/60 rounded-2xl p-4 flex flex-col items-center border border-indigo-500/30 hover:border-amber-400/50 transition-all group shadow-lg hover:-translate-y-1">
                       <div className="w-28 h-28 mb-4 bg-black/40 rounded-full p-3 flex items-center justify-center shadow-inner group-hover:bg-amber-500/10 transition-colors border border-white/5">
-                        <img src={egg.imageUrl || egg1} alt={egg.name} className="w-full h-full object-contain drop-shadow-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-300" />
+                        <img src={item.imageUrl || (isEgg ? egg1 : bottle1)} alt={item.name} className="w-full h-full object-contain drop-shadow-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-300" />
                       </div>
-                      <h3 className="text-sm font-black text-white text-center mb-1 leading-tight">{egg.name}</h3>
-                      <p className="text-xs text-indigo-300/80 font-medium mb-4 text-center line-clamp-2">{egg.description || "Mở để nhận pet ngẫu nhiên!"}</p>
+                      <h3 className="text-sm font-black text-white text-center mb-1 leading-tight">{item.name}</h3>
+                      <p className="text-xs text-indigo-300/80 font-medium mb-4 text-center line-clamp-2">{item.description || (isEgg ? "Mở để nhận pet ngẫu nhiên!" : "Thức ăn tăng EXP cho Pet")}</p>
 
                       <button
-                        onClick={() => handleBuyAndOpenEgg(egg)}
+                        onClick={() => isEgg ? handleBuyAndOpenEgg(item) : handleBuyFood(item)}
                         disabled={!canAfford}
                         className={`mt-auto px-4 py-3 rounded-xl font-black w-full flex items-center justify-center gap-2 transition-colors border shadow-lg ${canAfford ? 'bg-amber-500 hover:bg-amber-400 text-amber-950 border-amber-400' : 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed'}`}
                       >
-                        <Coins className="w-5 h-5" /> Ấp: {price}
+                        <Coins className="w-5 h-5" /> {isEgg ? 'Ấp' : 'Mua'}: {price}
                       </button>
                     </div>
                   )

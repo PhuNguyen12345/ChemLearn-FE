@@ -1,6 +1,7 @@
 import React from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import TeacherLayout from "../components/layout/teacher/TeacherLayout";
+import NotFoundPage from "../pages/shared/NotFoundPage";
 import TeacherDashboard from "../pages/teacher/TeacherDashboard";
 import TeacherClassManagement from "../pages/teacher/TeacherClassManagement";
 import TeacherQuestionBank from "../pages/teacher/TeacherQuestionBank";
@@ -29,6 +30,9 @@ export default function TeacherRoutes() {
         <Route path="quiz-creation" element={<TeacherQuizCreation />} />
         <Route path="questions" element={<TeacherQuestionBank />} />
         <Route path="students/:studentId" element={<TeacherStudentProfile />} />
+        
+        {/* Fallback 404 inside Teacher Layout */}
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
   );

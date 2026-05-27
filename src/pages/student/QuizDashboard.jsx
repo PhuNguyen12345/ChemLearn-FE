@@ -62,19 +62,19 @@ const QuizDashboard = () => {
             <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
               <Sparkles className="w-5 h-5 text-yellow-300" />
             </div>
-            <span className="text-white/80 text-xs font-black uppercase tracking-widest">Knowledge Arena</span>
+            <span className="text-white/80 text-xs font-black uppercase tracking-widest">Đấu trường tri thức</span>
           </div>
           <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight drop-shadow-md">
-            Available Quizzes
+            Các câu đố có sẵn
           </h1>
           <p className="text-cyan-100 mt-3 font-semibold text-base md:text-lg leading-relaxed">
-            All quiz cards now come from backend data. Start any one to create an attempt and submit results.
+            Bắt đầu bất kỳ thẻ nào để tạo một lần thử và gửi kết quả.
           </p>
 
           <div className="flex flex-wrap gap-4 mt-8">
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-5 py-2.5 flex items-center gap-2">
               <Target className="w-4 h-4 text-emerald-300" />
-              <span className="text-white font-bold text-sm">{quizzes.length} Topics Ready</span>
+              <span className="text-white font-bold text-sm">{quizzes.length} Chủ đề sẵn sàng</span>
             </div>
           </div>
         </div>
@@ -89,7 +89,7 @@ const QuizDashboard = () => {
       <div className="px-6 md:px-10">
         {loading ? (
           <div className="bg-white rounded-3xl p-8 border border-slate-200 text-slate-500 font-semibold flex items-center gap-2">
-            <LoaderCircle className="w-4 h-4 animate-spin" /> Loading quizzes...
+            <LoaderCircle className="w-4 h-4 animate-spin" /> Đang tải câu hỏi ...
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -129,11 +129,11 @@ const QuizDashboard = () => {
                   <div className="mt-auto flex items-center justify-between pt-5 border-t-2 border-slate-50 relative z-10">
                     <div className="flex items-center gap-2 text-slate-400 font-black text-xs uppercase tracking-tighter">
                       <Clock className="w-4 h-4 text-slate-300" />
-                      <span>{quiz.durationMinutes || '-'} min</span>
+                      <span>{quiz.durationMinutes || '-'} phút</span>
                     </div>
 
                     <button className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white px-5 py-2.5 rounded-2xl font-black text-sm border-b-4 border-cyan-800 active:border-b-0 active:translate-y-1 transition-all shadow-lg shadow-cyan-200 group-hover:scale-105">
-                      Start <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      Bắt đầu <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </button>
                   </div>
                 </div>

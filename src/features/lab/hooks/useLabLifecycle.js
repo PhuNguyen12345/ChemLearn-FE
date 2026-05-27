@@ -5,6 +5,8 @@ import confetti from 'canvas-confetti';
 import { useLabStore } from '../stores/useLabStore';
 import { LAB_TASKS_MOCK } from '../data/labTasksMock';
 import { saveVirtualLabProgress, enterVirtualLab, resetVirtualLab, renameVirtualLab } from '@/lib/api';
+import { getGamificationProfile } from '@/api/studentApi';
+import { useStudentStore } from '@/stores/useStudentStore';
 
 /**
  * useLabLifecycle
@@ -80,6 +82,17 @@ export function useLabLifecycle(labId) {
       setSaveState('saving');
       try {
         await saveVirtualLabProgress(labId, payload);
+        
+        // Nạp lại Gamification Profile nếu hoàn thành bài (để update UI XP/Vàng)
+        if (payload.status === 'COMPLETED') {
+          try {
+            const profile = await getGamificationProfile();
+            useStudentStore.getState().setGamificationProfile(profile);
+          } catch (syncError) {
+            console.error('Không thể đồng bộ XP/Vàng:', syncError);
+          }
+        }
+
         setSaveState('saved');
         setTimeout(() => setSaveState('idle'), 2000);
       } catch (error) {

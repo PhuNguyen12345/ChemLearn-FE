@@ -111,16 +111,16 @@ const AdminDashboard = () => {
       {/* 1. Page Header */}
       <div className="flex flex-col sm:flex-row items-center justify-between space-y-2 sm:space-y-0">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-slate-800">System Overview</h2>
-          <p className="text-muted-foreground">Monitor platform metrics, user growth, and revenue.</p>
+          <h2 className="text-3xl font-bold tracking-tight text-slate-800">Tổng quan hệ thống</h2>
+          <p className="text-muted-foreground">Theo dõi số liệu nền tảng, tăng trưởng người dùng và doanh thu.</p>
         </div>
         <div className="flex items-center space-x-2">
           <Button variant="outline" className="hidden sm:flex">
-            Select Date Range
+            Chọn khoảng thời gian
           </Button>
           <Button>
             <Download className="mr-2 h-4 w-4" />
-            Download Report
+            Tải báo cáo
           </Button>
         </div>
       </div>
@@ -130,52 +130,52 @@ const AdminDashboard = () => {
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng doanh thu</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$45,231.89</div>
+            <div className="text-2xl font-bold">45.231.890 VNĐ</div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-emerald-500 font-medium">+20.1%</span> from last month
+              <span className="text-emerald-500 font-medium">+20.1%</span> so với tháng trước
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng người dùng</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+2350</div>
+            <div className="text-2xl font-bold">2.350</div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-emerald-500 font-medium">+180.1%</span> from last month
+              <span className="text-emerald-500 font-medium">+180.1%</span> so với tháng trước
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Subscriptions</CardTitle>
+            <CardTitle className="text-sm font-medium">Gói hoạt động</CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+12,234</div>
+            <div className="text-2xl font-bold">12.234</div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-emerald-500 font-medium">+19%</span> from last month
+              <span className="text-emerald-500 font-medium">+19%</span> so với tháng trước
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">System Uptime</CardTitle>
+            <CardTitle className="text-sm font-medium">Thời gian hoạt động</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">99.9%</div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-emerald-500 font-medium">+0.001%</span> from last month
+              <span className="text-emerald-500 font-medium">+0.001%</span> so với tháng trước
             </p>
           </CardContent>
         </Card>
@@ -187,8 +187,8 @@ const AdminDashboard = () => {
         {/* User Growth Chart - Takes up more space */}
         <Card className="lg:col-span-4">
           <CardHeader>
-            <CardTitle>User Growth</CardTitle>
-            <CardDescription>New signups across the platform over the last 6 months.</CardDescription>
+            <CardTitle>Tăng trưởng người dùng</CardTitle>
+            <CardDescription>Số lượng người dùng mới đăng ký trong 6 tháng qua.</CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
             <ChartContainer config={userGrowthConfig} className="h-[300px] w-full">
@@ -212,8 +212,8 @@ const AdminDashboard = () => {
         {/* Revenue Chart */}
         <Card className="lg:col-span-3">
           <CardHeader>
-            <CardTitle>Revenue Trends</CardTitle>
-            <CardDescription>Monthly recurring revenue overview.</CardDescription>
+            <CardTitle>Xu hướng doanh thu</CardTitle>
+            <CardDescription>Tổng doanh thu theo tháng.</CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
              <ChartContainer config={revenueConfig} className="h-[300px] w-full">
@@ -233,20 +233,20 @@ const AdminDashboard = () => {
       {/* 4. Recent Signups Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Signups</CardTitle>
+          <CardTitle>Đăng ký gần đây</CardTitle>
           <CardDescription>
-            The latest users to join ChemLearn.
+            Danh sách người dùng mới đăng ký.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[250px]">User</TableHead>
+                <TableHead className="w-[250px]">Người dùng</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>Vai trò</TableHead>
+                <TableHead>Trạng thái</TableHead>
+                <TableHead className="text-right">Hành động</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -281,7 +281,7 @@ const AdminDashboard = () => {
                   <TableCell className="text-right">
                     <Button variant="ghost" size="icon">
                       <MoreHorizontal className="h-4 w-4" />
-                      <span className="sr-only">Open menu</span>
+                      <span className="sr-only">Mở menu</span>
                     </Button>
                   </TableCell>
                 </TableRow>

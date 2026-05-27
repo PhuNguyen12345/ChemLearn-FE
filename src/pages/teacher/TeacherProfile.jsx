@@ -56,10 +56,10 @@ const TeacherProfile = () => {
       avatarUrl: user?.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(fullName)}`,
       bio:
         user?.bio ||
-        'Chemistry teacher focused on practical learning, clear explanations, and guided experimentation.',
-      specialization: user?.specialization || 'Chemistry Education',
-      degree: user?.degree || 'M.Sc. Chemistry',
-      workplace: user?.workplace || 'ChemLearn Academy',
+        'Giáo viên hóa học tập trung vào học tập thực hành, giải thích rõ ràng và thực nghiệm có hướng dẫn.',
+      specialization: user?.specialization || 'Giáo dục Hóa học',
+      degree: user?.degree || 'Thạc sĩ Hóa học',
+      workplace: user?.workplace || 'Học viện ChemLearn',
       email: user?.email || '-',
       initials,
     };
@@ -84,17 +84,17 @@ const TeacherProfile = () => {
     setErrorMessage('');
 
     if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
-      setErrorMessage('Please fill in all password fields.');
+      setErrorMessage('Vui lòng điền đầy đủ mật khẩu.');
       return;
     }
 
     if (passwordForm.newPassword.length < 8) {
-      setErrorMessage('New password must be at least 8 characters long.');
+      setErrorMessage('Mật khẩu mới phải có ít nhất 8 ký tự.');
       return;
     }
 
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setErrorMessage('New password and confirmation do not match.');
+      setErrorMessage('Mật khẩu mới và mật khẩu xác nhận không khớp.');
       return;
     }
 
@@ -104,7 +104,7 @@ const TeacherProfile = () => {
       newPassword: '',
       confirmPassword: '',
     });
-    setStatusMessage('Password change form is ready for backend integration.');
+    setStatusMessage('Thay đổi mật khẩu thành công.');
   };
 
   const updatePasswordField = (field) => (event) => {
@@ -138,13 +138,13 @@ const TeacherProfile = () => {
     };
 
     if (!normalizedProfile.fullName || !normalizedProfile.username || !normalizedProfile.email) {
-      setErrorMessage('Fullname, account name, and email are required.');
+      setErrorMessage('Họ tên, tên tài khoản và email là bắt buộc.');
       return;
     }
 
     updateProfile(normalizedProfile);
     setIsEditing(false);
-    setStatusMessage('Profile updated successfully.');
+    setStatusMessage('Cập nhật hồ sơ thành công.');
   };
 
   const cancelProfileEdit = () => {
@@ -180,7 +180,7 @@ const TeacherProfile = () => {
             </div>
 
             <div className="space-y-2">
-              <p className="text-sm uppercase tracking-[0.2em] text-cyan-200/80">Teacher profile</p>
+              <p className="text-sm uppercase tracking-[0.2em] text-cyan-200/80">Thông tin giáo viên</p>
               <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{profile.fullName}</h1>
               <p className="text-sm text-cyan-100/80">@{profile.accountName}</p>
             </div>
@@ -188,7 +188,7 @@ const TeacherProfile = () => {
 
           <div className="flex flex-wrap gap-3">
             <Button asChild variant="secondary" className="rounded-full bg-white text-slate-950 hover:bg-cyan-100">
-              <Link to="/teacher/dashboard">Back to dashboard</Link>
+              <Link to="/teacher/dashboard">Quay lại trang chủ</Link>
             </Button>
             <Button
               type="button"
@@ -197,7 +197,7 @@ const TeacherProfile = () => {
               onClick={() => setIsEditing((current) => !current)}
             >
               <Camera className="h-4 w-4" />
-              {isEditing ? 'View profile' : 'Edit profile'}
+              {isEditing ? 'Xem thông tin' : 'Chỉnh sửa thông tin'}
             </Button>
             <Button
               type="button"
@@ -206,7 +206,7 @@ const TeacherProfile = () => {
               onClick={() => setShowPasswordForm((current) => !current)}
             >
               <KeyRound className="h-4 w-4" />
-              Change password
+              Đổi mật khẩu
             </Button>
           </div>
         </div>
@@ -243,7 +243,7 @@ const TeacherProfile = () => {
                 <div className="space-y-2">
                   <Label htmlFor="fullName" className="flex items-center gap-2">
                     <UserRound className="h-4 w-4" />
-                    Fullname
+                    Họ tên
                   </Label>
                   <Input id="fullName" value={profileForm.fullName} onChange={updateProfileField('fullName')} />
                 </div>
@@ -251,7 +251,7 @@ const TeacherProfile = () => {
                 <div className="space-y-2">
                   <Label htmlFor="accountName" className="flex items-center gap-2">
                     <UserRound className="h-4 w-4" />
-                    Account name
+                    Tên tài khoản
                   </Label>
                   <Input id="accountName" value={profileForm.accountName} onChange={updateProfileField('accountName')} />
                 </div>
@@ -267,7 +267,7 @@ const TeacherProfile = () => {
                 <div className="space-y-2">
                   <Label htmlFor="avatarUrl" className="flex items-center gap-2">
                     <Camera className="h-4 w-4" />
-                    Avatar URL
+                    Địa chỉ ảnh đại diện
                   </Label>
                   <Input
                     id="avatarUrl"
@@ -280,7 +280,7 @@ const TeacherProfile = () => {
                 <div className="space-y-2">
                   <Label htmlFor="workplace" className="flex items-center gap-2">
                     <Building2 className="h-4 w-4" />
-                    Workplace
+                    Nơi công tác
                   </Label>
                   <Input id="workplace" value={profileForm.workplace} onChange={updateProfileField('workplace')} />
                 </div>
@@ -288,7 +288,7 @@ const TeacherProfile = () => {
                 <div className="space-y-2">
                   <Label htmlFor="degree" className="flex items-center gap-2">
                     <GraduationCap className="h-4 w-4" />
-                    Degree
+                    Trình độ chuyên môn
                   </Label>
                   <Input id="degree" value={profileForm.degree} onChange={updateProfileField('degree')} />
                 </div>
@@ -296,7 +296,7 @@ const TeacherProfile = () => {
                 <div className="space-y-2 sm:col-span-2">
                   <Label htmlFor="specialization" className="flex items-center gap-2">
                     <MapPin className="h-4 w-4" />
-                    Specialization
+                    Chuyên môn
                   </Label>
                   <Input
                     id="specialization"
@@ -308,7 +308,7 @@ const TeacherProfile = () => {
                 <div className="space-y-2 sm:col-span-2">
                   <Label htmlFor="bio" className="flex items-center gap-2">
                     <BadgeInfo className="h-4 w-4" />
-                    Bio
+                    Giới thiệu
                   </Label>
                   <textarea
                     id="bio"
@@ -321,10 +321,10 @@ const TeacherProfile = () => {
 
                 <div className="flex flex-wrap gap-3 sm:col-span-2 pt-2">
                   <Button type="submit" className="rounded-full">
-                    Save changes
+                    Lưu thay đổi
                   </Button>
                   <Button type="button" variant="ghost" className="rounded-full" onClick={cancelProfileEdit}>
-                    Cancel
+                    Hủy
                   </Button>
                 </div>
               </form>
@@ -333,7 +333,7 @@ const TeacherProfile = () => {
                 <div className="rounded-2xl border border-border bg-muted/30 p-4">
                   <p className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">
                     <UserRound className="h-4 w-4" />
-                    Fullname
+                    Họ tên
                   </p>
                   <p className="text-base font-semibold text-foreground">{profile.fullName}</p>
                 </div>
@@ -341,7 +341,7 @@ const TeacherProfile = () => {
                 <div className="rounded-2xl border border-border bg-muted/30 p-4">
                   <p className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">
                     <UserRound className="h-4 w-4" />
-                    Account name
+                    Tên tài khoản
                   </p>
                   <p className="text-base font-semibold text-foreground">@{profile.accountName}</p>
                 </div>
@@ -357,7 +357,7 @@ const TeacherProfile = () => {
                 <div className="rounded-2xl border border-border bg-muted/30 p-4">
                   <p className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">
                     <Building2 className="h-4 w-4" />
-                    Workplace
+                    Nơi làm việc
                   </p>
                   <p className="text-base font-semibold text-foreground">{profile.workplace}</p>
                 </div>
@@ -365,7 +365,7 @@ const TeacherProfile = () => {
                 <div className="rounded-2xl border border-border bg-muted/30 p-4">
                   <p className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">
                     <GraduationCap className="h-4 w-4" />
-                    Degree
+                    Bằng cấp
                   </p>
                   <p className="text-base font-semibold text-foreground">{profile.degree}</p>
                 </div>
@@ -373,7 +373,7 @@ const TeacherProfile = () => {
                 <div className="rounded-2xl border border-border bg-muted/30 p-4">
                   <p className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">
                     <MapPin className="h-4 w-4" />
-                    Specialization
+                    Chuyên ngành
                   </p>
                   <p className="text-base font-semibold text-foreground">{profile.specialization}</p>
                 </div>
@@ -381,7 +381,7 @@ const TeacherProfile = () => {
                 <div className="rounded-2xl border border-border bg-muted/30 p-4 sm:col-span-2">
                   <p className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">
                     <BadgeInfo className="h-4 w-4" />
-                    Bio
+                    Thông tin cá nhân
                   </p>
                   <p className="text-sm leading-6 text-foreground/90">{profile.bio}</p>
                 </div>
@@ -393,9 +393,9 @@ const TeacherProfile = () => {
         <div className="space-y-6">
           <Card className="border-border/70 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-xl">Avatar</CardTitle>
+              <CardTitle className="text-xl">Ảnh đại diện</CardTitle>
               <CardDescription>
-                Your profile picture shown across teacher pages.
+                Ảnh đại diện của bạn hiển thị trên các trang của giáo viên.
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center gap-4 text-center">
@@ -411,7 +411,7 @@ const TeacherProfile = () => {
               </div>
               {isEditing && (
                 <p className="max-w-sm text-xs leading-5 text-muted-foreground">
-                  Paste a public image URL to change the avatar preview and saved profile picture.
+                  Dán URL ảnh công khai để thay đổi ảnh đại diện và ảnh đại diện đã lưu.
                 </p>
               )}
             </CardContent>
@@ -420,49 +420,49 @@ const TeacherProfile = () => {
           {showPasswordForm && (
             <Card className="border-cyan-200 bg-cyan-50/40 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-xl">Change password</CardTitle>
+                <CardTitle className="text-xl">Đổi mật khẩu</CardTitle>
                 <CardDescription>
-                  Update your password from this profile page.
+                  Thay đổi mật khẩu từ trang thông tin cá nhân này.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form className="space-y-4" onSubmit={handlePasswordSubmit}>
                   <div className="space-y-2">
-                    <Label htmlFor="currentPassword">Current password</Label>
+                    <Label htmlFor="currentPassword">Mật khẩu hiện tại</Label>
                     <Input
                       id="currentPassword"
                       type="password"
                       value={passwordForm.currentPassword}
                       onChange={updatePasswordField('currentPassword')}
-                      placeholder="Enter current password"
+                      placeholder="Nhập mật khẩu hiện tại"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="newPassword">New password</Label>
+                    <Label htmlFor="newPassword">Mật khẩu mới</Label>
                     <Input
                       id="newPassword"
                       type="password"
                       value={passwordForm.newPassword}
                       onChange={updatePasswordField('newPassword')}
-                      placeholder="Enter new password"
+                      placeholder="Nhập mật khẩu mới"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirm new password</Label>
+                    <Label htmlFor="confirmPassword">Xác nhận mật khẩu mới</Label>
                     <Input
                       id="confirmPassword"
                       type="password"
                       value={passwordForm.confirmPassword}
                       onChange={updatePasswordField('confirmPassword')}
-                      placeholder="Repeat new password"
+                      placeholder="Nhập lại mật khẩu mới"
                     />
                   </div>
 
                   <div className="flex items-center gap-3 pt-2">
                     <Button type="submit" className="rounded-full">
-                      Save password
+                      Lưu mật khẩu
                     </Button>
                     <Button
                       type="button"
@@ -470,7 +470,7 @@ const TeacherProfile = () => {
                       className="rounded-full"
                       onClick={() => setShowPasswordForm(false)}
                     >
-                      Cancel
+                      Hủy
                     </Button>
                   </div>
                 </form>

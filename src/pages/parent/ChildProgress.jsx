@@ -4,30 +4,30 @@ import { User, Award, Beaker, BookOpen, Star } from 'lucide-react';
 const mockData = {
   parentName: 'Sarah',
   studentName: 'Alex',
-  overallProgress: 'Doing Great!',
-  currentModule: { name: 'Chemical Reactions', progress: 75 },
+  overallProgress: 'Làm Tốt!',
+  currentModule: { name: 'Phản ứng hóa học', progress: 75 },
   quizAverage: 86,
   recentAchievement: {
-    title: 'Certificate of Completion: Introduction to Atoms',
-    date: 'March 15, 2026',
+    title: 'Chứng chỉ hoàn thành: Giới thiệu về nguyên tử',
+    date: 'Ngày 15 tháng 3 năm 2026',
   },
   timeline: [
-    { day: 'Mon', type: 'lab', title: 'Virtual Lab - Mixing Solutions', icon: Beaker },
-    { day: 'Wed', type: 'lesson', title: 'Lesson - Periodic Table', icon: BookOpen },
-    { day: 'Fri', type: 'quiz', title: 'Quiz - Bonding Basics', icon: Star },
+    { day: 'Thứ 2', type: 'lab', title: 'Phòng thí nghiệm ảo - Trộn dung dịch', icon: Beaker },
+    { day: 'Thứ 4', type: 'lesson', title: 'Bài học - Bảng tuần hoàn', icon: BookOpen },
+    { day: 'Thứ 6', type: 'quiz', title: 'Kiểm tra - Liên kết cơ bản', icon: Star },
   ],
   feedback: [
     {
       id: 1,
       teacherName: 'Mr. Davis',
-      role: 'Chemistry Teacher',
-      quote: "Alex has shown great enthusiasm in our virtual lab sessions! Keep up the good work.",
+      role: 'Giáo viên Hóa học',
+      quote: "Alex đã thể hiện sự nhiệt tình trong các buổi học thực hành ảo! Hãy tiếp tục phát huy.",
     },
     {
       id: 2,
       teacherName: 'Ms. Robinson',
-      role: 'Science Coordinator',
-      quote: "Excellent improvement on the recent quizzes. Alex is grasping the concepts very well.",
+      role: 'Giáo viên Hóa học',
+      quote: "Em đã có sự cải thiện đáng kể trong các bài kiểm tra gần đây. Em đang nắm bắt các khái niệm rất tốt.",
     },
   ],
 };
@@ -38,7 +38,7 @@ const ChildProgress = () => {
       {/* 1. Header */}
       <div className="mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-slate-800 tracking-tight">
-          Welcome, {mockData.parentName}. Here is {mockData.studentName}'s progress.
+          Chào mừng, {mockData.parentName}. Đây là tiến độ của {mockData.studentName}.
         </h1>
       </div>
 
@@ -50,13 +50,13 @@ const ChildProgress = () => {
             <User className="w-8 h-8" />
           </div>
           <div className="flex-1 w-full space-y-4">
-            <h2 className="text-lg font-bold text-slate-800">Student Summary</h2>
-            <p className="text-amber-700 font-medium">Overall Progress: {mockData.overallProgress}</p>
+            <h2 className="text-lg font-bold text-slate-800">Tóm tắt</h2>
+            <p className="text-amber-700 font-medium">Tiến độ tổng thể: {mockData.overallProgress}</p>
 
             <div className="space-y-3">
                <div>
                  <div className="flex justify-between text-sm mb-1 text-slate-600 font-medium">
-                   <span>Current Module: {mockData.currentModule.name}</span>
+                   <span>Module hiện tại: {mockData.currentModule.name}</span>
                    <span>{mockData.currentModule.progress}%</span>
                  </div>
                  <div className="w-full bg-amber-200/50 rounded-full h-2">
@@ -66,7 +66,7 @@ const ChildProgress = () => {
 
                <div>
                  <div className="flex justify-between text-sm mb-1 text-slate-600 font-medium">
-                   <span>Quiz Average</span>
+                   <span>Điểm trung bình Quiz</span>
                    <span>{mockData.quizAverage}%</span>
                  </div>
                  <div className="w-full bg-amber-200/50 rounded-full h-2">
@@ -79,7 +79,7 @@ const ChildProgress = () => {
 
         {/* Right Card: Recent Achievement */}
         <div className="bg-orange-50 rounded-xl p-6 shadow-sm border border-orange-100 flex flex-col items-center justify-center text-center gap-4">
-          <h2 className="text-lg font-bold text-slate-800 w-full text-left">Recent Achievement</h2>
+          <h2 className="text-lg font-bold text-slate-800 w-full text-left">Thành tích gần đây</h2>
           <div className="w-20 h-20 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center">
             <Award className="w-10 h-10" />
           </div>
@@ -92,7 +92,7 @@ const ChildProgress = () => {
 
       {/* 3. Middle Section: "Weekly Activity Timeline" */}
       <div className="bg-teal-50 rounded-xl p-8 shadow-sm border border-teal-100">
-        <h2 className="text-xl font-bold text-slate-800 mb-8">Weekly Activity Timeline</h2>
+        <h2 className="text-xl font-bold text-slate-800 mb-8">Timeline hoạt động trong tuần</h2>
         
         <div className="relative w-full py-4">
           {/* Continuous Line */}
@@ -116,7 +116,7 @@ const ChildProgress = () => {
 
       {/* 4. Bottom Section: "Teacher Feedback" */}
       <div className="space-y-4">
-        <h2 className="text-xl font-bold text-slate-800 mb-2">Teacher Feedback</h2>
+        <h2 className="text-xl font-bold text-slate-800 mb-2">Nhận xét của giáo viên</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {mockData.feedback.map((fb) => (
             <div key={fb.id} className="bg-indigo-50 rounded-xl p-6 shadow-sm border border-indigo-100 flex gap-4">
