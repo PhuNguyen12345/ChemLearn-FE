@@ -18,6 +18,8 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
     opacity: isDragging ? 0.2 : 1,
     zIndex: isDragging ? 50 : 10,
     cursor: isDragging ? 'grabbing' : 'grab',
+    touchAction: 'none',
+    userSelect: 'none',
   };
 
   // ── Multi-layer helpers (Adapter for Legacy Data structure) ──
@@ -193,7 +195,7 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
+    <div ref={setNodeRef} style={style} data-canvas-item="true" {...listeners} {...attributes}>
       <TooltipProvider delayDuration={200}>
         <Tooltip>
           <TooltipTrigger asChild onClick={(e) => e.preventDefault()}>
@@ -246,4 +248,3 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
     </div>
   );
 }
-

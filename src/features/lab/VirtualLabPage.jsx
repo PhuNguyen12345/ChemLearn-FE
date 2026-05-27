@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { DndContext, DragOverlay } from '@dnd-kit/core';
 import LabWorkspaceHeader from './components/LabWorkspaceHeader';
 import '/Lab2.css';
-import { RotateCcw, Trash2 } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { snapCenterToCursor } from '@dnd-kit/modifiers';
 import { INITIAL_INVENTORY, ITEM_TYPE, PHYSICAL_STATE } from './data/constants';
@@ -24,6 +24,7 @@ import { useLabTimer } from './hooks/useLabTimer';
 export default function VirtualLabPage() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [isPhoneViewport, setIsPhoneViewport] = useState(false);
 
   // ── Lifecycle: fetch, save, reset, modal ─────────────────────────────────
   const {
@@ -57,13 +58,22 @@ export default function VirtualLabPage() {
     labType === 'ASSIGNMENT' && !isLoading
   );
 
-  const [inventory, setInventory] = useState(INITIAL_INVENTORY);
+  const [inventory] = useState(INITIAL_INVENTORY);
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarView, setSidebarView] = useState('grid');
 
   const [isLeftOpen, setIsLeftOpen] = useState(true);
-  const [isRightOpen, setIsRightOpen] = useState(true);
+  const [isInventoryOpen, setIsInventoryOpen] = useState(true);
   const [activeFilter, setActiveFilter] = useState('ALL');
+
+  React.useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 639px)');
+    const handleViewportChange = () => setIsPhoneViewport(mediaQuery.matches);
+
+    handleViewportChange();
+    mediaQuery.addEventListener('change', handleViewportChange);
+    return () => mediaQuery.removeEventListener('change', handleViewportChange);
+  }, []);
 
   // ── Store state ───────────────────────────────────────────────────────────
   const progress = useLabStore(state => state.progress);
@@ -86,6 +96,57 @@ export default function VirtualLabPage() {
   const handleDeleteItem = (itemId) => {
     setPlacedItems(prev => prev.filter(item => item.instanceId !== itemId));
     if (selectedItemId === itemId) setSelectedItemId(null);
+  };
+
+  const checkProximity = (items) => {
+    const burners = items.filter(i => i.templateId === 'bunsen_burner');
+    return items.map(item => {
+      let isHeated = false;
+      if (item.templateId === 'beaker' || item.templateId === 'test_tube') {
+        isHeated = burners.some(burner =>
+          Math.abs(burner.x - item.x) < 50 &&
+          (burner.y - item.y) > 40 && (burner.y - item.y) < 160
+        );
+      } else if (item.templateId === 'bunsen_burner') {
+        isHeated = items.some(container =>
+          ['beaker', 'test_tube'].includes(container.templateId) &&
+          Math.abs(container.x - item.x) < 50 &&
+          (item.y - container.y) > 40 && (item.y - container.y) < 160
+        );
+      }
+      return { ...item, isHeated };
+    });
+  };
+
+  const handleAddItemToViewCenter = (item) => {
+    const canvasEl = document.getElementById('experiment-canvas');
+    if (!canvasEl || !item) return;
+
+    const rect = canvasEl.getBoundingClientRect();
+    const panX = Number(canvasEl.dataset.panX || 0);
+    const panY = Number(canvasEl.dataset.panY || 0);
+    const x = Math.max(0, ((rect.width / 2) - panX) / scale - 45);
+    const y = Math.max(0, ((rect.height / 2) - panY) / scale - 45);
+    const newItem = {
+      instanceId: `item-${Date.now()}`,
+      templateId: item.id,
+      x,
+      y,
+      content: null,
+      isHeated: false,
+    };
+
+    setPlacedItems(prev => checkProximity([...prev, newItem]));
+    setSelectedItemId(newItem.instanceId);
+    setReactionInfo({
+      equation: `Adding ${item.name}`,
+      condition: 'Workspace setup',
+      description: 'Vật phẩm đã được thêm vào giữa khung nhìn.',
+    });
+
+    if (item.id === 'beaker' || item.id === 'test_tube') {
+      completeTask('DRAG_FLASK_TO_WORKSPACE');
+    }
   };
 
   React.useEffect(() => {
@@ -150,43 +211,63 @@ export default function VirtualLabPage() {
                 debouncedSave.flush();
               }}
             />
-            <div style={{ display: 'flex', height: '100%', backgroundColor: '#ecf0f1', overflow: 'hidden', position: 'relative' }} className="w-full flex-1">
+            <div className="w-full flex-1 overflow-hidden bg-[#ecf0f1] relative">
       <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        {/* ================= LEFT COLUMN ================= */}
-        <LabAnalysisPanel
-          tasks={tasks}
-          reactionInfo={reactionInfo}
-          isOpen={isLeftOpen}
-          onToggle={() => setIsLeftOpen(!isLeftOpen)}
-          labType={labType}
-        />
+        <div className={`flex h-full min-h-0 w-full ${isPhoneViewport ? 'flex-col' : 'flex-row'}`}>
+          <div className="flex min-h-0 flex-1 overflow-hidden">
+            {/* ================= LEFT COLUMN ================= */}
+            <LabAnalysisPanel
+              tasks={tasks}
+              reactionInfo={reactionInfo}
+              isOpen={isLeftOpen}
+              onToggle={() => setIsLeftOpen(!isLeftOpen)}
+              labType={labType}
+            />
 
-        {/* ================= MIDDLE WORKSPACE ================= */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', transition: 'all 0.3s ease' }} className="p-8">
+            {/* ================= MIDDLE WORKSPACE ================= */}
+            <div className="flex min-w-0 flex-1 flex-col items-center p-3 sm:p-5 lg:p-8 transition-all duration-300">
+              <CentralWorkspace
+                placedItems={placedItems}
+                scale={scale}
+                setScale={useLabStore.getState().setViewportScale}
+                selectedItemId={selectedItemId}
+                setSelectedItemId={setSelectedItemId}
+                onDeleteItem={handleDeleteItem}
+              />
+            </div>
+          </div>
 
-
-          <CentralWorkspace
-            placedItems={placedItems}
-            scale={scale}
-            setScale={useLabStore.getState().setViewportScale}
-            selectedItemId={selectedItemId}
-            setSelectedItemId={setSelectedItemId}
-            onDeleteItem={handleDeleteItem}
+            {!isPhoneViewport && (
+              <LabInventoryPanel
+                filtered={filtered}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                sidebarView={sidebarView}
+                onViewToggle={() => setSidebarView(sidebarView === 'grid' ? 'list' : 'grid')}
+                activeFilter={activeFilter}
+                onFilterChange={setActiveFilter}
+                isOpen={isInventoryOpen}
+                onToggle={() => setIsInventoryOpen(!isInventoryOpen)}
+                placement="side"
+              />
+            )}
+          {/* ================= PHONE BOTTOM INVENTORY ================= */}
+          {isPhoneViewport && (
+          <LabInventoryPanel
+            filtered={filtered}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            sidebarView={sidebarView}
+            onViewToggle={() => setSidebarView(sidebarView === 'grid' ? 'list' : 'grid')}
+            activeFilter={activeFilter}
+            onFilterChange={setActiveFilter}
+            isOpen={isInventoryOpen}
+            onToggle={() => setIsInventoryOpen(!isInventoryOpen)}
+            placement="bottom"
+            onItemSelect={handleAddItemToViewCenter}
           />
+          )}
         </div>
-
-        {/* ================= RIGHT COLUMN (INVENTORY) ================= */}
-        <LabInventoryPanel
-          filtered={filtered}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          sidebarView={sidebarView}
-          onViewToggle={() => setSidebarView(sidebarView === 'grid' ? 'list' : 'grid')}
-          activeFilter={activeFilter}
-          onFilterChange={setActiveFilter}
-          isOpen={isRightOpen}
-          onToggle={() => setIsRightOpen(!isRightOpen)}
-        />
 
         <DragOverlay dropAnimation={null} modifiers={[snapCenterToCursor]}>
           {activeDragItem ? <DragPreview item={activeDragItem} /> : null}

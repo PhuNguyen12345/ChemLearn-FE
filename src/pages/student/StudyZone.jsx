@@ -57,10 +57,10 @@ const StudyZone = () => {
   }, [activeLessonId]);
 
   return (
-    <div className="flex h-full w-full bg-slate-50 flex-col md:flex-row overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
+    <div className="flex min-h-[calc(100vh-9rem)] w-full bg-slate-50 flex-col lg:flex-row overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
       <ChapterSidebar chapters={chapters} activeLessonId={activeLessonId} onSelectLesson={setActiveLessonId} />
 
-      <div className="flex-1 overflow-y-auto bg-white relative flex flex-col">
+      <div className="flex-1 min-w-0 overflow-y-auto bg-white relative flex flex-col">
         {error && (
           <div className="mx-6 mt-6 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-semibold text-rose-700">
             {error}

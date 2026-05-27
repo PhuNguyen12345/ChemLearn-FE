@@ -89,10 +89,12 @@ export function useLabDragDrop({ scale, inventory }) {
       const canvasEl = document.getElementById('experiment-canvas');
       if (!canvasEl) return;
       const liveRect = canvasEl.getBoundingClientRect();
+      const panX = Number(canvasEl.dataset.panX || 0);
+      const panY = Number(canvasEl.dataset.panY || 0);
 
       // Step C: Map center into canvas coordinate space (accounting for zoom).
-      const relativeCenterX = (dropCenterX - liveRect.left) / scale;
-      const relativeCenterY = (dropCenterY - liveRect.top) / scale;
+      const relativeCenterX = (dropCenterX - liveRect.left - panX) / scale;
+      const relativeCenterY = (dropCenterY - liveRect.top - panY) / scale;
 
       // Step D: Offset by half the icon size so the item drops centred on the cursor.
       const x = Math.max(0, relativeCenterX - 45);

@@ -1,10 +1,19 @@
 import React from 'react';
+import { X } from 'lucide-react';
 
-const ChapterSidebar = ({ chapters = [], activeLessonId, onSelectLesson }) => {
+const ChapterSidebar = ({ chapters = [], activeLessonId, onSelectLesson, isOpen = true, onClose }) => {
   return (
-    <div className="w-full md:w-80 bg-white border-b md:border-b-0 md:border-r border-slate-100 flex flex-col h-full overflow-y-auto shrink-0">
-      <div className="p-5 border-b border-slate-100 sticky top-0 bg-white z-10">
-        <h2 className="text-xl font-black">Khu vực học tập</h2>
+    <aside className={`absolute inset-y-0 right-0 z-40 flex w-[min(22rem,calc(100vw-1.5rem))] flex-col overflow-y-auto border-l border-slate-100 bg-white shadow-2xl shadow-slate-900/10 transition-transform duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className="p-5 border-b border-slate-100 sticky top-0 bg-white z-10 flex items-center justify-between gap-3">
+        <h2 className="text-lg sm:text-xl font-black">Khu vực học tập</h2>
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+          title="Ẩn danh sách chương"
+        >
+          <X className="h-4 w-4" />
+        </button>
       </div>
 
       <div className="p-4 space-y-5">
@@ -42,7 +51,7 @@ const ChapterSidebar = ({ chapters = [], activeLessonId, onSelectLesson }) => {
           </div>
         ))}
       </div>
-    </div>
+    </aside>
   );
 };
 

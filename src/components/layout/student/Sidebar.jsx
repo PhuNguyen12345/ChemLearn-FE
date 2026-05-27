@@ -3,12 +3,10 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   Microscope,
   BookOpen,
-  Target,
   Trophy,
   FlaskConical,
   LayoutDashboard,
   Users,
-  Sparkles,
   Map,
   Swords,
   ChevronLeft
@@ -40,18 +38,20 @@ const itemAccent = {
   classes: { bg: 'bg-indigo-600', border: 'border-b-indigo-800', shadow: 'shadow-indigo-300/40' },
 };
 
-const Sidebar = ({ className = '' }) => {
+const Sidebar = ({ className = '', collapsible = true, onNavigate }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { experience, level } = useStudentStore();
   const { isCollapsed, toggleSidebar } = useSidebarStore();
+  const collapsed = collapsible && isCollapsed;
 
   const handleLogoClick = () => {
     navigate('/student/home');
+    onNavigate?.();
   };
 
   return (
-    <aside className={`${isCollapsed ? 'w-20' : 'w-64'} bg-slate-50 flex flex-col h-full border-r border-slate-200 transition-all duration-300 relative overflow-visible ${className}`}>
+    <aside className={`${collapsed ? 'w-20' : 'w-64'} max-w-full bg-slate-50 flex flex-col h-full border-r border-slate-200 transition-all duration-300 relative overflow-visible ${className}`}>
 
       {/* ── Logo ── */}
       <button
@@ -62,7 +62,7 @@ const Sidebar = ({ className = '' }) => {
           <FlaskConical className="w-5 h-5 text-white" />
         </div>
 
-        {!isCollapsed && (
+        {!collapsed && (
           <>
             <span className="text-xl font-black tracking-tight text-slate-800">
               Chem<span className="text-indigo-500">Learn</span>
@@ -73,13 +73,15 @@ const Sidebar = ({ className = '' }) => {
       </button>
 
       {/* Collapse/Expand Button */}
-      <button
-        onClick={toggleSidebar}
-        className={`absolute z-30 p-1 border border-slate-200 bg-slate-50 hover:bg-slate-100 rounded-lg transition-all duration-200 ${isCollapsed ? '-right-3 top-[5.75rem]' : 'right-3 top-5'}`}
-        title={isCollapsed ? 'Expand' : 'Collapse'}
-      >
-        <ChevronLeft className={`w-5 h-5 text-slate-500 transition-transform ${isCollapsed ? 'rotate-180' : ''}`} />
-      </button>
+      {collapsible && (
+        <button
+          onClick={toggleSidebar}
+          className={`absolute z-30 p-1 border border-slate-200 bg-slate-50 hover:bg-slate-100 rounded-lg transition-all duration-200 ${collapsed ? '-right-3 top-[5.75rem]' : 'right-3 top-5'}`}
+          title={collapsed ? 'Expand' : 'Collapse'}
+        >
+          <ChevronLeft className={`w-5 h-5 text-slate-500 transition-transform ${collapsed ? 'rotate-180' : ''}`} />
+        </button>
+      )}
 
       {/* ── Navigation ── */}
       <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-1.5">
@@ -94,13 +96,14 @@ const Sidebar = ({ className = '' }) => {
               to={item.path}
               className={`
                 flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all duration-200 select-none
-                ${isCollapsed ? 'justify-center' : ''}
+                ${collapsed ? 'justify-center' : ''}
                 ${isActive
                   ? `${accent.bg} text-white font-black border-b-4 ${accent.border} shadow-md ${accent.shadow}`
                   : 'text-slate-500 font-bold hover:bg-white hover:text-slate-800 hover:-translate-y-0.5 hover:shadow-sm border-b-4 border-transparent'
                 }
               `}
-              title={isCollapsed ? item.name : ''}
+              title={collapsed ? item.name : ''}
+              onClick={onNavigate}
             >
               {/* Icon wrapper */}
               <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all
@@ -109,7 +112,7 @@ const Sidebar = ({ className = '' }) => {
                 <item.icon className="w-3.5 h-3.5 flex-shrink-0" />
               </div>
 
-              {!isCollapsed && (
+              {!collapsed && (
                 <>
                   <span className="flex-1">{item.name}</span>
 
@@ -127,7 +130,7 @@ const Sidebar = ({ className = '' }) => {
       {/* ── Bottom XP badge ── */}
       <div className="px-4 py-4 border-t border-slate-200/70">
         <div className="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl p-3 text-white shadow-md shadow-indigo-300/30">
-          {!isCollapsed && (
+          {!collapsed && (
             <>
               <p className="text-[10px] font-black uppercase tracking-widest text-indigo-200 mb-1">⚡ Your Progress</p>
               {/* XP bar */}
@@ -142,7 +145,7 @@ const Sidebar = ({ className = '' }) => {
               </div>
             </>
           )}
-          {isCollapsed && (
+          {collapsed && (
             <div className="flex items-center justify-center text-lg">⚡</div>
           )}
         </div>

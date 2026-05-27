@@ -1,12 +1,10 @@
 import React from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import Footer from '../shared/Footer';
 
 const StudentLayout = () => {
-  const location = useLocation();
-
   return (
     <div className="flex h-screen w-full bg-background text-foreground overflow-hidden">
       {/* Fixed Sidebar on Desktop */}
@@ -20,7 +18,7 @@ const StudentLayout = () => {
 
         {/* Router Outlet content scrolls */}
         <main className="flex-1 overflow-x-hidden overflow-y-auto w-full bg-muted/30">
-          <div className="p-4 md:p-6 lg:p-8 mx-auto max-w-7xl w-full h-full min-h-[calc(100vh-8rem)]">
+          <div className="p-3 sm:p-4 md:p-6 lg:p-8 mx-auto max-w-7xl w-full min-h-[calc(100vh-8rem)]">
             <Outlet />
           </div>
         </main>

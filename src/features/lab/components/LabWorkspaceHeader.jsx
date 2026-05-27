@@ -20,7 +20,7 @@ const LabWorkspaceHeader = ({
     setTitle(titleText);
   }, [titleText]);
   const [isEditing, setIsEditing] = useState(false);
-  const { serializeLabState, clearWorkspace, resetToTemplate } = useLabStore();
+  const { clearWorkspace } = useLabStore();
   const score = useLabStore(state => state.progress?.score || 0);
   const maxScore = useLabStore(state => state.metadata?.max_score || 50);
   const percentage = Math.min((score / maxScore) * 100, 100);
@@ -43,20 +43,20 @@ const LabWorkspaceHeader = ({
   };
 
   return (
-    <div className="h-14 w-full bg-white border-b border-slate-200 shadow-sm flex items-center justify-between px-4 z-50 shrink-0 relative">
+    <div className="min-h-14 w-full bg-white border-b border-slate-200 shadow-sm flex flex-wrap items-center gap-2 px-2 py-2 sm:px-4 z-50 shrink-0 relative">
       
       {/* Left: Back Button & Title */}
-      <div className="flex items-center gap-2 w-1/3">
+      <div className="flex min-w-0 flex-1 items-center gap-1 sm:gap-2">
         <button 
           onClick={onBack}
-          className="p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors flex items-center gap-2 group"
+          className="p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors flex items-center gap-2 group shrink-0"
           title="Back to Dashboard"
         >
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
           <span className="font-bold text-sm hidden sm:block">Tổng quan</span>
         </button>
         <div className="h-6 w-[2px] bg-slate-200 mx-1 rounded-full hidden sm:block"></div>
-        <div className="flex items-center">
+        <div className="flex min-w-0 items-center">
           {isEditing && labType === 'SANDBOX' ? (
             <input
               autoFocus
@@ -65,7 +65,7 @@ const LabWorkspaceHeader = ({
               onChange={(e) => setTitle(e.target.value)}
               onBlur={handleBlur}
               onKeyDown={handleTitleSubmit}
-              className="text-base sm:text-lg font-bold text-slate-800 bg-slate-50 border-b-2 border-indigo-500 focus:outline-none px-2 py-0.5 rounded-t-md min-w-[200px]"
+              className="w-40 sm:w-56 text-base sm:text-lg font-bold text-slate-800 bg-slate-50 border-b-2 border-indigo-500 focus:outline-none px-2 py-0.5 rounded-t-md"
             />
           ) : (
             <div 
@@ -74,7 +74,7 @@ const LabWorkspaceHeader = ({
               }}
               className={`group flex items-center gap-2 px-3 py-1 rounded-md transition-colors ${labType === 'SANDBOX' ? 'cursor-pointer hover:bg-slate-100' : ''}`}
             >
-              <h2 className="text-base sm:text-lg font-bold text-slate-800 truncate max-w-[200px] xl:max-w-[300px]">{title}</h2>
+              <h2 className="text-sm sm:text-lg font-bold text-slate-800 truncate max-w-[9rem] sm:max-w-[14rem] lg:max-w-[20rem]">{title}</h2>
               {labType === 'SANDBOX' && (
                 <Edit3 className="w-4 h-4 text-slate-400 group-hover:text-indigo-500 transition-colors opacity-0 group-hover:opacity-100" />
               )}
@@ -84,7 +84,7 @@ const LabWorkspaceHeader = ({
       </div>
 
       {/* Center: Dynamic Content based on labType */}
-      <div className="flex items-center justify-center w-1/3">
+      <div className="order-3 flex w-full items-center justify-center sm:order-none sm:w-auto sm:flex-[1.2]">
         {labType === 'PREMADE' && (
           <div className="w-full max-w-sm flex flex-col items-center gap-1">
             <div className="flex items-center justify-between w-full text-xs font-bold text-slate-500">
@@ -122,24 +122,27 @@ const LabWorkspaceHeader = ({
       </div>
 
       {/* Right: Actions, Cloud Save & Avatar */}
-      <div className="flex items-center justify-end gap-3 w-[45%]">
+      <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-2">
         <Button 
           variant="outline" 
-          className="text-destructive hover:bg-red-50 hover:text-red-600 border-slate-200 h-9 px-3" 
+          className="text-destructive hover:bg-red-50 hover:text-red-600 border-slate-200 h-9 px-2 sm:px-3" 
           onClick={clearWorkspace}
+          title="Dọn dẹp"
         >
-          <Trash2 className="w-4 h-4 mr-2" /> Dọn dẹp
+          <Trash2 className="w-4 h-4 sm:mr-2" />
+          <span className="hidden sm:inline">Dọn dẹp</span>
         </Button>
 
         <Button 
           variant="outline" 
-          className="text-blue-600 hover:bg-blue-50 border-blue-200 h-9 px-3 hidden md:flex" 
+          className="text-blue-600 hover:bg-blue-50 border-blue-200 h-9 px-2 sm:px-3 hidden md:flex" 
           onClick={onResetClick}
+          title="Tạo lại"
         >
           <RotateCcw className="w-4 h-4 mr-2" /> Tạo lại
         </Button>
 
-        <div className="flex items-center gap-2 border-l pl-3 ml-1 border-slate-200">
+        <div className="flex items-center gap-1 sm:gap-2 border-l pl-2 sm:pl-3 ml-1 border-slate-200">
           {/* Auto-save indicator for ASSIGNMENT mode */}
           {labType === 'ASSIGNMENT' && (
             <div className="text-xs font-medium min-w-[70px] text-right hidden sm:block">
@@ -151,42 +154,47 @@ const LabWorkspaceHeader = ({
           {labType === 'ASSIGNMENT' ? (
             <Button
               variant="default"
-              className="h-9 px-6 bg-red-600 hover:bg-red-700 text-white font-bold transition-colors shadow-sm min-w-[120px]"
+              className="h-9 px-3 sm:px-6 bg-red-600 hover:bg-red-700 text-white font-bold transition-colors shadow-sm sm:min-w-[120px]"
               onClick={onSubmitClick}
               disabled={saveState === 'saving'}
+              title="Nộp bài"
             >
-              <CheckCircle2 className="w-4 h-4 mr-2" />
-              Nộp bài
+              <CheckCircle2 className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Nộp bài</span>
             </Button>
           ) : (
             <Button
               variant="default"
-              className={`h-9 px-4 transition-all duration-300 min-w-[100px] ${
+              className={`h-9 px-3 sm:px-4 transition-all duration-300 sm:min-w-[100px] ${
                 saveState === 'saved' 
                   ? 'bg-emerald-500 hover:bg-emerald-600' 
                   : 'bg-blue-600 hover:bg-blue-700'
               }`}
               onClick={onSaveClick}
               disabled={saveState === 'saving'}
+              title="Save"
             >
               {saveState === 'saving' ? (
                 <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Đang lưu...
+                  <RefreshCw className="w-4 h-4 sm:mr-2 animate-spin" />
+                  <span className="hidden sm:inline">Đang lưu...</span>
                 </>
               ) : saveState === 'saved' ? (
                 <>
-                  <CheckCircle2 className="w-4 h-4 mr-2" /> Đã lưu
+                  <CheckCircle2 className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Đã lưu</span>
                 </>
               ) : (
                 <>
-                  <Save className="w-4 h-4 mr-2" /> Save
+                  <Save className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Save</span>
                 </>
               )}
             </Button>
           )}
         </div>
         
-        <div className="w-8 h-8 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-600 font-bold overflow-hidden shadow-inner cursor-pointer hover:ring-2 hover:ring-indigo-300 transition-all">
+        <div className="hidden sm:flex w-8 h-8 rounded-full bg-indigo-100 border border-indigo-200 items-center justify-center text-indigo-600 font-bold overflow-hidden shadow-inner cursor-pointer hover:ring-2 hover:ring-indigo-300 transition-all">
           {/* Mock Avatar */}
           <User className="w-5 h-5" />
         </div>

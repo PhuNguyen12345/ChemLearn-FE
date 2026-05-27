@@ -8,6 +8,8 @@ import { saveVirtualLabProgress, enterVirtualLab, resetVirtualLab, renameVirtual
 import { getGamificationProfile } from '@/api/studentApi';
 import { useStudentStore } from '@/stores/useStudentStore';
 
+const AUTO_SAVE_IDLE_DELAY_MS = 5000;
+
 /**
  * useLabLifecycle
  *
@@ -100,7 +102,7 @@ export function useLabLifecycle(labId) {
         setSaveState('idle');
         toast.error('Mất kết nối! Chưa thể lưu tiến trình lab.', { position: 'bottom-right' });
       }
-    }, 1500),
+    }, AUTO_SAVE_IDLE_DELAY_MS),
     [labId]
   );
 

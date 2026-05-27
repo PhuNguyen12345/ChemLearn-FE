@@ -38,9 +38,9 @@ const Header = () => {
               <span className="sr-only">Mở menu điều hướng</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-64">
+          <SheetContent side="left" className="p-0 w-64 max-w-[85vw]">
             <SheetTitle className="sr-only">Menu điều hướng</SheetTitle>
-            <Sidebar className="border-r-0" />
+            <Sidebar className="border-r-0 w-full" collapsible={false} onNavigate={() => setOpen(false)} />
           </SheetContent>
         </Sheet>
 

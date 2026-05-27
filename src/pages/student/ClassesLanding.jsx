@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getStudentClasses, joinClassByCode, leaveClass } from '../../lib/api';
-import { Loader, AlertCircle, Lock, Users, Calendar, CheckCircle, Flame, Zap, Shield, Sparkles } from 'lucide-react';
+import { Loader, AlertCircle, Lock, Users, Calendar, CheckCircle, Sparkles } from 'lucide-react';
 
 export default function ClassesLanding() {
   const navigate = useNavigate();
@@ -136,19 +136,19 @@ export default function ClassesLanding() {
   }
 
   return (
-    <div className="space-y-8 pb-12 select-none">
+    <div className="space-y-6 md:space-y-8 pb-12 select-none">
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-8 text-white shadow-[0_10px_30px_rgba(168,85,247,0.4)] border-b-4 border-purple-700">
+      <div className="relative overflow-hidden rounded-3xl md:rounded-[2rem] bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-5 sm:p-6 lg:p-8 text-white shadow-[0_10px_30px_rgba(168,85,247,0.4)] border-b-4 border-purple-700">
         <div className="absolute -top-10 -right-10 w-56 h-56 bg-white/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-8 -left-8 w-44 h-44 bg-pink-400/20 rounded-full blur-2xl pointer-events-none" />
         
-        <div className="absolute top-8 right-14 text-pink-200 animate-bounce" style={{ animationDuration: '3.1s', animationDelay: '0.5s' }}>
+        <div className="absolute top-8 right-14 hidden sm:block text-pink-200 animate-bounce" style={{ animationDuration: '3.1s', animationDelay: '0.5s' }}>
           <Sparkles className="w-6 h-6" />
         </div>
 
         <div className="relative z-10">
-          <h1 className="text-3xl md:text-4xl font-black tracking-tight drop-shadow-sm mb-2">My Classes 📚</h1>
-          <p className="text-purple-100 text-base md:text-lg font-semibold opacity-90 max-w-xl">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight drop-shadow-sm mb-2">My Classes 📚</h1>
+          <p className="text-purple-100 text-sm sm:text-base md:text-lg font-semibold opacity-90 max-w-xl">
             Quản lý các lớp học của bạn và quay lại hành trình học tập của bạn!
           </p>
         </div>
@@ -156,25 +156,25 @@ export default function ClassesLanding() {
 
       <div className="space-y-8">
         {/* Code Entry Section */}
-        <div className="p-6 bg-white rounded-[1.5rem] border-2 border-sky-200 border-b-[6px] border-b-sky-400 shadow-sm hover:-translate-y-1 transition-transform duration-300">
+        <div className="p-4 sm:p-6 bg-white rounded-[1.5rem] border-2 border-sky-200 border-b-[6px] border-b-sky-400 shadow-sm hover:-translate-y-1 transition-transform duration-300">
           <div className="flex items-center gap-2 mb-2">
             <Lock className="w-6 h-6 text-sky-500 fill-sky-100" />
             <h2 className="text-xl font-black text-slate-800">Tham gia lớp mới</h2>
           </div>
           <p className="text-sm font-semibold text-slate-500 mb-5">Nhập mã lớp học được cung cấp bởi giảng viên để tham gia</p>
-          <form onSubmit={handleJoinClass} className="flex gap-3">
+          <form onSubmit={handleJoinClass} className="flex flex-col sm:flex-row gap-3">
             <input
               type="text"
               value={classCode}
               onChange={(e) => setClassCode(e.target.value.toUpperCase())}
               placeholder="e.g. ABC123"
               maxLength="10"
-              className="flex-1 px-5 py-3.5 bg-slate-50 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100 uppercase tracking-widest font-black text-slate-700 placeholder:text-slate-400 transition-all"
+              className="min-w-0 flex-1 px-4 sm:px-5 py-3.5 bg-slate-50 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100 uppercase tracking-widest font-black text-slate-700 placeholder:text-slate-400 transition-all"
             />
             <button
               type="submit"
               disabled={joiningClass || !classCode.trim()}
-              className="group flex items-center gap-2 px-8 py-3.5 bg-gradient-to-b from-sky-400 to-sky-500 hover:from-sky-500 hover:to-sky-600 text-white font-black rounded-xl border-b-[5px] border-sky-700 active:border-b active:translate-y-1 transition-all disabled:opacity-50 disabled:pointer-events-none shadow-sm shadow-sky-300/50"
+              className="group flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 bg-gradient-to-b from-sky-400 to-sky-500 hover:from-sky-500 hover:to-sky-600 text-white font-black rounded-xl border-b-[5px] border-sky-700 active:border-b active:translate-y-1 transition-all disabled:opacity-50 disabled:pointer-events-none shadow-sm shadow-sky-300/50"
             >
               {joiningClass ? (
                 <>
@@ -198,7 +198,7 @@ export default function ClassesLanding() {
 
         {/* Classes Grid */}
         {classes.length === 0 ? (
-          <div className="p-10 bg-white rounded-[2rem] border-2 border-slate-200 border-b-[6px] border-b-slate-300 shadow-sm text-center">
+          <div className="p-6 sm:p-10 bg-white rounded-[2rem] border-2 border-slate-200 border-b-[6px] border-b-slate-300 shadow-sm text-center">
              <div className="w-20 h-20 mx-auto bg-slate-100 rounded-[1.5rem] flex items-center justify-center mb-4">
                 <Users className="w-10 h-10 text-slate-300" />
              </div>
@@ -206,20 +206,20 @@ export default function ClassesLanding() {
              <p className="text-slate-500 font-semibold max-w-sm mx-auto">Tham gia lớp học bằng mã lớp ở trên để bắt đầu hành trình của bạn!</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             {classes.map((cls, idx) => {
               const colorTheme = cardColors[idx % cardColors.length];
               return (
                 <div
                   key={cls.id}
                   onClick={() => cls.id && navigate(`/student/class/${cls.id}`)}
-                  className={`group flex flex-col p-6 rounded-[1.5rem] bg-white border-2 border-b-[6px] ${colorTheme.border} ${colorTheme.hover} active:border-b-2 active:translate-y-1 transition-all duration-150 shadow-sm cursor-pointer relative overflow-hidden`}
+                  className={`group flex flex-col p-4 sm:p-6 rounded-[1.5rem] bg-white border-2 border-b-[6px] ${colorTheme.border} ${colorTheme.hover} active:border-b-2 active:translate-y-1 transition-all duration-150 shadow-sm cursor-pointer relative overflow-hidden`}
                 >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-10 -mt-10 blur-2xl pointer-events-none group-hover:scale-125 transition-transform" />
                   
-                  <div className="relative z-10 flex items-start justify-between gap-2 mb-4">
-                    <div className="flex-1">
-                      <h3 className="text-xl font-black text-slate-800 leading-tight mb-1 group-hover:text-slate-900 line-clamp-2">{cls.name}</h3>
+                  <div className="relative z-10 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-4">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-lg sm:text-xl font-black text-slate-800 leading-tight mb-1 group-hover:text-slate-900 line-clamp-2">{cls.name}</h3>
                       <p className="text-xs font-bold text-slate-400 line-clamp-1">{cls.description}</p>
                     </div>
                     {getStatusBadge(cls.status || 'active')}
@@ -238,7 +238,7 @@ export default function ClassesLanding() {
                       </div>
                     )}
 
-                    <div className="flex items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
                       <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
                         <Users className="w-4 h-4 text-slate-400" />
                         {cls.enrollmentCount || 0} thành viên
@@ -251,13 +251,13 @@ export default function ClassesLanding() {
                       )}
                     </div>
 
-                    <div className="flex items-center justify-between pt-2">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
                       <span className={`text-xs font-black uppercase tracking-widest ${colorTheme.text}`}>ENTER CLASS →</span>
                       <button
                         type="button"
                         onClick={(e) => openLeaveConfirmation(e, cls.id)}
                         disabled={leavingClassId === cls.id || !cls.id}
-                        className="text-xs font-bold px-3 py-1.5 rounded-lg border-2 border-red-100 text-red-500 hover:bg-red-50 hover:border-red-200 transition-colors disabled:opacity-50"
+                        className="text-xs font-bold px-3 py-2 sm:py-1.5 rounded-lg border-2 border-red-100 text-red-500 hover:bg-red-50 hover:border-red-200 transition-colors disabled:opacity-50"
                       >
                         {leavingClassId === cls.id ? 'LEAVING...' : 'LEAVE'}
                       </button>

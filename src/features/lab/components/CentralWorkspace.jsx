@@ -11,7 +11,13 @@ export default function CentralWorkspace({ placedItems, scale, setScale, selecte
   // MỚI: Tọa độ dịch chuyển (Pan) của Canvas và trạng thái Panning
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
-  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+  const panRef = useRef(pan);
+  const panStartRef = useRef({ x: 0, y: 0 });
+
+  const updatePan = (nextPan) => {
+    panRef.current = nextPan;
+    setPan(nextPan);
+  };
 
   const setRefs = (element) => {
     containerRef.current = element;
@@ -38,18 +44,18 @@ export default function CentralWorkspace({ placedItems, scale, setScale, selecte
     const mouseY = e.clientY - rect.top;
 
     // 4. Công thức toán học: Tính toán độ dịch chuyển (Pan) để giữ cố định điểm dưới chuột
-    const newPanX = mouseX - ((mouseX - pan.x) * (newScale / scale));
-    const newPanY = mouseY - ((mouseY - pan.y) * (newScale / scale));
+    const newPanX = mouseX - ((mouseX - panRef.current.x) * (newScale / scale));
+    const newPanY = mouseY - ((mouseY - panRef.current.y) * (newScale / scale));
 
     setScale(newScale);
-    setPan({ x: newPanX, y: newPanY });
+    updatePan({ x: newPanX, y: newPanY });
   };
 
   // Nút bấm thủ công cũng phải dùng toán học tương tự (zoom vào giữa màn hình)
   const handleManualZoom = (type) => {
     if (type === 'reset') {
       setScale(1);
-      setPan({ x: 0, y: 0 });
+      updatePan({ x: 0, y: 0 });
       return;
     }
 
@@ -58,42 +64,51 @@ export default function CentralWorkspace({ placedItems, scale, setScale, selecte
     const centerY = rect.height / 2;
 
     const newScale = type === 'in' ? Math.min(scale * 1.2, 3.0) : Math.max(scale * 0.8, 0.5);
-    const newPanX = centerX - ((centerX - pan.x) * (newScale / scale));
-    const newPanY = centerY - ((centerY - pan.y) * (newScale / scale));
+    const newPanX = centerX - ((centerX - panRef.current.x) * (newScale / scale));
+    const newPanY = centerY - ((centerY - panRef.current.y) * (newScale / scale));
 
     setScale(newScale);
-    setPan({ x: newPanX, y: newPanY });
+    updatePan({ x: newPanX, y: newPanY });
   };
 
   // ---------------- PANNING LOGIC ----------------
   const handlePointerDown = (e) => {
-    // Check if clicked directly on canvas background (empty space)
-    if (e.target.id === 'experiment-canvas') {
+    const clickedItem = e.target.closest('[data-canvas-item="true"]');
+    const clickedControl = e.target.closest('button, input, textarea, select, [data-canvas-control="true"]');
+    if (clickedControl) return;
+
+    // Check if clicked on canvas background (empty space)
+    if (!clickedItem) {
       setSelectedItemId(null);
     }
 
     // Only pan if Middle Click OR Left Click on the exact canvas background 
     // (ignores clicks on draggable items so @dnd-kit still works)
-    if (e.button === 1 || (e.button === 0 && e.target.id === 'experiment-canvas')) {
+    if (e.button === 1 || (e.button === 0 && !clickedItem)) {
       e.preventDefault();
+      e.currentTarget.setPointerCapture?.(e.pointerId);
       setIsPanning(true);
-      setPanStart({
-        x: e.clientX - pan.x,
-        y: e.clientY - pan.y
-      });
+      const nextPanStart = {
+        x: e.clientX - panRef.current.x,
+        y: e.clientY - panRef.current.y
+      };
+      panStartRef.current = nextPanStart;
     }
   };
 
   const handlePointerMove = (e) => {
     if (!isPanning) return;
     e.preventDefault(); // Prevent text selection while dragging
-    setPan({
-      x: e.clientX - panStart.x,
-      y: e.clientY - panStart.y
+    updatePan({
+      x: e.clientX - panStartRef.current.x,
+      y: e.clientY - panStartRef.current.y
     });
   };
 
-  const handlePointerUp = () => {
+  const handlePointerUp = (e) => {
+    if (e.currentTarget.hasPointerCapture?.(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
     setIsPanning(false);
   };
   // -----------------------------------------------
@@ -105,12 +120,18 @@ export default function CentralWorkspace({ placedItems, scale, setScale, selecte
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      onLostPointerCapture={() => setIsPanning(false)}
       onPointerLeave={handlePointerUp}
-      className={`relative w-full flex-1 border-4 rounded-[2rem] overflow-hidden shadow-inner border-slate-200 bg-slate-50 ${isPanning ? 'cursor-grabbing' : 'cursor-default'}`}
+      id="experiment-canvas"
+      ref={setRefs}
+      data-pan-x={pan.x}
+      data-pan-y={pan.y}
+      className={`relative w-full flex-1 touch-none select-none border-4 rounded-[2rem] overflow-hidden shadow-inner border-slate-200 bg-slate-50 ${isPanning ? 'cursor-grabbing' : 'cursor-grab'}`}
     >
       
       {/* Nút bấm điều khiển (Zoom Controls) */}
-      <div className="absolute top-6 right-6 flex flex-col gap-2 z-50">
+      <div data-canvas-control="true" className="absolute top-6 right-6 flex flex-col gap-2 z-50">
         <button onClick={() => handleManualZoom('in')} className="p-2 bg-white rounded-full shadow-md text-slate-600 hover:text-blue-600 hover:bg-slate-50">
           <ZoomIn className="w-5 h-5" />
         </button>
@@ -128,9 +149,7 @@ export default function CentralWorkspace({ placedItems, scale, setScale, selecte
 
       {/* KHUNG INNER: Cái này sẽ bay lượn và phóng to thu nhỏ */}
       <div 
-        id="experiment-canvas" /* Cho phép xác định nhấp chuột vào nền, bỏ qua item */
-        ref={setRefs} 
-        className={`w-full h-full relative ${isOver ? 'bg-blue-50/40' : ''} ${!isPanning && 'cursor-grab'}`}
+        className={`absolute inset-0 h-full w-full ${isOver ? 'bg-blue-50/40' : ''} ${!isPanning && 'cursor-grab'}`}
         style={{
           backgroundImage: 'radial-gradient(#cbd5e1 2px, transparent 2px)',
           backgroundSize: '30px 30px',
