@@ -1,5 +1,5 @@
-import React from 'react';
-import { Trophy, Frown, Home, Star } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Home, Play, SkipForward, Star } from 'lucide-react';
 
 /**
  * BattleResultModal — Full-screen overlay shown when battle ends.
@@ -10,9 +10,63 @@ import { Trophy, Frown, Home, Star } from 'lucide-react';
  *  - onLeave: () => void
  */
 export default function BattleResultModal({ result, myStudentId, onLeave }) {
+  const [showCutscene, setShowCutscene] = useState(true);
+  const [needsManualPlay, setNeedsManualPlay] = useState(false);
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    if (!result || !showCutscene || !videoRef.current) return;
+
+    const playPromise = videoRef.current.play();
+    if (playPromise?.catch) {
+      playPromise.catch(() => setNeedsManualPlay(true));
+    }
+  }, [result, showCutscene]);
+
   if (!result) return null;
 
-  const isWinner = result.winnerId === myStudentId;
+  const isWinner = String(result.winnerId) === String(myStudentId);
+  const cutsceneSrc = isWinner ? '/VictoryCutscene.mp4' : '/DefeatCutscene.mp4';
+
+  if (showCutscene) {
+    return (
+      <div className="fixed inset-0 z-[100] bg-black animate-in fade-in duration-500">
+        <video
+          ref={videoRef}
+          src={cutsceneSrc}
+          className="h-full w-full object-cover"
+          autoPlay
+          playsInline
+          controls={needsManualPlay}
+          onEnded={() => setShowCutscene(false)}
+          onError={() => setShowCutscene(false)}
+        />
+
+        {needsManualPlay && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+            <button
+              onClick={() => {
+                setNeedsManualPlay(false);
+                videoRef.current?.play()?.catch(() => setNeedsManualPlay(true));
+              }}
+              className="flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-black text-slate-950 shadow-xl transition hover:scale-105"
+            >
+              <Play className="h-5 w-5 fill-current" />
+              Phát cutscene
+            </button>
+          </div>
+        )}
+
+        <button
+          onClick={() => setShowCutscene(false)}
+          className="absolute right-4 top-4 flex items-center gap-2 rounded-full bg-black/60 px-4 py-2 text-sm font-black text-white backdrop-blur transition hover:bg-black/80"
+        >
+          <SkipForward className="h-4 w-4" />
+          Bỏ qua
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-500">
