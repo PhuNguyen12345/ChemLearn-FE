@@ -165,8 +165,10 @@ export default function RegisterPage() {
   };
 
   const validateBeforeSubmit = () => {
-    const usernameError = getUsernameError(formData.username);
-    const fullNameError = getFullNameError(formData.fullName);
+    const normalizedUsername = formData.username.trim();
+    const normalizedFullName = formData.fullName.trim();
+    const usernameError = getUsernameError(normalizedUsername);
+    const fullNameError = getFullNameError(normalizedFullName);
 
     setFieldErrors({
       username: usernameError,
@@ -202,11 +204,14 @@ export default function RegisterPage() {
 
     setIsLoading(true);
 
+    const normalizedUsername = formData.username.trim();
+    const normalizedFullName = formData.fullName.trim();
+
     try {
       await api.post('/api/auth/register', {
-        username: formData.username,
+        username: normalizedUsername,
         email: formData.email,
-        fullName: formData.fullName,
+        fullName: normalizedFullName,
         password: formData.password,
         gradeLevel: Number(formData.gradeLevel),
         gender: formData.gender,
@@ -355,7 +360,7 @@ export default function RegisterPage() {
                 )}
 
                 {/* Form fields */}
-                <form onSubmit={handleRegister} className="space-y-4">
+                <form onSubmit={handleRegister} noValidate className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <Label htmlFor="gradeLevel" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
@@ -407,8 +412,6 @@ export default function RegisterPage() {
                         placeholder="Nhập tên đăng nhập..."
                         value={formData.username}
                         onChange={(e) => handleFieldChange('username', e.target.value)}
-                        pattern="^\\S+$"
-                        title="Tên đăng nhập không được chứa khoảng trắng"
                         required
                         className={`bg-slate-50 text-slate-900 placeholder-slate-400 focus:bg-white focus:ring-blue-100 pl-10 ${fieldErrors.username ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-blue-500'}`}
                       />
@@ -432,8 +435,6 @@ export default function RegisterPage() {
                         placeholder="Nhập đầy đủ họ tên..."
                         value={formData.fullName}
                         onChange={(e) => handleFieldChange('fullName', e.target.value)}
-                        pattern="^[\\p{L}]+(?: [\\p{L}]+)*$"
-                        title="Họ và tên chỉ được chứa chữ cái và khoảng trắng"
                         required
                         className={`bg-slate-50 text-slate-900 placeholder-slate-400 focus:bg-white focus:ring-blue-100 pl-10 ${fieldErrors.fullName ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-blue-500'}`}
                       />

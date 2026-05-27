@@ -32,8 +32,8 @@ const USERNAME_REGEX = /^\S+$/;
 const FULL_NAME_REGEX = /^[\p{L}]+(?: [\p{L}]+)*$/u;
 
 const getUsernameError = (value) => {
-  if (!value.trim()) return 'Username is required.';
-  if (!USERNAME_REGEX.test(value)) return 'Username must not contain whitespace.';
+  if (!value.trim()) return 'Vui lòng nhập username.';
+  if (!USERNAME_REGEX.test(value)) return 'Username không được chứa khoảng trắng.';
   return '';
 };
 
@@ -169,8 +169,10 @@ export default function RequestAccessPage() {
   };
 
   const validateBeforeSubmit = () => {
-    const usernameError = getUsernameError(username);
-    const fullNameError = getFullNameError(fullName);
+    const normalizedUsername = username.trim();
+    const normalizedFullName = fullName.trim();
+    const usernameError = getUsernameError(normalizedUsername);
+    const fullNameError = getFullNameError(normalizedFullName);
 
     setFieldErrors({
       username: usernameError,
@@ -206,10 +208,13 @@ export default function RequestAccessPage() {
 
     setIsLoading(true);
 
+    const normalizedUsername = username.trim();
+    const normalizedFullName = fullName.trim();
+
     try {
       await api.post('/api/auth/register', {
-        username,
-        fullName,
+        username: normalizedUsername,
+        fullName: normalizedFullName,
         email,
         role,
         password,
@@ -371,7 +376,7 @@ export default function RequestAccessPage() {
                 )}
 
                 {/* Form fields */}
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} noValidate className="space-y-4">
                   <div className="space-y-1.5">
                     <Label htmlFor="username" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
                       Username
