@@ -189,7 +189,7 @@ const IslandNode = ({ island, posX, posY, onClick, isSelected }) => {
           >
             {/* 25% Larger Island circle wrapper */}
             <div className={`
-              relative w-28 h-28 sm:w-32 sm:h-32 rounded-full
+              relative w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full
               bg-gradient-to-br ${island.color}
               border-[4px] ${island.neonBorder}
               shadow-2xl ${island.neonShadow}
@@ -220,7 +220,7 @@ const IslandNode = ({ island, posX, posY, onClick, isSelected }) => {
             </div>
 
             <div className={`
-              mt-2 px-3 py-1.5 rounded-xl text-center min-w-[120px] max-w-[160px]
+              mt-2 px-2.5 py-1.5 rounded-xl text-center min-w-[90px] max-w-[130px] sm:min-w-[120px] sm:max-w-[160px]
               bg-slate-900/80 backdrop-blur-md border border-white/10
             `}>
               <p className={`text-xs font-black leading-tight ${island.unlocked ? 'text-white' : 'text-slate-500'}`}>
@@ -251,11 +251,22 @@ const IslandDetailPanel = ({ island, onClose, onNavigate }) => {
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 400, opacity: 0 }}
       transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-      className="absolute right-4 top-20 bottom-20 w-80 z-40 flex flex-col"
+      className="absolute inset-x-3 bottom-3 top-auto sm:inset-x-auto sm:right-4 sm:top-20 sm:bottom-20 sm:w-80 z-40 flex flex-col max-h-[72dvh] sm:max-h-none"
+      onClick={(e) => e.stopPropagation()}
+      onPointerDown={(e) => e.stopPropagation()}
     >
-      <div className="flex-1 bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl overflow-hidden relative">
+      <div className="flex-1 bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-3xl p-4 sm:p-6 shadow-2xl overflow-y-auto overflow-x-hidden relative">
         <div className={`absolute top-0 left-0 right-0 h-32 bg-gradient-to-b ${island.bgGradient} to-transparent pointer-events-none`} />
-        <button onClick={onClose} className="absolute top-4 right-4 z-10 text-white/60 hover:text-white transition-colors text-xl">✕</button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+          className="absolute top-4 right-4 z-10 text-white/60 hover:text-white transition-colors text-xl"
+          aria-label="Đóng chi tiết đảo"
+        >
+          ✕
+        </button>
 
         <div className="relative z-10 flex flex-col h-full">
           <div className="flex items-center gap-3 mb-4">
@@ -598,7 +609,7 @@ export default function ProgressMap({ onBack, setActiveTab }) {
     const maxStars = nodes.length * 3;
 
     return (
-      <div className="relative w-full h-full min-h-[600px] overflow-hidden rounded-[2rem] select-none flex flex-col justify-between p-6">
+      <div className="relative w-full h-full min-h-[calc(100dvh-5.5rem)] sm:min-h-[600px] overflow-hidden rounded-[2rem] select-none flex flex-col justify-between p-4 sm:p-6">
         {/* Deep space/ocean background identical to the islands page */}
         <div className="absolute inset-0 z-0" style={{ background: 'linear-gradient(to bottom, #0a0e27, #0d1540, #081028)' }} />
 
@@ -642,7 +653,7 @@ export default function ProgressMap({ onBack, setActiveTab }) {
         </div>
 
         {/* SUBMAP ROAD */}
-        <div className="relative flex-1 w-full min-h-0 py-8">
+        <div className="relative flex-1 w-full min-h-0 py-6 sm:py-8">
           <svg className="absolute inset-0 w-full h-full pointer-events-none z-10">
             {nodes.map((node, i) => {
               if (i === 0) return null;
@@ -770,7 +781,7 @@ export default function ProgressMap({ onBack, setActiveTab }) {
       : (isBoss ? 500 : 300);
 
     return (
-      <div className="relative w-full h-full min-h-[600px] overflow-hidden rounded-[2rem] select-none flex flex-col justify-between p-4">
+      <div className="relative w-full h-full min-h-[calc(100dvh-5.5rem)] sm:min-h-[600px] overflow-hidden rounded-[2rem] select-none flex flex-col justify-between p-3 sm:p-4">
         {/* Deep space/ocean background identical to the islands page */}
         <div className="absolute inset-0 z-0" style={{ background: 'linear-gradient(to bottom, #0a0e27, #0d1540, #081028)' }} />
 
@@ -790,7 +801,7 @@ export default function ProgressMap({ onBack, setActiveTab }) {
         </AnimatePresence>
 
         {/* TOP STATUS BAR */}
-        <div className="relative z-10 flex justify-between items-start w-full shrink-0">
+        <div className="relative z-10 flex justify-between items-start w-full shrink-0 gap-2 flex-wrap">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setActiveView('submap')}
@@ -816,7 +827,7 @@ export default function ProgressMap({ onBack, setActiveTab }) {
             </div>
           </div>
 
-          <div className="flex flex-col gap-1.5 items-end">
+          <div className="flex flex-col gap-1.5 items-end ml-auto">
             <div className="bg-black/50 px-5 py-1.5 rounded-xl border border-white/10 backdrop-blur-md font-bold text-xs tracking-wider text-orange-200 uppercase">
               {isBoss ? 'Ải Trùm Cuối' : 'Ải Câu Hỏi'}
             </div>
@@ -868,8 +879,8 @@ export default function ProgressMap({ onBack, setActiveTab }) {
           {/* Dynamic Monster Visual floating */}
           <div className={`absolute left-1/2 -translate-x-1/2 flex items-center justify-center transition-all duration-300
             ${isBoss
-              ? 'w-[550px] h-[520px] pb-36'
-              : 'w-[280px] h-[340px] top-[35%] sm:top-[28%]'
+              ? 'w-[320px] h-[300px] sm:w-[550px] sm:h-[520px] pb-8 sm:pb-36 top-[34%] sm:top-auto'
+              : 'w-[180px] h-[220px] sm:w-[280px] sm:h-[340px] top-[35%] sm:top-[28%]'
             }
           `}>
             <motion.div
@@ -891,8 +902,8 @@ export default function ProgressMap({ onBack, setActiveTab }) {
               }
               className={`relative flex items-end justify-center pointer-events-none transition-all duration-300
                 ${isBoss
-                  ? 'w-[620px] sm:w-[680px] h-[100%]'
-                  : 'w-[180px] sm:w-[240px] h-[100%]'
+                  ? 'w-[360px] sm:w-[680px] h-[100%]'
+                  : 'w-[140px] sm:w-[240px] h-[100%]'
                 }
               `}
             >
@@ -929,7 +940,7 @@ export default function ProgressMap({ onBack, setActiveTab }) {
           <motion.div
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className={`w-full max-w-full mx-auto shrink-0 ${theme.panelBg} border-t p-4 sm:p-5 rounded-2xl shadow-[0_-10px_35px_rgba(0,0,0,0.8)] backdrop-blur-xl relative flex flex-col items-center mt-auto z-20`}
+            className={`w-full max-w-full mx-auto shrink-0 ${theme.panelBg} border-t p-3 sm:p-5 rounded-2xl shadow-[0_-10px_35px_rgba(0,0,0,0.8)] backdrop-blur-xl relative flex flex-col items-center mt-auto z-20`}
           >
             <div className={`absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r ${theme.panelLine}`} />
 
@@ -1056,7 +1067,7 @@ export default function ProgressMap({ onBack, setActiveTab }) {
      ═══════════════════════════════════════════════════════════ */
   const renderWorldMap = () => {
     return (
-      <div className="relative w-full h-full min-h-[600px] overflow-hidden select-none">
+      <div className="relative w-full h-full min-h-[calc(100dvh-5.5rem)] sm:min-h-[600px] overflow-hidden select-none rounded-[2rem]">
         {/* === DEEP OCEAN BACKGROUND === */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0a0e27] via-[#0d1540] to-[#081028] z-0" />
 
@@ -1078,7 +1089,7 @@ export default function ProgressMap({ onBack, setActiveTab }) {
         ))}
 
         {/* === TOP HEADER BAR === */}
-        <div className="absolute top-0 left-0 right-0 z-30 p-4 sm:p-6 flex items-center justify-between">
+        <div className="absolute top-0 left-0 right-0 z-30 p-3 sm:p-6 flex items-center justify-between gap-2">
           {onBack && (
             <button
               onClick={onBack}
@@ -1093,7 +1104,7 @@ export default function ProgressMap({ onBack, setActiveTab }) {
               <Atom className="w-7 h-7 text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
             </motion.div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight drop-shadow-md">
+              <h1 className="text-base sm:text-2xl font-black text-white tracking-tight drop-shadow-md">
                 Elemental Archipelago
               </h1>
               <p className="text-[10px] sm:text-xs text-cyan-300/70 font-bold uppercase tracking-widest">
@@ -1143,16 +1154,26 @@ export default function ProgressMap({ onBack, setActiveTab }) {
         {/* === DETAIL PANEL === */}
         <AnimatePresence>
           {selectedIsland && (
-            <IslandDetailPanel
-              island={selectedIsland}
-              onClose={() => setSelectedIsland(null)}
-              onNavigate={handleNavigate}
-            />
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 z-30 bg-black/20 sm:bg-black/10"
+                onClick={() => setSelectedIsland(null)}
+                onPointerDown={(e) => e.stopPropagation()}
+              />
+              <IslandDetailPanel
+                island={selectedIsland}
+                onClose={() => setSelectedIsland(null)}
+                onNavigate={handleNavigate}
+              />
+            </>
           )}
         </AnimatePresence>
 
         {/* === BOTTOM LEGEND === */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-4 bg-white/5 backdrop-blur-md px-5 py-2.5 rounded-full border border-white/10">
+        <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 sm:gap-4 bg-white/5 backdrop-blur-md px-3 sm:px-5 py-2 sm:py-2.5 rounded-full border border-white/10 max-w-[92vw] overflow-x-auto whitespace-nowrap">
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]" />
             <span className="text-[10px] text-slate-300 font-bold">Hoàn thành</span>
@@ -1174,7 +1195,7 @@ export default function ProgressMap({ onBack, setActiveTab }) {
 
   if (isLoading || isLoadingQuestions) {
     return (
-      <div className="flex h-[600px] items-center justify-center bg-slate-900 rounded-[2rem]">
+      <div className="flex h-[calc(100dvh-5.5rem)] sm:h-[600px] items-center justify-center bg-slate-900 rounded-[2rem]">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin" />
           <p className="text-slate-400 text-xs font-bold uppercase tracking-wider animate-pulse">

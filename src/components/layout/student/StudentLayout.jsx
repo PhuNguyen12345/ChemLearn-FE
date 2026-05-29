@@ -1,10 +1,13 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import Footer from '../shared/Footer';
 
 const StudentLayout = () => {
+  const { pathname } = useLocation();
+  const isStudentHome = pathname === '/student/home' || pathname === '/student';
+
   return (
     <div className="flex h-screen w-full bg-background text-foreground overflow-hidden">
       {/* Fixed Sidebar on Desktop */}
@@ -23,7 +26,7 @@ const StudentLayout = () => {
           </div>
         </main>
 
-        <Footer />
+        {isStudentHome && <Footer />}
       </div>
     </div>
   );

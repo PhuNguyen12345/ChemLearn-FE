@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   LoaderCircle,
   BookOpen,
+  ChevronLeft,
 } from 'lucide-react';
 import {
   getStudyChapters,
@@ -17,6 +18,7 @@ const StudyZone = () => {
   const [lessonDetail, setLessonDetail] = useState(null);
   const [loadingLesson, setLoadingLesson] = useState(false);
   const [error, setError] = useState('');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const hasLessons = chapters.some((chapter) => (chapter.lessons || []).length > 0);
 
   useEffect(() => {
@@ -57,8 +59,26 @@ const StudyZone = () => {
   }, [activeLessonId]);
 
   return (
-    <div className="flex min-h-[calc(100vh-9rem)] w-full bg-slate-50 flex-col lg:flex-row overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
-      <ChapterSidebar chapters={chapters} activeLessonId={activeLessonId} onSelectLesson={setActiveLessonId} />
+    <div className="relative flex min-h-[calc(100vh-9rem)] w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-sm flex-col lg:flex-row">
+      <ChapterSidebar
+        chapters={chapters}
+        activeLessonId={activeLessonId}
+        onSelectLesson={setActiveLessonId}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
+
+      {!isSidebarOpen && (
+        <button
+          type="button"
+          onClick={() => setIsSidebarOpen(true)}
+          className="absolute right-4 top-4 z-30 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-lg shadow-slate-900/10 transition hover:-translate-y-0.5 hover:bg-slate-50 hover:text-slate-950"
+          title="Hiển thị danh sách chương"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Chương học
+        </button>
+      )}
 
       <div className="flex-1 min-w-0 overflow-y-auto bg-white relative flex flex-col">
         {error && (
