@@ -20,8 +20,8 @@ const StudentLayout = () => {
         <Header />
 
         {/* Router Outlet content scrolls */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto w-full bg-muted/30">
-          <div className="p-3 sm:p-4 md:p-6 lg:p-8 mx-auto max-w-7xl w-full min-h-[calc(100vh-8rem)]">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto w-full bg-muted/30 flex flex-col">
+          <div className="p-3 sm:p-4 md:p-6 lg:p-8 mx-auto max-w-7xl w-full flex flex-col flex-1 min-h-[calc(100vh-8rem)] relative">
             <Outlet />
           </div>
         </main>
