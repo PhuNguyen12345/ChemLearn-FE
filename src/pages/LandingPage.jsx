@@ -578,15 +578,15 @@ const LandingPage = () => {
                 </div>
 
                 {/* High-Fidelity Mock UI Container (GIF) */}
-                <div className="relative flex-1 bg-[#0f172a] border border-slate-700 rounded-3xl shadow-[0_0_50px_rgba(16,185,129,0.15)] overflow-hidden z-10 group-hover:-translate-y-2 transition-transform duration-500 w-full aspect-video">
+                <div className="relative flex-1 bg-[#0f172a] border border-slate-700 rounded-3xl shadow-[0_0_50px_rgba(16,185,129,0.15)] overflow-hidden z-10 group-hover:-translate-y-2 transition-transform duration-500 w-full">
                   {/* MacOS style window header */}
                   <div className="absolute top-0 left-0 right-0 h-8 bg-slate-800/80 backdrop-blur-sm flex items-center px-4 gap-2 z-20 border-b border-slate-700">
                     <div className="w-3 h-3 rounded-full bg-red-500/80 shadow-sm"></div>
                     <div className="w-3 h-3 rounded-full bg-yellow-500/80 shadow-sm"></div>
                     <div className="w-3 h-3 rounded-full bg-emerald-500/80 shadow-sm"></div>
                   </div>
-                  <div className="w-full h-full pt-8 p-1.5 bg-slate-900 flex items-center justify-center">
-                    <img src={virtualLabDemo} alt="Virtual Lab Demo" className="w-full h-full object-cover rounded-2xl border border-slate-800 opacity-90 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="w-full pt-8 p-1.5 bg-slate-900 flex items-center justify-center">
+                    <img src={virtualLabDemo} alt="Virtual Lab Demo" className="w-full h-auto object-contain rounded-2xl border border-slate-800 opacity-90 group-hover:opacity-100 transition-opacity duration-500" />
                   </div>
                 </div>
                 
