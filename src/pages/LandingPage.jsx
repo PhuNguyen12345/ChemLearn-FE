@@ -21,6 +21,8 @@ import {
   DropdownMenuTrigger,
 } from "../components/ui/dropdown-menu";
 
+import virtualLabDemo from '../assets/virtual_lab_demo.gif';
+
 const featureStyles = `
 @keyframes bubble-rise {
   0% { transform: translateY(0) scale(0.5); opacity: 0; }
@@ -563,6 +565,33 @@ const LandingPage = () => {
 
                 {/* Decorative blob */}
                 <div className="absolute top-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+              </div>
+
+              {/* Card 3: Virtual Lab Demo */}
+              <div className="group relative bg-indigo-950/40 backdrop-blur-xl border border-white/10 rounded-[3rem] p-10 overflow-hidden shadow-2xl hover:shadow-emerald-500/20 transition-all duration-500 md:col-span-2 flex flex-col md:flex-row items-center gap-10">
+                <div className="relative z-10 flex-1">
+                  <span className="inline-block px-4 py-1.5 bg-emerald-500/20 text-emerald-300 text-xs font-black rounded-full border border-emerald-400/30 uppercase tracking-widest">
+                    Thực hành
+                  </span>
+                  <h3 className="text-3xl font-black mt-4 text-white">Phòng Thí Nghiệm Ảo</h3>
+                  <p className="text-purple-200 mt-4 font-medium text-lg leading-relaxed">Trải nghiệm các phản ứng hóa học sinh động, an toàn tuyệt đối với công cụ mô phỏng trực quan. Tự do khám phá, pha chế hóa chất mà không lo ngại rủi ro cháy nổ ngoài đời thực!</p>
+                </div>
+
+                {/* High-Fidelity Mock UI Container (GIF) */}
+                <div className="relative flex-1 bg-[#0f172a] border border-slate-700 rounded-3xl shadow-[0_0_50px_rgba(16,185,129,0.15)] overflow-hidden z-10 group-hover:-translate-y-2 transition-transform duration-500 w-full aspect-video">
+                  {/* MacOS style window header */}
+                  <div className="absolute top-0 left-0 right-0 h-8 bg-slate-800/80 backdrop-blur-sm flex items-center px-4 gap-2 z-20 border-b border-slate-700">
+                    <div className="w-3 h-3 rounded-full bg-red-500/80 shadow-sm"></div>
+                    <div className="w-3 h-3 rounded-full bg-yellow-500/80 shadow-sm"></div>
+                    <div className="w-3 h-3 rounded-full bg-emerald-500/80 shadow-sm"></div>
+                  </div>
+                  <div className="w-full h-full pt-8 p-1.5 bg-slate-900 flex items-center justify-center">
+                    <img src={virtualLabDemo} alt="Virtual Lab Demo" className="w-full h-full object-cover rounded-2xl border border-slate-800 opacity-90 group-hover:opacity-100 transition-opacity duration-500" />
+                  </div>
+                </div>
+                
+                {/* Decorative blob */}
+                <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2 pointer-events-none group-hover:bg-emerald-500/20 transition-colors duration-500" />
               </div>
             </div>
           </div>
