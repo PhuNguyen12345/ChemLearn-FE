@@ -22,6 +22,7 @@ import {
 } from "../components/ui/dropdown-menu";
 
 import virtualLabDemo from '../assets/virtual_lab_demo.gif';
+import logoImg from '../assets/logo.png';
 
 const featureStyles = `
 @keyframes bubble-rise {
@@ -115,39 +116,36 @@ const LandingPage = () => {
         <div className="container mx-auto px-6 h-20 flex items-center justify-between max-w-7xl">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="p-2 bg-cyan-400 rounded-2xl text-white group-hover:bg-cyan-500 transition-colors shadow-md shadow-cyan-500/50">
-              <FlaskConical className="w-6 h-6" />
+            <div className="bg-white rounded-2xl group-hover:bg-cyan-50 transition-colors shadow-md shadow-cyan-500/30 flex items-center justify-center w-11 h-11 overflow-hidden">
+              <img src={logoImg} alt="ChemLearn Logo" className="w-full h-full object-contain p-1 mix-blend-multiply" />
             </div>
             <span className="text-2xl font-extrabold text-white tracking-tight">
               Chem<span className="text-cyan-400">Learn</span>
             </span>
           </Link>
 
-          {/* Desktop Links — colorful pill buttons */}
-          <div className="hidden md:flex items-center space-x-2 text-sm font-bold">
-            <Link to="/" className="rounded-full px-4 py-1.5 bg-blue-500 text-white hover:bg-blue-600 transition-colors shadow-sm shadow-blue-200">
+          {/* Desktop Links — Minimalist Anchor Links */}
+          <div className="hidden md:flex items-center space-x-8 text-base font-bold">
+            <a href="#" className="relative text-purple-100/90 hover:text-white transition-colors py-2 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-cyan-400 hover:after:w-full after:transition-all after:duration-300">
               Trang chủ
-            </Link>
-            <a href="#features" className="rounded-full px-4 py-1.5 bg-green-500 text-white hover:bg-green-600 transition-colors shadow-sm shadow-green-200">
-              Bài học
             </a>
-            <Link to="/lab" className="rounded-full px-4 py-1.5 bg-yellow-400 text-white hover:bg-yellow-500 transition-colors shadow-sm shadow-yellow-200">
-              Phòng thí nghiệm
-            </Link>
-            <a href="#showcase" className="rounded-full px-4 py-1.5 bg-orange-400 text-white hover:bg-orange-500 transition-colors shadow-sm shadow-orange-200">
-              Bài kiểm tra
+            <a href="#features" className="relative text-purple-100/90 hover:text-white transition-colors py-2 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-cyan-400 hover:after:w-full after:transition-all after:duration-300">
+              Tính năng
             </a>
-            <Link to="/teacher/dashboard" className="rounded-full px-4 py-1.5 bg-purple-500 text-white hover:bg-purple-600 transition-colors shadow-sm shadow-purple-200">
-              Giáo viên
-            </Link>
+            <a href="#how-it-works" className="relative text-purple-100/90 hover:text-white transition-colors py-2 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-cyan-400 hover:after:w-full after:transition-all after:duration-300">
+              Mô phỏng
+            </a>
+            <a href="#showcase" className="relative text-purple-100/90 hover:text-white transition-colors py-2 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-cyan-400 hover:after:w-full after:transition-all after:duration-300">
+              Thí nghiệm
+            </a>
           </div>
 
           {/* Actions */}
-          <div className="hidden md:flex items-center space-x-3">
-            <Link to="/login" variant="ghost" className="rounded-full text-slate-600 hover:text-cyan-600 hover:bg-cyan-50 font-bold px-6">
+          <div className="hidden md:flex items-center space-x-4">
+            <Link to="/login" className="text-purple-100 hover:text-white font-bold px-4 py-2 transition-colors border border-transparent hover:border-white/20 rounded-full">
               Đăng nhập
             </Link>
-            <Link to="/register" className="rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600 text-white font-bold px-6 shadow-md shadow-cyan-200">
+            <Link to="/register" className="rounded-full bg-cyan-500 hover:bg-cyan-400 text-white font-extrabold px-6 py-2 transition-all shadow-[0_0_15px_rgba(34,211,238,0.4)] hover:shadow-[0_0_25px_rgba(34,211,238,0.6)] hover:-translate-y-0.5">
               Đăng ký
             </Link>
           </div>
@@ -604,8 +602,8 @@ const LandingPage = () => {
           <div className="grid md:grid-cols-4 gap-12 mb-16">
             <div className="col-span-2">
               <Link to="/" className="flex items-center gap-2 mb-6 group inline-flex">
-                <div className="p-2 bg-white/20 rounded-xl group-hover:bg-white/30 transition-colors">
-                  <FlaskConical className="w-6 h-6 text-white" />
+                <div className="bg-white rounded-xl group-hover:bg-slate-100 transition-colors flex items-center justify-center w-10 h-10 shadow-sm overflow-hidden">
+                  <img src={logoImg} alt="ChemLearn Logo" className="w-full h-full object-contain p-1 mix-blend-multiply" />
                 </div>
                 <span className="text-2xl font-extrabold tracking-tight text-white">ChemLearn</span>
               </Link>
