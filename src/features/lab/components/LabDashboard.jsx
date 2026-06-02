@@ -107,7 +107,7 @@ const LabDashboard = () => {
       {/* ══════════════════════════════════════════════
           BANNER HEADER
       ══════════════════════════════════════════════ */}
-      <div className="m-4 md:m-6 rounded-[2rem] bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 p-7 md:p-10 relative overflow-hidden shadow-2xl shadow-purple-400/30">
+      <div className="shrink-0 min-h-[240px] flex flex-col justify-center m-4 md:m-6 rounded-[2rem] bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 p-7 md:p-10 relative overflow-hidden shadow-2xl shadow-purple-400/30">
         {/* Decorative blobs */}
         <div className="absolute -top-12 -right-12 w-56 h-56 bg-white/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-10 -left-8 w-44 h-44 bg-pink-400/20 rounded-full blur-2xl pointer-events-none" />
