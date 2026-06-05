@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { BookOpen, ChevronDown, ChevronLeft } from 'lucide-react';
 
 const ChapterSidebar = ({ chapters = [], activeLessonId, onSelectLesson, isOpen = true, onClose }) => {
   const [expandedChapters, setExpandedChapters] = useState({});
+  const activeLessonRef = useRef(null);
 
   useEffect(() => {
     const nextExpandedChapters = {};
@@ -20,6 +21,30 @@ const ChapterSidebar = ({ chapters = [], activeLessonId, onSelectLesson, isOpen 
       [chapterId]: !current[chapterId],
     }));
   };
+
+  useEffect(() => {
+    if (!isOpen || !activeLessonId) return undefined;
+
+    const activeChapter = chapters.find((chapter) =>
+      (chapter.lessons || []).some((lesson) => String(lesson.id) === String(activeLessonId))
+    );
+
+    if (activeChapter) {
+      setExpandedChapters((current) => ({
+        ...current,
+        [activeChapter.id]: true,
+      }));
+    }
+
+    const scrollTimer = window.setTimeout(() => {
+      activeLessonRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }, 120);
+
+    return () => window.clearTimeout(scrollTimer);
+  }, [activeLessonId, chapters, isOpen]);
 
   return (
     <aside
@@ -96,6 +121,7 @@ const ChapterSidebar = ({ chapters = [], activeLessonId, onSelectLesson, isOpen 
                       <li key={lesson.id}>
                         <button
                           type="button"
+                          ref={isActive ? activeLessonRef : null}
                           onClick={() => onSelectLesson(lesson.id)}
                           className={`group flex w-full items-center gap-2.5 rounded-xl border-b-[3px] px-3 py-2.5 text-left text-sm transition-all duration-200 ${
                             isActive

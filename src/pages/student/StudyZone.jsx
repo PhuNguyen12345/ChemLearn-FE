@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   LoaderCircle,
   BookOpen,
@@ -19,6 +19,17 @@ const StudyZone = () => {
   const [error, setError] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const hasLessons = chapters.some((chapter) => (chapter.lessons || []).length > 0);
+  const orderedLessons = useMemo(
+    () => chapters.flatMap((chapter) => chapter?.lessons || []),
+    [chapters]
+  );
+  const activeLessonIndex = orderedLessons.findIndex(
+    (lesson) => String(lesson.id) === String(activeLessonId)
+  );
+  const previousLesson = activeLessonIndex > 0 ? orderedLessons[activeLessonIndex - 1] : null;
+  const nextLesson = activeLessonIndex >= 0 && activeLessonIndex < orderedLessons.length - 1
+    ? orderedLessons[activeLessonIndex + 1]
+    : null;
 
   useEffect(() => {
     const loadChapters = async () => {
@@ -98,7 +109,12 @@ const StudyZone = () => {
         )}
 
         {!loadingLesson && lessonDetail && (
-          <LessonContent lessonDetail={lessonDetail} />
+          <LessonContent
+            lessonDetail={lessonDetail}
+            previousLesson={previousLesson}
+            nextLesson={nextLesson}
+            onNavigateLesson={handleSelectLesson}
+          />
         )}
 
         {!loadingLesson && !lessonDetail && (

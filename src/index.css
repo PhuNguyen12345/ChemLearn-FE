@@ -331,6 +331,51 @@ button:focus-visible {
   margin: 0.25rem 0;
 }
 
+.chem-formula {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.chem-reaction-arrow {
+  display: inline-flex;
+  min-width: 2.75em;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+.chem-arrow-label {
+  font-size: 0.72em;
+  line-height: 1;
+}
+
+.chem-fraction {
+  display: inline-grid;
+  grid-template-rows: auto auto;
+  align-items: center;
+  justify-items: center;
+  vertical-align: middle;
+  line-height: 1.05;
+}
+
+.chem-fraction > span:first-child {
+  border-bottom: 1px solid currentColor;
+  padding: 0 0.18em 0.08em;
+}
+
+.chem-fraction > span:last-child {
+  padding: 0.08em 0.18em 0;
+}
+
+.chem-formula sub,
+.chem-formula sup,
+.tiptap-content sub,
+.tiptap-content sup {
+  font-size: 0.72em;
+  line-height: 0;
+}
+
 .tiptap-content blockquote {
   border-left: 4px solid #e2e8f0;
   padding-left: 1rem;

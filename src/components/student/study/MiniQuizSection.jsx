@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { CheckCircle2, CircleAlert, HelpCircle, LoaderCircle, RefreshCcw, Send } from 'lucide-react';
 import { submitLessonMiniQuiz } from '../../../lib/api';
+import { formatChemistryText } from '../../../utils/chemistryFormatting';
 
 const OPTION_KEYS = [
   ['A', 'optionA'],
@@ -106,7 +107,10 @@ const MiniQuizSection = ({ lessonId, questions = [] }) => {
                   <div className="text-xs font-black uppercase tracking-wide text-indigo-600">
                     Câu hỏi {index + 1}
                   </div>
-                  <p className="mt-1 text-sm font-bold leading-6 text-slate-800">{question.prompt}</p>
+                  <p
+                    className="mt-1 text-sm font-bold leading-6 text-slate-800"
+                    dangerouslySetInnerHTML={{ __html: formatChemistryText(question.prompt || '') }}
+                  />
                 </div>
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black uppercase text-slate-500">
                   {type === 'MULTIPLE_CHOICE' ? 'Chọn tất cả' : 'Chọn một'}
@@ -136,7 +140,10 @@ const MiniQuizSection = ({ lessonId, questions = [] }) => {
                       }`}>
                         {letter}
                       </span>
-                      <span className="text-sm font-semibold leading-5">{optionText}</span>
+                      <span
+                        className="text-sm font-semibold leading-5"
+                        dangerouslySetInnerHTML={{ __html: formatChemistryText(optionText) }}
+                      />
                     </button>
                   );
                 })}
