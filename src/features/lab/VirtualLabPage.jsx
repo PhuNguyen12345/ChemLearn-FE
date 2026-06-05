@@ -25,6 +25,22 @@ export default function VirtualLabPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [isPhoneViewport, setIsPhoneViewport] = useState(false);
+  const navigateTimeoutsRef = React.useRef([]);
+
+  const scheduleNavigation = React.useCallback((to, delay = 1500) => {
+    const timeoutId = window.setTimeout(() => {
+      navigateTimeoutsRef.current = navigateTimeoutsRef.current.filter((id) => id !== timeoutId);
+      navigate(to);
+    }, delay);
+    navigateTimeoutsRef.current.push(timeoutId);
+  }, [navigate]);
+
+  React.useEffect(() => {
+    return () => {
+      navigateTimeoutsRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId));
+      navigateTimeoutsRef.current = [];
+    };
+  }, []);
 
   // ── Lifecycle: fetch, save, reset, modal ─────────────────────────────────
   const {
@@ -48,7 +64,7 @@ export default function VirtualLabPage() {
   const handleTimeUp = async () => {
     const success = await handleSubmitAssignment();
     if (success) {
-      setTimeout(() => navigate('/student/virtual-lab'), 1500);
+      scheduleNavigation('/student/virtual-lab');
     }
   };
 
@@ -194,7 +210,7 @@ export default function VirtualLabPage() {
               onSubmitClick={async () => {
                 const success = await handleSubmitAssignment();
                 if (success) {
-                  setTimeout(() => navigate('/student/virtual-lab'), 1500);
+                  scheduleNavigation('/student/virtual-lab');
                 }
               }}
               onSaveClick={() => {
