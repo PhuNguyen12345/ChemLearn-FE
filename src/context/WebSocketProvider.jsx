@@ -66,10 +66,17 @@ export const WebSocketProvider = ({ children }) => {
 
   const disconnect = useCallback(() => {
     if (clientRef.current) {
+      Object.values(subscriptionsRef.current).forEach((subscription) => {
+        try {
+          subscription.unsubscribe();
+        } catch {
+          // Ignore stale STOMP subscriptions during teardown.
+        }
+      });
+      subscriptionsRef.current = {};
       clientRef.current.deactivate();
       clientRef.current = null;
       setConnected(false);
-      subscriptionsRef.current = {};
     }
   }, []);
 
@@ -132,6 +139,14 @@ export const WebSocketProvider = ({ children }) => {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      Object.values(subscriptionsRef.current).forEach((subscription) => {
+        try {
+          subscription.unsubscribe();
+        } catch {
+          // Ignore stale STOMP subscriptions during provider unmount.
+        }
+      });
+      subscriptionsRef.current = {};
       if (clientRef.current) {
         clientRef.current.deactivate();
       }

@@ -23,6 +23,15 @@ export default function BattleResultModal({ result, myStudentId, onLeave }) {
     }
   }, [result, showCutscene]);
 
+  useEffect(() => {
+    return () => {
+      if (!videoRef.current) return;
+      videoRef.current.pause();
+      videoRef.current.removeAttribute('src');
+      videoRef.current.load();
+    };
+  }, []);
+
   if (!result) return null;
 
   const isWinner = String(result.winnerId) === String(myStudentId);

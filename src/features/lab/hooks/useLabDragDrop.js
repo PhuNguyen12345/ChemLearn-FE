@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useLabStore } from '../stores/useLabStore';
 import { PHYSICAL_STATE } from '../data/constants';
@@ -25,6 +25,7 @@ import { TEMPLATE_TO_CONTENT, EMPTY_DROP_LIQUID_COLOR } from '../data/chemicalMa
  */
 export function useLabDragDrop({ scale, inventory }) {
   const [activeDragData, setActiveDragData] = useState(null);
+  const reactionTimeoutsRef = useRef([]);
 
   const {
     setWorkspace: setPlacedItems,
@@ -32,6 +33,13 @@ export function useLabDragDrop({ scale, inventory }) {
     completeTask,
     labType,
   } = useLabStore();
+
+  useEffect(() => {
+    return () => {
+      reactionTimeoutsRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId));
+      reactionTimeoutsRef.current = [];
+    };
+  }, []);
 
   // ─── Active drag item for DragOverlay preview ───────────────────────────────
   const activeDragItem = useMemo(() => {
@@ -187,13 +195,15 @@ export function useLabDragDrop({ scale, inventory }) {
               if (reaction.reactionInfo) setReactionInfo(reaction.reactionInfo);
 
               if (reaction.clearStateAfter) {
-                setTimeout(() => {
+                const timeoutId = window.setTimeout(() => {
+                  reactionTimeoutsRef.current = reactionTimeoutsRef.current.filter((id) => id !== timeoutId);
                   setPlacedItems(curr =>
                     curr.map(it =>
                       it.instanceId === instanceToUpdate ? { ...it, reactionState: null, gasContent: null } : it
                     )
                   );
                 }, reaction.clearStateAfter);
+                reactionTimeoutsRef.current.push(timeoutId);
               }
             } else if (!currentContent) {
               // ── EMPTY CONTAINER: deposit chemical ─────────────────────────

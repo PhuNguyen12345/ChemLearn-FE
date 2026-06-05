@@ -1,7 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export function useLabTimer(durationMinutes, onTimeUp, isActive) {
   const [timeRemaining, setTimeRemaining] = useState(durationMinutes * 60);
+  const onTimeUpRef = useRef(onTimeUp);
+
+  useEffect(() => {
+    onTimeUpRef.current = onTimeUp;
+  }, [onTimeUp]);
 
   useEffect(() => {
     // Nếu thời gian thay đổi từ store, cập nhật lại (VD: lúc fetch xong)
@@ -15,7 +20,7 @@ export function useLabTimer(durationMinutes, onTimeUp, isActive) {
       setTimeRemaining((prev) => {
         if (prev <= 1) {
           clearInterval(intervalId);
-          if (onTimeUp) onTimeUp();
+          if (onTimeUpRef.current) onTimeUpRef.current();
           return 0;
         }
         return prev - 1;
@@ -23,7 +28,7 @@ export function useLabTimer(durationMinutes, onTimeUp, isActive) {
     }, 1000);
 
     return () => clearInterval(intervalId);
-  }, [isActive, timeRemaining, onTimeUp]);
+  }, [durationMinutes, isActive]);
 
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');

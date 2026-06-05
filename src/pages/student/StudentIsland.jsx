@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStudentStore } from '../../stores/useStudentStore';
 import { Coins, ArrowLeft, Heart, Zap } from 'lucide-react';
@@ -30,6 +30,7 @@ const getPetImage = (url, name) => {
 const StudentIsland = ({ onBack }) => {
   const { coins, setCoins, spendCoins } = useStudentStore();
   const navigate = useNavigate();
+  const isMountedRef = useRef(true);
 
   const [ownedPets, setOwnedPets] = useState([]);
   const [shopItems, setShopItems] = useState([]);
@@ -42,7 +43,7 @@ const StudentIsland = ({ onBack }) => {
   const [gachaResult, setGachaResult] = useState(null);
 
   // Fetch Data
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const [petsRes, shopRes, invRes, coinsRes] = await Promise.all([
         getMyPets(),
@@ -50,22 +51,29 @@ const StudentIsland = ({ onBack }) => {
         getMyInventory(),
         getMyCoins()
       ]);
+      if (!isMountedRef.current) return;
       setOwnedPets(petsRes);
       setShopItems(shopRes);
       setFoodItems(invRes.filter(item => item.itemType === 'FOOD'));
       setCoins(coinsRes);
     } catch (error) {
+      if (!isMountedRef.current) return;
       console.error("Failed to load pet data:", error);
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current) setIsLoading(false);
     }
-  };
+  }, [setCoins]);
 
   useEffect(() => {
+    isMountedRef.current = true;
     loadData();
-  }, []);
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, [loadData]);
 
   useEffect(() => {
+    if (ownedPets.length === 0) return;
     // Generate initial positions
     const initialPos = {};
     ownedPets.forEach((pet, i) => {

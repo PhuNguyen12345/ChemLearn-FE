@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { toast } from 'sonner';
 import debounce from 'lodash/debounce';
 import confetti from 'canvas-confetti';
@@ -28,6 +28,16 @@ export function useLabLifecycle(labId) {
   const [saveState, setSaveState] = useState('idle');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const idleTimeoutRef = useRef(null);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      window.clearTimeout(idleTimeoutRef.current);
+    };
+  }, []);
 
   // Store selectors
   const { initFromTemplate, loadLabProgress, resetLabState } = useLabStore();
@@ -41,6 +51,7 @@ export function useLabLifecycle(labId) {
 
   // ─── 1. Fetch & initialise lab on mount ────────────────────────────────────
   useEffect(() => {
+    let isCancelled = false;
     const fetchLab = async () => {
       setIsLoading(true);
       try {
@@ -59,19 +70,24 @@ export function useLabLifecycle(labId) {
         
         useLabStore.getState().setInventoryItems(backwardCompatibleInventory);
         
+        if (isCancelled || !isMountedRef.current) return;
         // TODO: select task list by category from BE. Using AXIT_BAZO for now.
         loadLabProgress(data, LAB_TASKS_MOCK.AXIT_BAZO);
       } catch (error) {
+        if (isCancelled || !isMountedRef.current) return;
         console.error('Lỗi khi tải bài lab:', error);
         toast.error('Không thể tải bài thực hành. Vui lòng thử lại sau.', { position: 'bottom-right' });
       } finally {
-        setIsLoading(false);
+        if (!isCancelled && isMountedRef.current) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchLab();
 
     return () => {
+      isCancelled = true;
       useLabStore.getState().clearWorkspace();
     };
   }, [labId, initFromTemplate, loadLabProgress]);
@@ -95,9 +111,12 @@ export function useLabLifecycle(labId) {
   // ─── 3. Auto-save debounce ──────────────────────────────────────────────────
   const debouncedSave = useMemo(
     () => debounce(async (payload) => {
+      if (!isMountedRef.current) return;
+      window.clearTimeout(idleTimeoutRef.current);
       setSaveState('saving');
       try {
         await saveVirtualLabProgress(labId, payload);
+        if (!isMountedRef.current) return;
         
         // Nạp lại Gamification Profile nếu hoàn thành bài (để update UI XP/Vàng)
         if (payload.status === 'COMPLETED') {
@@ -110,8 +129,11 @@ export function useLabLifecycle(labId) {
         }
 
         setSaveState('saved');
-        setTimeout(() => setSaveState('idle'), 2000);
+        idleTimeoutRef.current = window.setTimeout(() => {
+          if (isMountedRef.current) setSaveState('idle');
+        }, 2000);
       } catch (error) {
+        if (!isMountedRef.current) return;
         console.error('Lỗi khi lưu tiến trình lab:', error);
         setSaveState('idle');
         toast.error('Mất kết nối! Chưa thể lưu tiến trình lab.', { position: 'bottom-right' });
@@ -121,6 +143,12 @@ export function useLabLifecycle(labId) {
   );
 
   // ─── 4. Auto-save trigger on state change ──────────────────────────────────
+  useEffect(() => {
+    return () => {
+      debouncedSave.cancel();
+    };
+  }, [debouncedSave]);
+
   useEffect(() => {
     const payload = {
       currentScore: currentProgress.score,

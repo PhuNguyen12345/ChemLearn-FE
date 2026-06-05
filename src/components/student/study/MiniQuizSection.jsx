@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { CheckCircle2, CircleAlert, HelpCircle, LoaderCircle, RefreshCcw, Send } from 'lucide-react';
 import { submitLessonMiniQuiz } from '../../../lib/api';
+import { useBiMascot } from '../mascot/BiMascot';
 
 const OPTION_KEYS = [
   ['A', 'optionA'],
@@ -16,6 +17,7 @@ const normalizeQuestionType = (question) => {
 };
 
 const MiniQuizSection = ({ lessonId, questions = [] }) => {
+  const { speak } = useBiMascot();
   const [answers, setAnswers] = useState({});
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
@@ -61,6 +63,11 @@ const MiniQuizSection = ({ lessonId, questions = [] }) => {
         }))
       });
       setResult(response);
+      speak(
+        response.passed
+          ? `Tuyệt lắm! Bạn làm đúng ${response.correctAnswers}/${response.totalQuestions} câu mini quiz. Giữ nhịp này là kiến thức sẽ chắc dần đó.`
+          : `Mình chưa qua lần này, nhưng không sao. Bạn đúng ${response.correctAnswers}/${response.totalQuestions} câu rồi. Hãy đọc lại phần liên quan và thử lại, Bi ở đây cùng bạn.`
+      );
     } catch (err) {
       setError(err?.response?.data?.message || 'Failed to submit mini quiz.');
     } finally {
