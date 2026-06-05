@@ -5,6 +5,7 @@ import { useStudentStore } from '../stores/useStudentStore';
 import bgImage from '../assets/quiz-background.png';
 import bossImage from '../assets/fireboss1.png';
 import attackImage from '../assets/attack2.png';
+import { useBiMascot } from './student/mascot/BiMascot';
 
 const QUESTIONS = [
   { id: 1, question: "Ký hiệu hóa học của Sắt là gì?", options: ["Fe", "Cu", "Ag", "Au"], answer: "Fe" },
@@ -24,6 +25,7 @@ const INITIAL_LIVES = 3;
 const HP_REDUCTION = 20;
 
 export default function FireQuizGame({ onBack, onGoShop }) {
+  const { speak } = useBiMascot();
   const { addCoins, inventory, consumeItem } = useStudentStore();
   const [gameState, setGameState] = useState('playing'); // 'playing', 'gameover', 'victory'
   const [hp, setHp] = useState(INITIAL_HP);
@@ -107,6 +109,7 @@ export default function FireQuizGame({ onBack, onGoShop }) {
     playSound(isCorrect);
 
     if (isCorrect) {
+      speak('Chính xác! Đòn đánh đẹp lắm. Bạn vừa biến kiến thức hóa học thành sát thương thật sự đó.');
       // Trigger correct animations
       setShowExplosion(true);
       setMonsterShake(prev => prev + 1);
@@ -121,6 +124,7 @@ export default function FireQuizGame({ onBack, onGoShop }) {
         if (newHp <= 0) {
           setTimeout(() => {
           setGameState('victory');
+          speak('Chiến thắng rồi! Bạn đã giữ bình tĩnh và dùng kiến thức để hạ boss. Nhận thưởng thôi nào.');
           addCoins(50);
         }, 1500);
         } else {
@@ -129,6 +133,7 @@ export default function FireQuizGame({ onBack, onGoShop }) {
       }, 1000); // Wait for explosion animation
 
     } else {
+      speak('Sai một câu không làm mình yếu đi đâu. Hãy nhìn lại từ khóa trong đề, loại đáp án vô lý trước rồi thử câu tiếp theo nhé.');
       // Trigger incorrect animations
       setScreenFlashHit(true);
       const newLives = lives - 1;
@@ -138,6 +143,7 @@ export default function FireQuizGame({ onBack, onGoShop }) {
         setScreenFlashHit(false);
         if (newLives <= 0) {
           setGameState('gameover');
+          speak('Mình tạm thua lượt này thôi. Nghỉ vài giây, xem lại các câu vừa gặp rồi vào lại, Bi tin bạn phục hồi được.');
         } else {
           nextQuestion();
         }

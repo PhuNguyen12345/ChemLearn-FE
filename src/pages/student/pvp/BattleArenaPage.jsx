@@ -8,6 +8,7 @@ import SkillBar from './components/SkillBar';
 import BattleLog from './components/BattleLog';
 import BattleResultModal from './components/BattleResultModal';
 import { Swords, WifiOff, Loader2, Users, ArrowLeft } from 'lucide-react';
+import { useBiMascot } from '../../../components/student/mascot/BiMascot';
 
 /**
  * BattleArenaPage — Main PVP battle container.
@@ -22,6 +23,7 @@ const PHASE = {
 };
 
 export default function BattleArenaPage({ selectedPetId, onBack }) {
+  const { speak } = useBiMascot();
   const { connected, reconnecting, connect, subscribe, unsubscribe, send } = useWebSocket();
   const { level } = useStudentStore();
   const { user } = useAuthStore();
@@ -36,6 +38,7 @@ export default function BattleArenaPage({ selectedPetId, onBack }) {
   const [timeLeft, setTimeLeft] = useState(30);
   const [questionAnswered, setQuestionAnswered] = useState(false);
   const timerRef = useRef(null);
+  const lastSpokenActionRef = useRef('');
 
   const myStudentId = gameState?.player1Id === myId ? gameState?.player1Id : gameState?.player2Id;
   const isMyTurn = gameState?.currentTurnPlayerId === myId;
@@ -87,8 +90,13 @@ export default function BattleArenaPage({ selectedPetId, onBack }) {
     setBattleResult(result);
     setPhase(PHASE.GAME_OVER);
     addLog(`🏁 Trận đấu kết thúc! Người thắng: ${result.winnerName}`);
+    speak(
+      String(result.winnerId) === String(myId)
+        ? 'Thắng trận PVP rồi! Bạn trả lời và chọn nhịp chiến đấu rất tốt. Pet của mình chắc đang tự hào lắm.'
+        : 'Mình thua trận này, nhưng đã có thêm kinh nghiệm. Lần sau đọc kỹ câu hỏi, giữ bình tĩnh và mình sẽ phản công tốt hơn.'
+    );
     clearInterval(timerRef.current);
-  }, []);
+  }, [myId, speak]);
 
   const updatePhase = (state) => {
     if (state.status === 'FINISHED' || state.status?.includes('WON')) {
@@ -122,6 +130,17 @@ export default function BattleArenaPage({ selectedPetId, onBack }) {
       NEW_TURN: `🎯 Đến lượt: ${state.currentTurnIndex === 0 ? p1 : p2}`,
     };
     if (messages[state.lastActionResult]) addLog(messages[state.lastActionResult]);
+    const actionKey = `${state.roomId || ''}-${state.lastActionResult || ''}-${state.currentTurnIndex || 0}-${state.lastDamageDealt || 0}`;
+    if (lastSpokenActionRef.current !== actionKey) {
+      lastSpokenActionRef.current = actionKey;
+      if (state.lastActionResult === 'CORRECT') {
+        speak('PVP trả lời đúng rồi! Đây là lúc tận dụng lợi thế và gây áp lực lên đối thủ.');
+      } else if (state.lastActionResult === 'WRONG') {
+        speak('Có người vừa trả lời sai. Nếu là lượt của mình thì bình tĩnh lại nhé, câu sau mình đọc chậm hơn một nhịp.');
+      } else if (state.lastActionResult === 'TIMEOUT') {
+        speak('Hết giờ là mất lượt. Lần tới mình chọn đáp án chắc nhất trước, đừng để đồng hồ ép quá lâu nha.');
+      }
+    }
   };
 
   const triggerDamageEffect = (state) => {

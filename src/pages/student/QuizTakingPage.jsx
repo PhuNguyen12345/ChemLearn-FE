@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
+import { useBiMascot } from '../../components/student/mascot/BiMascot';
 
 /* ─────────────────────────────────────────────
    Constants & Utilities
@@ -34,6 +35,7 @@ const formatTime = (seconds) => {
 const QuizTakingPage = () => {
   const { quizId } = useParams();
   const navigate = useNavigate();
+  const { speak } = useBiMascot();
 
   // Data state
   const [quiz, setQuiz] = useState(null);
@@ -175,6 +177,15 @@ const QuizTakingPage = () => {
       const resultData = await submitQuizAttempt(attemptId, payload);
       setResults(resultData);
       setIsCompleted(true);
+      if (resultData?.status === 'NEEDS_GRADING') {
+        speak('Bạn đã nộp bài rồi. Phần tự luận cần thầy cô chấm thêm, còn bây giờ mình có thể xem lại phần nào chưa chắc để chuẩn bị tốt hơn.');
+      } else if ((resultData?.score || 0) >= 80) {
+        speak(`Xuất sắc! Bạn đạt ${resultData.score}%. Bi thấy bạn đang nắm bài rất chắc, nhớ giữ phong độ này nhé.`);
+      } else if ((resultData?.score || 0) >= 50) {
+        speak(`Làm tốt rồi! Bạn đạt ${resultData.score}%. Mình chỉ cần vá thêm vài lỗ hổng nhỏ là lần sau sẽ mạnh hơn.`);
+      } else {
+        speak(`Bài này hơi khó, nhưng mình chưa thua đâu. Bạn đạt ${resultData?.score || 0}%, giờ hãy xem lại các câu sai và thử chia nhỏ kiến thức ra nhé.`);
+      }
     } catch (err) {
       setError(err?.response?.data?.message || 'Failed to submit quiz. Please contact your teacher.');
     } finally {

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Lock, Star, Sparkles, Zap, FlaskConical, BookOpen, Flame, Droplets, Building2, Atom, Heart, Skull, Crown, ShoppingBag, Shield } from 'lucide-react';
 import { getProgressMap, getNodeQuestions, completeNode, getGamificationProfile } from '../../api/studentApi';
 import { useStudentStore } from '../../stores/useStudentStore';
+import { useBiMascot } from '../../components/student/mascot/BiMascot';
 
 /* ═══════════════════════════════════════════════════════════
    THEMING SYSTEM FOR DIFFERENT ISLAND ARENAS
@@ -345,6 +346,7 @@ const IslandDetailPanel = ({ island, onClose, onNavigate }) => {
    MAIN CONTAINER COMPONENT: ProgressMap
    ═══════════════════════════════════════════════════════════ */
 export default function ProgressMap({ onBack, setActiveTab }) {
+  const { speak } = useBiMascot();
   const { coins, addCoins, inventory, consumeItem, setGamificationProfile } = useStudentStore();
 
   const [activeView, setActiveView] = useState('world'); // 'world' | 'submap' | 'game'
@@ -503,6 +505,7 @@ export default function ProgressMap({ onBack, setActiveTab }) {
     const ACTUAL_DAMAGE = hasStaff ? 40 : hasSword ? 30 : (isBoss ? 10 : 20);
 
     if (isCorrect) {
+      speak('Đúng rồi! Câu này bạn xử lý tốt đó. Cứ giữ nhịp đọc đề như vậy, mình sẽ qua đảo nhanh thôi.');
       // Visual feedback
       setShowExplosion(true);
       setMonsterShake(prev => prev + 1);
@@ -546,12 +549,14 @@ export default function ProgressMap({ onBack, setActiveTab }) {
 
           setTimeout(() => {
             setGameState('victory');
+            speak(`Hoàn thành ải rồi! Bạn nhận được ${earnedStars} sao. Mỗi sao là một dấu mốc tiến bộ rất đáng tự hào.`);
           }, 1000);
         } else {
           nextQuestion();
         }
       }, 1000);
     } else {
+      speak('Chưa đúng rồi, nhưng mình vừa tìm được chỗ cần ôn. Hãy chú ý dữ kiện trong đề và thử loại trừ đáp án không liên quan nhé.');
       // Wrong Answer Visual Feedback
       setScreenFlashHit(true);
       const newLives = lives - 1;
@@ -561,6 +566,7 @@ export default function ProgressMap({ onBack, setActiveTab }) {
         setScreenFlashHit(false);
         if (newLives <= 0) {
           setGameState('gameover');
+          speak('Mình hết lượt ở ải này rồi. Nghỉ một chút, xem lại kiến thức của đảo rồi quay lại đánh tiếp nha.');
         } else {
           nextQuestion();
         }
