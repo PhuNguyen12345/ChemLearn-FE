@@ -481,6 +481,11 @@ export const getVirtualLabs = async (params) => {
   return response.data;
 };
 
+export const getInventoryItems = async () => {
+  const response = await api.get('/api/lab/inventory');
+  return response.data;
+};
+
 export const enterVirtualLab = async (labId) => {
   const response = await api.get(`/api/v1/student/virtual-labs/${labId}`);
   return response.data;

@@ -6,7 +6,7 @@ import '/Lab2.css';
 import { RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { snapCenterToCursor } from '@dnd-kit/modifiers';
-import { INITIAL_INVENTORY, ITEM_TYPE, PHYSICAL_STATE } from './data/constants';
+import { ITEM_TYPE, PHYSICAL_STATE } from './data/constants';
 import { Toaster } from 'sonner';
 import { useLabStore } from './stores/useLabStore';
 import CentralWorkspace from './components/CentralWorkspace';
@@ -58,7 +58,7 @@ export default function VirtualLabPage() {
     labType === 'ASSIGNMENT' && !isLoading
   );
 
-  const [inventory] = useState(INITIAL_INVENTORY);
+  const inventory = useLabStore(state => state.inventoryItems);
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarView, setSidebarView] = useState('grid');
 

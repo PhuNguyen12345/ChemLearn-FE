@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import { useLabStore } from '../stores/useLabStore';
-import { INITIAL_INVENTORY, PHYSICAL_STATE } from '../data/constants';
+import { PHYSICAL_STATE } from '../data/constants';
 import { REACTION_MAP, getReactionKey } from '../data/reactionMap';
 import { TEMPLATE_TO_CONTENT, EMPTY_DROP_LIQUID_COLOR } from '../data/chemicalMappings';
 
@@ -197,7 +197,7 @@ export function useLabDragDrop({ scale, inventory }) {
               }
             } else if (!currentContent) {
               // ── EMPTY CONTAINER: deposit chemical ─────────────────────────
-              const originalItem = INITIAL_INVENTORY.find(item => item.id === draggedObj.templateId);
+              const originalItem = inventory.find(item => item.id === draggedObj.templateId);
               const isSolid = originalItem?.state === PHYSICAL_STATE.SOLID || draggedContentName.includes('(Rắn)');
 
               if (isSolid) {

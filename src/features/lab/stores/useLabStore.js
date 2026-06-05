@@ -254,5 +254,9 @@ export const useLabStore = create((set, get) => ({
     // Optional: save to local storage
     localStorage.setItem(`chemlearn_autosave_${state.lab_id}`, JSON.stringify(payload));
     return payload;
-  }
+  },
+
+  // Dynamic Inventory State
+  inventoryItems: [],
+  setInventoryItems: (items) => set({ inventoryItems: items })
 }));

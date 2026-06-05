@@ -4,7 +4,7 @@ import debounce from 'lodash/debounce';
 import confetti from 'canvas-confetti';
 import { useLabStore } from '../stores/useLabStore';
 import { LAB_TASKS_MOCK } from '../data/labTasksMock';
-import { saveVirtualLabProgress, enterVirtualLab, resetVirtualLab, renameVirtualLab } from '@/lib/api';
+import { saveVirtualLabProgress, enterVirtualLab, resetVirtualLab, renameVirtualLab, getInventoryItems } from '@/lib/api';
 import { getGamificationProfile } from '@/api/studentApi';
 import { useStudentStore } from '@/stores/useStudentStore';
 
@@ -44,7 +44,21 @@ export function useLabLifecycle(labId) {
     const fetchLab = async () => {
       setIsLoading(true);
       try {
-        const data = await enterVirtualLab(labId);
+        const [data, inventoryData] = await Promise.all([
+          enterVirtualLab(labId),
+          getInventoryItems()
+        ]);
+        
+        // ADAPTER LOGIC: Map the id to itemCode so that DnD kit and reaction map work flawlessly
+        const backwardCompatibleInventory = inventoryData.map(dbItem => ({
+          ...dbItem,
+          id: dbItem.itemCode,
+          // Extract nested properties safely if present
+          ...(dbItem.properties ? JSON.parse(dbItem.properties) : {})
+        }));
+        
+        useLabStore.getState().setInventoryItems(backwardCompatibleInventory);
+        
         // TODO: select task list by category from BE. Using AXIT_BAZO for now.
         loadLabProgress(data, LAB_TASKS_MOCK.AXIT_BAZO);
       } catch (error) {

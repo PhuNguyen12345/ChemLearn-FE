@@ -2,6 +2,7 @@ import React from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { GripVertical } from 'lucide-react';
 import { formatChemicalText } from '../utils/textFormatting';
+import DynamicIcon from './DynamicIcon';
 
 export default function DraggableItem({ item, viewMode, onClick, compact = false, disableDrag = false }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, isDragging } = useDraggable({ 
@@ -29,6 +30,11 @@ export default function DraggableItem({ item, viewMode, onClick, compact = false
     </div>
   ) : null;
 
+  const renderIcon = () => {
+    if (item.icon) return item.icon; // Fallback for hardcoded constants if any left
+    return <DynamicIcon iconName={item.iconName} iconColor={item.iconColor} iconFill={item.iconFill} className="w-8 h-8" />;
+  };
+
   if (viewMode === 'grid') {
     return (
       <div 
@@ -40,7 +46,7 @@ export default function DraggableItem({ item, viewMode, onClick, compact = false
         {...rootDragProps} onClick={onClick}
       >
         {dragHandle}
-        <div className={`text-slate-700 pointer-events-none ${compact && !disableDrag ? 'mb-1 scale-90 pr-5' : compact ? 'mb-1 scale-90' : 'mb-2'}`}>{item.icon}</div>
+        <div className={`text-slate-700 pointer-events-none ${compact && !disableDrag ? 'mb-1 scale-90 pr-5' : compact ? 'mb-1 scale-90' : 'mb-2'}`}>{renderIcon()}</div>
         <span className={`${compact ? 'text-[11px] leading-tight' : 'text-sm'} text-center font-bold text-slate-600 pointer-events-none`}>{formatChemicalText(item.name)}</span>
       </div>
     );
@@ -56,10 +62,10 @@ export default function DraggableItem({ item, viewMode, onClick, compact = false
       {...rootDragProps} onClick={onClick}
     >
       {dragHandle}
-      <div className={`${compact ? 'mr-2 p-1.5' : 'mr-4 p-2'} text-slate-700 pointer-events-none bg-slate-50 rounded-lg`}>{item.icon}</div>
+      <div className={`${compact ? 'mr-2 p-1.5' : 'mr-4 p-2'} text-slate-700 pointer-events-none bg-slate-50 rounded-lg`}>{renderIcon()}</div>
       <div className="pointer-events-none">
         <div className={`${compact ? 'text-xs' : 'text-sm'} font-bold text-slate-800`}>{formatChemicalText(item.name)}</div>
-        <div className={`${compact ? 'text-xs' : 'text-sm'} text-slate-500 line-clamp-1`}>{formatChemicalText(item.desc)}</div>
+        <div className={`${compact ? 'text-xs' : 'text-sm'} text-slate-500 line-clamp-1`}>{formatChemicalText(item.description || item.desc || '')}</div>
       </div>
     </div>
   );
