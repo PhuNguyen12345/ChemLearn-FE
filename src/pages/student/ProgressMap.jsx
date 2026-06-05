@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { ArrowLeft, Lock, Star, Sparkles, Zap, FlaskConical, BookOpen, Flame, Droplets, Building2, Atom, Heart, Skull, Crown, ShoppingBag, Shield } from 'lucide-react';
 import { getProgressMap, getNodeQuestions, completeNode, getGamificationProfile } from '../../api/studentApi';
 import { useStudentStore } from '../../stores/useStudentStore';
@@ -86,26 +86,39 @@ const islandPositions = [
   { x: 82, y: 60 }
 ];
 
+const PARTICLE_COLORS = ['bg-cyan-400', 'bg-blue-400', 'bg-purple-400', 'bg-pink-400', 'bg-emerald-400'];
+const PARTICLE_COUNT = 18;
+
+const createParticles = (count) => Array.from({ length: count }, (_, id) => ({
+  id,
+  x: Math.random() * 100,
+  y: Math.random() * 100,
+  size: 2 + Math.random() * 3,
+  delay: Math.random() * 3,
+  duration: 3.5 + Math.random() * 1.5,
+  color: PARTICLE_COLORS[Math.floor(Math.random() * PARTICLE_COLORS.length)],
+}));
+
 /* ═══════════════════════════════════════════════════════════
    Floating Particle Component
    ═══════════════════════════════════════════════════════════ */
-const FloatingParticle = ({ delay, x, y, size = 4, color = 'bg-cyan-400' }) => (
+const FloatingParticle = memo(({ delay, duration, x, y, size = 4, color = 'bg-cyan-400', reduceMotion }) => (
   <motion.div
-    className={`absolute rounded-full ${color} opacity-60`}
+    className={`absolute rounded-full ${color} opacity-60 will-change-transform`}
     style={{ width: size, height: size, left: `${x}%`, top: `${y}%` }}
-    animate={{
-      y: [0, -20, 0],
-      opacity: [0.3, 0.8, 0.3],
-      scale: [0.8, 1.2, 0.8],
+    animate={reduceMotion ? { opacity: 0.35 } : {
+      y: [0, -16, 0],
+      opacity: [0.25, 0.65, 0.25],
+      scale: [0.9, 1.12, 0.9],
     }}
-    transition={{ duration: 3 + Math.random() * 2, repeat: Infinity, delay }}
+    transition={{ duration, repeat: Infinity, delay }}
   />
-);
+));
 
 /* ═══════════════════════════════════════════════════════════
    Glowing Footprint path between islands
    ═══════════════════════════════════════════════════════════ */
-const GlowingPath = ({ fromX, fromY, toX, toY, active }) => {
+const GlowingPath = memo(({ fromX, fromY, toX, toY, active, reduceMotion }) => {
   const steps = 6;
   const footprints = useMemo(() => {
     const arr = [];
@@ -127,7 +140,10 @@ const GlowingPath = ({ fromX, fromY, toX, toY, active }) => {
           className="absolute z-10 pointer-events-none"
           style={{ left: `${fp.x}%`, top: `${fp.y}%`, transform: 'translate(-50%, -50%)' }}
           initial={{ opacity: 0, scale: 0 }}
-          animate={{
+          animate={reduceMotion ? {
+            opacity: active ? 0.55 : 0.15,
+            scale: active ? 0.95 : 0.6,
+          } : {
             opacity: active ? [0.2, 0.7, 0.2] : 0.15,
             scale: active ? [0.8, 1.1, 0.8] : 0.6,
           }}
@@ -142,12 +158,12 @@ const GlowingPath = ({ fromX, fromY, toX, toY, active }) => {
       ))}
     </>
   );
-};
+});
 
 /* ═══════════════════════════════════════════════════════════
    Star Display Component
    ═══════════════════════════════════════════════════════════ */
-const StarRating = ({ count }) => (
+const StarRating = memo(({ count }) => (
   <div className="flex gap-0.5">
     {[1, 2, 3].map((s) => (
       <Star
@@ -156,12 +172,12 @@ const StarRating = ({ count }) => (
       />
     ))}
   </div>
-);
+));
 
 /* ═══════════════════════════════════════════════════════════
    Single Island Component
    ═══════════════════════════════════════════════════════════ */
-const IslandNode = ({ island, posX, posY, onClick, isSelected }) => {
+const IslandNode = memo(({ island, posX, posY, onClick, isSelected, reduceMotion }) => {
   return (
     <div
       className="absolute z-20"
@@ -177,16 +193,16 @@ const IslandNode = ({ island, posX, posY, onClick, isSelected }) => {
           <motion.div
             className="absolute inset-[-15px] rounded-full opacity-40 z-0"
             style={{ background: `radial-gradient(circle, ${island.glowColor}, transparent 70%)` }}
-            animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.5, 0.3] }}
+            animate={reduceMotion ? { scale: 1, opacity: 0.35 } : { scale: [1, 1.12, 1], opacity: [0.25, 0.42, 0.25] }}
             transition={{ duration: 3, repeat: Infinity }}
           />
         )}
 
         <div className={`relative flex flex-col items-center gap-1 ${!island.unlocked ? 'opacity-40 grayscale' : ''}`}>
           <motion.div
-            animate={island.unlocked ? { y: [0, -8, 0] } : {}}
+            animate={island.unlocked && !reduceMotion ? { y: [0, -6, 0] } : {}}
             transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
-            className="flex flex-col items-center"
+            className="flex flex-col items-center will-change-transform"
           >
             {/* 25% Larger Island circle wrapper */}
             <div className={`
@@ -237,7 +253,7 @@ const IslandNode = ({ island, posX, posY, onClick, isSelected }) => {
       </motion.div>
     </div>
   );
-};
+});
 
 /* ═══════════════════════════════════════════════════════════
    Island Detail Panel (slide-in from right)
@@ -345,9 +361,12 @@ const IslandDetailPanel = ({ island, onClose, onNavigate }) => {
 /* ═══════════════════════════════════════════════════════════
    MAIN CONTAINER COMPONENT: ProgressMap
    ═══════════════════════════════════════════════════════════ */
-export default function ProgressMap({ onBack, setActiveTab }) {
+export default function ProgressMap({ onBack }) {
   const { speak } = useBiMascot();
-  const { coins, addCoins, inventory, consumeItem, setGamificationProfile } = useStudentStore();
+  const { addCoins, inventory, consumeItem, setGamificationProfile } = useStudentStore();
+  const reduceMotion = useReducedMotion();
+  const timeoutsRef = useRef([]);
+  const isMountedRef = useRef(true);
 
   const [activeView, setActiveView] = useState('world'); // 'world' | 'submap' | 'game'
   const [selectedIsland, setSelectedIsland] = useState(null);
@@ -355,10 +374,9 @@ export default function ProgressMap({ onBack, setActiveTab }) {
   const [gameQuestions, setGameQuestions] = useState([]);
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
 
-  const [bgParticles, setBgParticles] = useState([]);
   const [islands, setIslands] = useState([]);
-  const [mapData, setMapData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const bgParticles = useMemo(() => createParticles(reduceMotion ? 0 : PARTICLE_COUNT), [reduceMotion]);
 
   // Core gameplay states
   const [gameState, setGameState] = useState('playing'); // 'playing' | 'gameover' | 'victory'
@@ -370,27 +388,25 @@ export default function ProgressMap({ onBack, setActiveTab }) {
   const [monsterShake, setMonsterShake] = useState(0);
   const [screenFlashHit, setScreenFlashHit] = useState(false);
 
-  useEffect(() => {
-    fetchMapData();
-    const particles = [];
-    for (let i = 0; i < 40; i++) {
-      particles.push({
-        id: i,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        size: 2 + Math.random() * 4,
-        delay: Math.random() * 3,
-        color: ['bg-cyan-400', 'bg-blue-400', 'bg-purple-400', 'bg-pink-400', 'bg-emerald-400'][Math.floor(Math.random() * 5)],
-      });
-    }
-    setBgParticles(particles);
+  const clearScheduledWork = useCallback(() => {
+    timeoutsRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId));
+    timeoutsRef.current = [];
   }, []);
 
-  const fetchMapData = async () => {
+  const schedule = useCallback((callback, delay) => {
+    const timeoutId = window.setTimeout(() => {
+      timeoutsRef.current = timeoutsRef.current.filter((id) => id !== timeoutId);
+      callback();
+    }, delay);
+    timeoutsRef.current.push(timeoutId);
+    return timeoutId;
+  }, []);
+
+  const fetchMapData = useCallback(async ({ syncSelectedIsland = false } = {}) => {
     try {
       setIsLoading(true);
       const data = await getProgressMap();
-      setMapData(data);
+      if (!isMountedRef.current) return;
 
       const mappedIslands = data.islands.map((apiIsland, index) => {
         const style = ISLAND_STYLES[index % ISLAND_STYLES.length];
@@ -417,22 +433,33 @@ export default function ProgressMap({ onBack, setActiveTab }) {
 
       setIslands(mappedIslands);
 
-      // If in submap view, sync the selected island node status
-      if (selectedIsland) {
-        const updated = mappedIslands.find(i => i.id === selectedIsland.id);
-        if (updated) setSelectedIsland(updated);
+      if (syncSelectedIsland) {
+        setSelectedIsland((current) => {
+          if (!current) return current;
+          return mappedIslands.find(i => i.id === current.id) || current;
+        });
       }
     } catch (error) {
+      if (!isMountedRef.current) return;
       console.error('Lỗi tải bản đồ:', error);
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current) setIsLoading(false);
     }
-  };
+  }, []);
 
-  const handleNavigate = (island) => {
+  useEffect(() => {
+    isMountedRef.current = true;
+    fetchMapData();
+    return () => {
+      isMountedRef.current = false;
+      clearScheduledWork();
+    };
+  }, [clearScheduledWork, fetchMapData]);
+
+  const handleNavigate = useCallback((island) => {
     setSelectedIsland(island);
     setActiveView('submap');
-  };
+  }, []);
 
   const handleNodeClick = async (node) => {
     if (node.isLocked) return;
@@ -474,6 +501,7 @@ export default function ProgressMap({ onBack, setActiveTab }) {
         gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
         osc.start(ctx.currentTime);
         osc.stop(ctx.currentTime + 0.5);
+        osc.onended = () => ctx.close?.();
       } else {
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(150, ctx.currentTime);
@@ -482,6 +510,7 @@ export default function ProgressMap({ onBack, setActiveTab }) {
         gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
         osc.start(ctx.currentTime);
         osc.stop(ctx.currentTime + 0.3);
+        osc.onended = () => ctx.close?.();
       }
     } catch {
       // Audio can fail in some security contexts, bypass.
@@ -497,7 +526,6 @@ export default function ProgressMap({ onBack, setActiveTab }) {
     playSound(isCorrect);
 
     const isBoss = currentGameNode.nodeType === 'BOSS';
-    const bottleCount = inventory ? inventory.filter(i => i.id === 'bottle1').length : 0;
     const hasSword = inventory ? inventory.some(i => i.id === 'sword1') : false;
     const hasStaff = inventory ? inventory.some(i => i.id === 'staff1') : false;
 
@@ -510,11 +538,11 @@ export default function ProgressMap({ onBack, setActiveTab }) {
       setShowExplosion(true);
       setMonsterShake(prev => prev + 1);
 
-      setTimeout(() => {
+      schedule(() => {
         setMonsterShake(0);
       }, 600);
 
-      setTimeout(async () => {
+      schedule(async () => {
         setShowExplosion(false);
         const newHp = Math.max(0, hp - ACTUAL_DAMAGE);
         setHp(newHp);
@@ -528,7 +556,7 @@ export default function ProgressMap({ onBack, setActiveTab }) {
             await completeNode(currentGameNode.nodeId, earnedStars);
 
             // Re-fetch map data to immediately sync UI unlock states
-            await fetchMapData();
+            await fetchMapData({ syncSelectedIsland: true });
 
             // Re-sync full gamification profile (XP, level, coins) from backend
             try {
@@ -547,7 +575,7 @@ export default function ProgressMap({ onBack, setActiveTab }) {
             console.error("Lỗi lưu tiến trình:", err);
           }
 
-          setTimeout(() => {
+          schedule(() => {
             setGameState('victory');
             speak(`Hoàn thành ải rồi! Bạn nhận được ${earnedStars} sao. Mỗi sao là một dấu mốc tiến bộ rất đáng tự hào.`);
           }, 1000);
@@ -562,7 +590,7 @@ export default function ProgressMap({ onBack, setActiveTab }) {
       const newLives = lives - 1;
       setLives(newLives);
 
-      setTimeout(() => {
+      schedule(() => {
         setScreenFlashHit(false);
         if (newLives <= 0) {
           setGameState('gameover');
@@ -622,15 +650,17 @@ export default function ProgressMap({ onBack, setActiveTab }) {
         {/* Semi-transparent island color overlay */}
         <div className="absolute inset-0 z-0 opacity-30 pointer-events-none" style={theme.bgStyle} />
 
-        <motion.div
-          className={`absolute w-[400px] h-[400px] rounded-full bg-gradient-to-br ${selectedIsland.color} opacity-10 blur-[100px] pointer-events-none z-0`}
-          style={{ top: '20%', left: '30%' }}
-          animate={{ scale: [1, 1.2, 1] }}
-          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-        />
+        {!reduceMotion && (
+          <motion.div
+            className={`absolute w-[320px] h-[320px] rounded-full bg-gradient-to-br ${selectedIsland.color} opacity-10 blur-[80px] pointer-events-none z-0 will-change-transform`}
+            style={{ top: '20%', left: '30%' }}
+            animate={{ scale: [1, 1.12, 1] }}
+            transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+          />
+        )}
 
         {bgParticles.slice(0, 20).map((p) => (
-          <FloatingParticle key={`sub-${p.id}`} x={p.x} y={p.y} size={p.size} delay={p.delay} color={p.color} />
+          <FloatingParticle key={`sub-${p.id}`} {...p} reduceMotion={reduceMotion} />
         ))}
 
         {/* HEADER BAR */}
@@ -710,7 +740,7 @@ export default function ProgressMap({ onBack, setActiveTab }) {
                       <motion.div
                         className="absolute inset-[-6px] rounded-full opacity-35 z-0"
                         style={{ background: `radial-gradient(circle, ${theme.glow}, transparent 70%)` }}
-                        animate={{ scale: [1, 1.15, 1], opacity: [0.2, 0.4, 0.2] }}
+                        animate={reduceMotion ? { scale: 1, opacity: 0.25 } : { scale: [1, 1.12, 1], opacity: [0.18, 0.35, 0.18] }}
                         transition={{ duration: 2.5, repeat: Infinity }}
                       />
                     )}
@@ -896,10 +926,12 @@ export default function ProgressMap({ onBack, setActiveTab }) {
                 rotate: [-3, 3, -2, 2, 0],
                 scale: [1, 1.05, 1],
                 filter: ["brightness(1)", "brightness(2.5) hue-rotate(-30deg)", "brightness(1)"],
+              } : reduceMotion ? {
+                y: 0,
+                scale: 1,
               } : {
                 y: [0, -10, 0],
                 scale: [1, 1.03, 1],
-                filter: [`drop-shadow(0 0 20px ${theme.glow})`, `drop-shadow(0 0 45px ${theme.glow})`, `drop-shadow(0 0 20px ${theme.glow})`],
               }}
               transition={
                 monsterShake > 0
@@ -1077,21 +1109,25 @@ export default function ProgressMap({ onBack, setActiveTab }) {
         {/* === DEEP OCEAN BACKGROUND === */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0a0e27] via-[#0d1540] to-[#081028] z-0" />
 
-        <motion.div
-          className="absolute w-[600px] h-[600px] rounded-full bg-blue-600/10 blur-[120px] pointer-events-none z-0"
-          style={{ top: '-10%', left: '-10%' }}
-          animate={{ x: [0, 60, 0], y: [0, 40, 0] }}
-          transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="absolute w-[500px] h-[500px] rounded-full bg-purple-600/10 blur-[120px] pointer-events-none z-0"
-          style={{ bottom: '-10%', right: '-5%' }}
-          animate={{ x: [0, -40, 0], y: [0, -30, 0] }}
-          transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
-        />
+        {!reduceMotion && (
+          <>
+            <motion.div
+              className="absolute w-[420px] h-[420px] rounded-full bg-blue-600/10 blur-[90px] pointer-events-none z-0 will-change-transform"
+              style={{ top: '-10%', left: '-10%' }}
+              animate={{ x: [0, 40, 0], y: [0, 28, 0] }}
+              transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
+            />
+            <motion.div
+              className="absolute w-[360px] h-[360px] rounded-full bg-purple-600/10 blur-[90px] pointer-events-none z-0 will-change-transform"
+              style={{ bottom: '-10%', right: '-5%' }}
+              animate={{ x: [0, -28, 0], y: [0, -22, 0] }}
+              transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          </>
+        )}
 
         {bgParticles.map((p) => (
-          <FloatingParticle key={p.id} x={p.x} y={p.y} size={p.size} delay={p.delay} color={p.color} />
+          <FloatingParticle key={p.id} {...p} reduceMotion={reduceMotion} />
         ))}
 
         {/* === TOP HEADER BAR === */}
@@ -1106,7 +1142,7 @@ export default function ProgressMap({ onBack, setActiveTab }) {
           )}
 
           <div className="flex items-center gap-3">
-            <motion.div animate={{ rotate: 360 }} transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}>
+            <motion.div animate={reduceMotion ? {} : { rotate: 360 }} transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}>
               <Atom className="w-7 h-7 text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
             </motion.div>
             <div>
@@ -1138,6 +1174,7 @@ export default function ProgressMap({ onBack, setActiveTab }) {
               toX={next.x}
               toY={next.y}
               active={isActive}
+              reduceMotion={reduceMotion}
             />
           );
         })}
@@ -1153,6 +1190,7 @@ export default function ProgressMap({ onBack, setActiveTab }) {
               posY={islandPositions[i].y}
               onClick={setSelectedIsland}
               isSelected={selectedIsland?.id === island.id}
+              reduceMotion={reduceMotion}
             />
           );
         })}

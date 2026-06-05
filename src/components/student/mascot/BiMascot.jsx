@@ -6,6 +6,7 @@ import { useLocation } from 'react-router-dom';
 const BiMascotContext = createContext(null);
 
 const IDLE_VIDEO = '/Bi_floating_gently_animation_202606051519.mp4';
+const SPEAKING_VIDEO = '/Bi_Chemistry_Guardian_animation_202606051519.mp4';
 
 const DEFAULT_DURATION = 7600;
 const AUTO_SPEAK_INTERVAL = 60000;
@@ -87,7 +88,7 @@ export const BiMascotProvider = ({ children }) => {
   const [message, setMessage] = useState('');
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isOpen, setIsOpen] = useState(true);
-  const [tipIndex, setTipIndex] = useState(0);
+  const [, setTipIndex] = useState(0);
   const timeoutRef = useRef(null);
   const lastRouteRef = useRef('');
 
@@ -207,13 +208,14 @@ export const BiMascotProvider = ({ children }) => {
 
             <button
               type="button"
-              onClick={isOpen ? sayQuickTip : () => setIsOpen(true)}
+              onClick={sayQuickTip}
               className="group relative h-28 w-28 overflow-hidden rounded-full border-2 border-cyan-200 bg-cyan-50 shadow-2xl shadow-cyan-950/20 ring-4 ring-white/80 transition hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cyan-300 sm:h-36 sm:w-36"
               aria-label="Gọi Bi trợ giúp"
             >
               <video
+                key={isSpeaking ? 'speaking' : 'idle'}
                 className="h-full w-full scale-125 object-cover"
-                src={IDLE_VIDEO}
+                src={isSpeaking ? SPEAKING_VIDEO : IDLE_VIDEO}
                 autoPlay
                 loop
                 muted

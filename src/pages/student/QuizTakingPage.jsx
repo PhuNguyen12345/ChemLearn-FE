@@ -58,6 +58,7 @@ const QuizTakingPage = () => {
      Data Loading
   ═════════════════════════════════════════════ */
   useEffect(() => {
+    let isCancelled = false;
     const initQuiz = async () => {
       try {
         setLoading(true);
@@ -65,17 +66,20 @@ const QuizTakingPage = () => {
 
         // 1. Fetch quiz details
         const quizData = await getQuizDetail(quizId);
+        if (isCancelled) return;
         setQuiz(quizData);
         setQuestions(quizData.questions || []);
 
         // 2. Load attempt history and decide whether to resume or let user start
         const history = await getQuizAttemptHistory(quizId);
+        if (isCancelled) return;
         setAttemptHistory(history || []);
 
         const active = (history || []).find(h => h.status === 'IN_PROGRESS');
         if (active) {
           // Resume existing attempt
           const attemptData = await startQuizAttempt(quizId);
+          if (isCancelled) return;
           setAttemptId(attemptData.attemptId);
           setStarted(true);
         }
@@ -86,15 +90,20 @@ const QuizTakingPage = () => {
         }
 
       } catch (err) {
+        if (isCancelled) return;
         setError(err?.response?.data?.message || 'Failed to start quiz. Please try again.');
       } finally {
-        setLoading(false);
+        if (!isCancelled) setLoading(false);
       }
     };
 
     if (quizId) {
       initQuiz();
     }
+
+    return () => {
+      isCancelled = true;
+    };
   }, [quizId]);
 
   /* ═════════════════════════════════════════════

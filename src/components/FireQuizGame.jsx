@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, ArrowLeft, ShoppingBag } from 'lucide-react';
 import { useStudentStore } from '../stores/useStudentStore';
@@ -27,6 +27,7 @@ const HP_REDUCTION = 20;
 export default function FireQuizGame({ onBack, onGoShop }) {
   const { speak } = useBiMascot();
   const { addCoins, inventory, consumeItem } = useStudentStore();
+  const timeoutsRef = useRef([]);
   const [gameState, setGameState] = useState('playing'); // 'playing', 'gameover', 'victory'
   const [hp, setHp] = useState(INITIAL_HP);
   const [lives, setLives] = useState(INITIAL_LIVES);
@@ -41,7 +42,22 @@ export default function FireQuizGame({ onBack, onGoShop }) {
   // Shuffle questions randomly once on mount
   const [questions, setQuestions] = useState([]);
 
-  const setupGame = () => {
+  const clearScheduledWork = useCallback(() => {
+    timeoutsRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId));
+    timeoutsRef.current = [];
+  }, []);
+
+  const schedule = useCallback((callback, delay) => {
+    const timeoutId = window.setTimeout(() => {
+      timeoutsRef.current = timeoutsRef.current.filter((id) => id !== timeoutId);
+      callback();
+    }, delay);
+    timeoutsRef.current.push(timeoutId);
+    return timeoutId;
+  }, []);
+
+  const setupGame = useCallback(() => {
+    clearScheduledWork();
     const shuffled = [...QUESTIONS].sort(() => 0.5 - Math.random());
     setQuestions(shuffled);
     setHp(INITIAL_HP);
@@ -51,7 +67,7 @@ export default function FireQuizGame({ onBack, onGoShop }) {
     setIsAnswersDisabled(false);
     setShowExplosion(false);
     setScreenFlashHit(false);
-  };
+  }, [clearScheduledWork]);
 
   const bottleCount = inventory.filter(i => i.id === 'bottle1').length;
   const hasSword = inventory.some(i => i.id === 'sword1');
@@ -69,7 +85,8 @@ export default function FireQuizGame({ onBack, onGoShop }) {
 
   useEffect(() => {
     setupGame();
-  }, []);
+    return clearScheduledWork;
+  }, [clearScheduledWork, setupGame]);
 
   const playSound = (isCorrect) => {
     try {
@@ -86,6 +103,7 @@ export default function FireQuizGame({ onBack, onGoShop }) {
         gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
         osc.start(ctx.currentTime);
         osc.stop(ctx.currentTime + 0.5);
+        osc.onended = () => ctx.close?.();
       } else {
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(150, ctx.currentTime);
@@ -94,6 +112,7 @@ export default function FireQuizGame({ onBack, onGoShop }) {
         gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
         osc.start(ctx.currentTime);
         osc.stop(ctx.currentTime + 0.3);
+        osc.onended = () => ctx.close?.();
       }
     } catch {
       // Audio can fail in restricted browser contexts; gameplay should continue.
@@ -113,16 +132,16 @@ export default function FireQuizGame({ onBack, onGoShop }) {
       // Trigger correct animations
       setShowExplosion(true);
       setMonsterShake(prev => prev + 1);
-      setTimeout(() => {
+      schedule(() => {
         setMonsterShake(0);
       }, 600);
-      setTimeout(() => {
+      schedule(() => {
         setShowExplosion(false);
         const newHp = Math.max(0, hp - ACTUAL_DAMAGE);
         setHp(newHp);
 
         if (newHp <= 0) {
-          setTimeout(() => {
+          schedule(() => {
           setGameState('victory');
           speak('Chiến thắng rồi! Bạn đã giữ bình tĩnh và dùng kiến thức để hạ boss. Nhận thưởng thôi nào.');
           addCoins(50);
@@ -139,7 +158,7 @@ export default function FireQuizGame({ onBack, onGoShop }) {
       const newLives = lives - 1;
       setLives(newLives);
 
-      setTimeout(() => {
+      schedule(() => {
         setScreenFlashHit(false);
         if (newLives <= 0) {
           setGameState('gameover');

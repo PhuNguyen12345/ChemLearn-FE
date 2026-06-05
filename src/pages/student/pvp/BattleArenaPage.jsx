@@ -1,6 +1,5 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useWebSocket } from '../../../context/WebSocketProvider';
-import { useStudentStore } from '../../../stores/useStudentStore';
 import useAuthStore from '../../../stores/useAuthStore';
 import PetStats from './components/PetStats';
 import QuestionPanel from './components/QuestionPanel';
@@ -22,10 +21,24 @@ const PHASE = {
   GAME_OVER: 'GAME_OVER',
 };
 
+const STAR_PARTICLES = [
+  { id: 0, top: 12, left: 8, delay: 0 },
+  { id: 1, top: 24, left: 28, delay: 0.3 },
+  { id: 2, top: 16, left: 54, delay: 0.6 },
+  { id: 3, top: 30, left: 82, delay: 0.9 },
+  { id: 4, top: 48, left: 18, delay: 1.2 },
+  { id: 5, top: 58, left: 42, delay: 1.5 },
+  { id: 6, top: 46, left: 68, delay: 1.8 },
+  { id: 7, top: 72, left: 90, delay: 2.1 },
+  { id: 8, top: 78, left: 12, delay: 2.4 },
+  { id: 9, top: 88, left: 36, delay: 2.7 },
+  { id: 10, top: 82, left: 62, delay: 3 },
+  { id: 11, top: 92, left: 76, delay: 3.3 },
+];
+
 export default function BattleArenaPage({ selectedPetId, onBack }) {
   const { speak } = useBiMascot();
   const { connected, reconnecting, connect, subscribe, unsubscribe, send } = useWebSocket();
-  const { level } = useStudentStore();
   const { user } = useAuthStore();
   const myId = user?.id;
 
@@ -38,55 +51,59 @@ export default function BattleArenaPage({ selectedPetId, onBack }) {
   const [timeLeft, setTimeLeft] = useState(30);
   const [questionAnswered, setQuestionAnswered] = useState(false);
   const timerRef = useRef(null);
+  const damageTimeoutRef = useRef(null);
   const lastSpokenActionRef = useRef('');
+  const roomIdRef = useRef(null);
+  const handleGameStateRef = useRef(null);
+  const handleBattleResultRef = useRef(null);
 
-  const myStudentId = gameState?.player1Id === myId ? gameState?.player1Id : gameState?.player2Id;
   const isMyTurn = gameState?.currentTurnPlayerId === myId;
 
-  // --- WebSocket setup ---
-  useEffect(() => {
-    connect();
-  }, [connect]);
+  const addLog = useCallback((msg) => {
+    setBattleLogs(prev => [...prev.slice(-49), msg]);
+  }, []);
 
   useEffect(() => {
     if (!connected || !myId) return;
 
     // Subscribe to global match topic FIRST to avoid race conditions
     const unsubMatch = subscribe('/topic/battle/match', (state) => {
-      if (!roomId && (state.player1Id === myId || state.player2Id === myId)) {
+      if (!roomIdRef.current && (state.player1Id === myId || state.player2Id === myId)) {
         console.log('[PVP] Match found! Room ID:', state.roomId);
         setRoomId(state.roomId);
-        handleGameState(state);
+        handleGameStateRef.current?.(state);
       }
     });
 
     // Join queue AFTER subscribing
     send('/app/battle/join', { studentPetId: selectedPetId });
-    addLog('⚔️ Đang tìm đối thủ...');
 
     return () => {
       unsubMatch();
-      if (roomId) unsubscribe(`/topic/battle/${roomId}`);
+      if (roomIdRef.current) unsubscribe(`/topic/battle/${roomIdRef.current}`);
     };
-  }, [connected, myId, selectedPetId]);
+  }, [connected, myId, selectedPetId, send, subscribe, unsubscribe]);
 
   useEffect(() => {
     if (!connected || !roomId) return;
-    const unsub1 = subscribe(`/topic/battle/${roomId}`, handleGameState);
-    const unsub2 = subscribe(`/topic/battle/${roomId}/result`, handleBattleResult);
-    return () => { unsub1(); unsub2(); };
-  }, [connected, roomId]);
+    const unsub1 = subscribe(`/topic/battle/${roomId}`, (state) => handleGameStateRef.current?.(state));
+    const unsub2 = subscribe(`/topic/battle/${roomId}/result`, (result) => handleBattleResultRef.current?.(result));
+    return () => {
+      unsub1();
+      unsub2();
+    };
+  }, [connected, roomId, subscribe]);
 
-  const handleGameState = useCallback((state) => {
+  function handleGameState(state) {
     if (!roomId && state.roomId) setRoomId(state.roomId);
     setGameState(state);
     updatePhase(state);
     processLogs(state);
     triggerDamageEffect(state);
     startTurnTimer(state);
-  }, [roomId, myId]);
+  }
 
-  const handleBattleResult = useCallback((result) => {
+  function handleBattleResult(result) {
     setBattleResult(result);
     setPhase(PHASE.GAME_OVER);
     addLog(`🏁 Trận đấu kết thúc! Người thắng: ${result.winnerName}`);
@@ -96,9 +113,9 @@ export default function BattleArenaPage({ selectedPetId, onBack }) {
         : 'Mình thua trận này, nhưng đã có thêm kinh nghiệm. Lần sau đọc kỹ câu hỏi, giữ bình tĩnh và mình sẽ phản công tốt hơn.'
     );
     clearInterval(timerRef.current);
-  }, [myId, speak]);
+  }
 
-  const updatePhase = (state) => {
+  function updatePhase(state) {
     if (state.status === 'FINISHED' || state.status?.includes('WON')) {
       setPhase(PHASE.GAME_OVER);
       return;
@@ -110,9 +127,9 @@ export default function BattleArenaPage({ selectedPetId, onBack }) {
     } else {
       setPhase(PHASE.WAITING_TURN);
     }
-  };
+  }
 
-  const processLogs = (state) => {
+  function processLogs(state) {
     if (!state.lastActionResult) return;
     const p1 = state.player1Name;
     const p2 = state.player2Name;
@@ -141,17 +158,18 @@ export default function BattleArenaPage({ selectedPetId, onBack }) {
         speak('Hết giờ là mất lượt. Lần tới mình chọn đáp án chắc nhất trước, đừng để đồng hồ ép quá lâu nha.');
       }
     }
-  };
+  }
 
-  const triggerDamageEffect = (state) => {
+  function triggerDamageEffect(state) {
     if (state.lastActionResult === 'CORRECT' && state.lastDamageDealt > 0) {
       const damagedPlayer = state.currentTurnIndex === 0 ? 'player2' : 'player1';
       setDamagedSlot(damagedPlayer);
-      setTimeout(() => setDamagedSlot(null), 600);
+      window.clearTimeout(damageTimeoutRef.current);
+      damageTimeoutRef.current = window.setTimeout(() => setDamagedSlot(null), 600);
     }
-  };
+  }
 
-  const startTurnTimer = (state) => {
+  function startTurnTimer(state) {
     clearInterval(timerRef.current);
     if (!state.turnDeadline) return;
     const remaining = Math.max(0, Math.floor((state.turnDeadline - Date.now()) / 1000));
@@ -164,7 +182,25 @@ export default function BattleArenaPage({ selectedPetId, onBack }) {
     }, 1000);
   };
 
-  const addLog = (msg) => setBattleLogs(prev => [...prev.slice(-49), msg]);
+  useEffect(() => {
+    handleGameStateRef.current = handleGameState;
+    handleBattleResultRef.current = handleBattleResult;
+  });
+
+  useEffect(() => {
+    roomIdRef.current = roomId;
+  }, [roomId]);
+
+  useEffect(() => {
+    return () => {
+      clearInterval(timerRef.current);
+      window.clearTimeout(damageTimeoutRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    connect();
+  }, [connect]);
 
   const handleAnswer = (selectedOption) => {
     if (!gameState || questionAnswered) return;
@@ -179,13 +215,15 @@ export default function BattleArenaPage({ selectedPetId, onBack }) {
   const handleUseSkill = () => setPhase(PHASE.WAITING_TURN);
 
   const handleLeave = () => {
+    clearInterval(timerRef.current);
+    window.clearTimeout(damageTimeoutRef.current);
     if (phase === PHASE.MATCHMAKING && connected) send('/app/battle/leave', {});
     if (roomId) {
       unsubscribe(`/topic/battle/${roomId}`);
       unsubscribe(`/topic/battle/${roomId}/result`);
     }
     onBack?.();
-  };
+  }
 
   const myPet = gameState?.player1Id === myId ? gameState?.player1Pet : gameState?.player2Pet;
   const enemyPet = gameState?.player1Id === myId ? gameState?.player2Pet : gameState?.player1Pet;
@@ -195,9 +233,9 @@ export default function BattleArenaPage({ selectedPetId, onBack }) {
   return (
     <div className="fixed inset-0 z-50 bg-gradient-to-b from-indigo-950 via-slate-900 to-purple-950 overflow-hidden flex flex-col">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(12)].map((_, i) => (
-          <div key={i} className="absolute w-1 h-1 rounded-full bg-white/20 animate-pulse"
-            style={{ top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%`, animationDelay: `${i * 0.3}s` }}
+        {STAR_PARTICLES.map((particle) => (
+          <div key={particle.id} className="absolute w-1 h-1 rounded-full bg-white/20 animate-pulse"
+            style={{ top: `${particle.top}%`, left: `${particle.left}%`, animationDelay: `${particle.delay}s` }}
           />
         ))}
       </div>

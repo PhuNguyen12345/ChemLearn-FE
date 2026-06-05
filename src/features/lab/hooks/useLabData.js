@@ -19,6 +19,7 @@ export const useLabData = (activeTab, searchQuery, selectedCategory, currentPage
 
   // Main fetch for labs
   useEffect(() => {
+    let isCancelled = false;
     const fetchLabs = async () => {
       try {
         setIsLoading(true);
@@ -37,6 +38,7 @@ export const useLabData = (activeTab, searchQuery, selectedCategory, currentPage
         }
 
         const data = await getVirtualLabs(params);
+        if (isCancelled) return;
         if (data && data.content) {
           setFilteredLabs(data.content);
           setTotalPages(data.totalPages);
@@ -45,33 +47,43 @@ export const useLabData = (activeTab, searchQuery, selectedCategory, currentPage
           setTotalPages(0);
         }
       } catch (error) {
+        if (isCancelled) return;
         console.error("Error fetching labs:", error);
         setFilteredLabs([]);
         setTotalPages(0);
       } finally {
-        setIsLoading(false);
+        if (!isCancelled) setIsLoading(false);
       }
     };
 
     fetchLabs();
+    return () => {
+      isCancelled = true;
+    };
   }, [activeTab, debouncedQuery, selectedCategory, currentPage]);
 
   // Lightweight request to check for assignments (red dot notification)
   useEffect(() => {
+    let isCancelled = false;
     const checkAssignments = async () => {
       try {
         const data = await getVirtualLabs({ type: 'ASSIGNMENT', size: 1 });
+        if (isCancelled) return;
         if (data && data.totalElements > 0) {
           setHasUncompletedAssignment(true);
         } else {
           setHasUncompletedAssignment(false);
         }
       } catch (error) {
+        if (isCancelled) return;
         console.error("Error checking assignments:", error);
       }
     };
     
     checkAssignments();
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   return {
