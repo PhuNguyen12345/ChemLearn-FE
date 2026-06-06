@@ -74,7 +74,15 @@ export default function VirtualLabPage() {
     labType === 'ASSIGNMENT' && !isLoading
   );
 
-  const inventory = useLabStore(state => state.inventoryItems);
+  const inventoryItems = useLabStore(state => state.inventoryItems);
+  const config = useLabStore(state => state.config);
+  
+  const inventory = React.useMemo(() => {
+    if (config?.allowed_chemicals && Array.isArray(config.allowed_chemicals)) {
+      return inventoryItems.filter(item => config.allowed_chemicals.includes(item.id));
+    }
+    return inventoryItems;
+  }, [inventoryItems, config]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarView, setSidebarView] = useState('grid');
 
