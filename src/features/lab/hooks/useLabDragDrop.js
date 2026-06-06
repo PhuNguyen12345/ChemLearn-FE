@@ -5,6 +5,32 @@ import { PHYSICAL_STATE } from '../data/constants';
 import { REACTION_MAP, getReactionKey } from '../data/reactionMap';
 import { TEMPLATE_TO_CONTENT, EMPTY_DROP_LIQUID_COLOR } from '../data/chemicalMappings';
 
+const getPhLevel = (content) => {
+  if (!content) return 'NEUTRAL';
+  const c = content.toLowerCase();
+  if (c.includes('hcl') || c.includes('hno₃') || c.includes('h₂c₂o₄') || c.includes('axit')) return 'ACID';
+  if (c.includes('naoh') || c.includes('ca(oh)₂') || c.includes('ba(oh)₂') || c.includes('bazơ')) return 'BASE';
+  return 'NEUTRAL';
+};
+
+const applyIndicatorEffect = (container) => {
+  if (container.indicator === 'PHENOLPHTHALEIN') {
+    if (container.phLevel === 'BASE') {
+      container.liquidColor = '#ec4899'; // Pink
+    } else {
+      container.liquidColor = 'rgba(200, 230, 255, 0.7)'; // Clear
+    }
+  } else if (container.indicator === 'LITMUS') {
+    if (container.phLevel === 'ACID') {
+      container.indicatorPaperColor = '#ef4444'; // Red
+    } else if (container.phLevel === 'BASE') {
+      container.indicatorPaperColor = '#3b82f6'; // Blue
+    } else {
+      container.indicatorPaperColor = '#8b5cf6'; // Purple
+    }
+  }
+};
+
 /**
  * useLabDragDrop
  *
@@ -161,77 +187,102 @@ export function useLabDragDrop({ scale, inventory }) {
             // Translate templateId → canonical content name for reaction lookup.
             const draggedContentName = TEMPLATE_TO_CONTENT[draggedObj.templateId];
 
-            // Build bi-directional lookup key (alphabetically sorted).
-            const key = getReactionKey(currentContent, draggedContentName);
-            const reaction = REACTION_MAP[key];
+            // Indicator drop logic
+            const isJustIndicator = currentContent === 'Litmus Paper' || currentContent === 'Phenolphthalein';
 
-            if (reaction && currentContent) {
-              // ── REACTION FOUND ────────────────────────────────────────────
-              const previousActions = useLabStore.getState().progress.completed_actions;
-              if (!previousActions.includes(key)) {
-                if (labType === 'PREMADE') {
-                  toast.success(`Phản ứng mới: ${reaction?.reactionInfo?.equation || key}`, {
-                    description: 'Bạn nhận được EXP!',
-                    position: 'bottom-right',
-                  });
-                } else if (labType === 'SANDBOX') {
-                  toast.success(`Phản ứng mới: ${reaction?.reactionInfo?.equation || key}`, {
-                    position: 'bottom-right',
-                  });
+            if (draggedObj.templateId === 'litmus_paper') {
+              targetContainer.indicator = 'LITMUS';
+              if (!targetContainer.content) {
+                 targetContainer.content = 'Litmus Paper';
+                 targetContainer.solidContent = 'Litmus Paper';
+              }
+            } else if (draggedObj.templateId === 'phenolphthalein') {
+              targetContainer.indicator = 'PHENOLPHTHALEIN';
+              if (!targetContainer.content) {
+                 targetContainer.content = 'Phenolphthalein';
+                 targetContainer.liquidContent = 'Phenolphthalein';
+                 targetContainer.liquidColor = 'rgba(200, 230, 255, 0.7)';
+              }
+            } else {
+              // Build bi-directional lookup key (alphabetically sorted).
+              const key = getReactionKey(currentContent, draggedContentName);
+              const reaction = REACTION_MAP[key];
+
+              if (reaction && currentContent && !isJustIndicator) {
+                // ── REACTION FOUND ────────────────────────────────────────────
+                const previousActions = useLabStore.getState().progress.completed_actions;
+                if (!previousActions.includes(key)) {
+                  if (labType === 'PREMADE') {
+                    toast.success(`Phản ứng mới: ${reaction?.reactionInfo?.equation || key}`, {
+                      description: 'Bạn nhận được EXP!',
+                      position: 'bottom-right',
+                    });
+                  } else if (labType === 'SANDBOX') {
+                    toast.success(`Phản ứng mới: ${reaction?.reactionInfo?.equation || key}`, {
+                      position: 'bottom-right',
+                    });
+                  }
+                  useLabStore.getState().recordReaction(key);
+                  completeTask(key);
                 }
-                useLabStore.getState().recordReaction(key);
-                completeTask(key);
+
+                // Apply multi-layer content fields
+                targetContainer.liquidContent = reaction.liquidContent ?? null;
+                targetContainer.solidContent = reaction.solidContent ?? null;
+                targetContainer.gasContent = reaction.gasContent ?? null;
+                targetContainer.content = reaction.liquidContent ?? reaction.solidContent ?? null;
+
+                if (reaction.liquidColor) targetContainer.liquidColor = reaction.liquidColor;
+                if (reaction.precipitateColor) targetContainer.precipitateColor = reaction.precipitateColor;
+                if (reaction.reactionState) targetContainer.reactionState = reaction.reactionState;
+                if (reaction.reactionInfo) setReactionInfo(reaction.reactionInfo);
+
+                if (reaction.clearStateAfter) {
+                  const timeoutId = window.setTimeout(() => {
+                    reactionTimeoutsRef.current = reactionTimeoutsRef.current.filter((id) => id !== timeoutId);
+                    setPlacedItems(curr =>
+                      curr.map(it =>
+                        it.instanceId === instanceToUpdate ? { ...it, reactionState: null, gasContent: null } : it
+                      )
+                    );
+                  }, reaction.clearStateAfter);
+                  reactionTimeoutsRef.current.push(timeoutId);
+                }
+              } else if (!currentContent || isJustIndicator) {
+                // ── EMPTY CONTAINER OR ONLY INDICATOR: deposit chemical ─────────
+                const originalItem = inventory.find(item => item.id === draggedObj.templateId);
+                const isSolid = originalItem?.state === PHYSICAL_STATE.SOLID || draggedContentName.includes('(Rắn)');
+
+                if (isSolid) {
+                  targetContainer.solidContent = draggedContentName;
+                  if (!isJustIndicator) targetContainer.liquidContent = null;
+                  targetContainer.content = draggedContentName;
+                } else {
+                  targetContainer.liquidContent = draggedContentName;
+                  if (!isJustIndicator) targetContainer.solidContent = null;
+                  targetContainer.content = draggedContentName;
+                  const liquidColor = EMPTY_DROP_LIQUID_COLOR[draggedObj.templateId];
+                  if (liquidColor) targetContainer.liquidColor = liquidColor;
+                }
+
+                setReactionInfo({
+                  equation: `${draggedContentName} Added`,
+                  condition: 'Mixing',
+                  description: `${draggedContentName} đã được thêm vào dụng cụ.`,
+                });
+
+                // Record task: first chemical poured
+                const actionName = `DRAG_${draggedContentName.toUpperCase()}_TO_FLASK`;
+                completeTask(actionName);
               }
-
-              // Apply multi-layer content fields
-              targetContainer.liquidContent = reaction.liquidContent ?? null;
-              targetContainer.solidContent = reaction.solidContent ?? null;
-              targetContainer.gasContent = reaction.gasContent ?? null;
-              targetContainer.content = reaction.liquidContent ?? reaction.solidContent ?? null;
-
-              if (reaction.liquidColor) targetContainer.liquidColor = reaction.liquidColor;
-              if (reaction.precipitateColor) targetContainer.precipitateColor = reaction.precipitateColor;
-              if (reaction.reactionState) targetContainer.reactionState = reaction.reactionState;
-              if (reaction.reactionInfo) setReactionInfo(reaction.reactionInfo);
-
-              if (reaction.clearStateAfter) {
-                const timeoutId = window.setTimeout(() => {
-                  reactionTimeoutsRef.current = reactionTimeoutsRef.current.filter((id) => id !== timeoutId);
-                  setPlacedItems(curr =>
-                    curr.map(it =>
-                      it.instanceId === instanceToUpdate ? { ...it, reactionState: null, gasContent: null } : it
-                    )
-                  );
-                }, reaction.clearStateAfter);
-                reactionTimeoutsRef.current.push(timeoutId);
-              }
-            } else if (!currentContent) {
-              // ── EMPTY CONTAINER: deposit chemical ─────────────────────────
-              const originalItem = inventory.find(item => item.id === draggedObj.templateId);
-              const isSolid = originalItem?.state === PHYSICAL_STATE.SOLID || draggedContentName.includes('(Rắn)');
-
-              if (isSolid) {
-                targetContainer.solidContent = draggedContentName;
-                targetContainer.liquidContent = null;
-                targetContainer.content = draggedContentName;
-              } else {
-                targetContainer.liquidContent = draggedContentName;
-                targetContainer.solidContent = null;
-                targetContainer.content = draggedContentName;
-                const liquidColor = EMPTY_DROP_LIQUID_COLOR[draggedObj.templateId];
-                if (liquidColor) targetContainer.liquidColor = liquidColor;
-              }
-
-              setReactionInfo({
-                equation: `${draggedContentName} Added`,
-                condition: 'Mixing',
-                description: `${draggedContentName} đã được thêm vào dụng cụ.`,
-              });
-
-              // Record task: first chemical poured
-              const actionName = `DRAG_${draggedContentName.toUpperCase()}_TO_FLASK`;
-              completeTask(actionName);
             }
+            
+            // Re-evaluate pH based on resulting content and apply indicators
+            if (targetContainer.content) {
+              targetContainer.phLevel = getPhLevel(targetContainer.content);
+              applyIndicatorEffect(targetContainer);
+            }
+            
             // else: container already has content, no matching reaction → ignore
 
             updatedItems[targetContainerIndex] = targetContainer;

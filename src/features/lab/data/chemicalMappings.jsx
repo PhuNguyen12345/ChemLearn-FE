@@ -23,6 +23,8 @@ export const TEMPLATE_TO_CONTENT = {
   zn_grain: 'Zn (Rắn)',
   cao: 'CaO (Rắn)',
   naoh_sol: 'NaOH',
+  phenolphthalein: 'Phenolphthalein',
+  litmus_paper: 'Litmus Paper',
 };
 
 // Liquid colors shown when a chemical is deposited into an EMPTY container.

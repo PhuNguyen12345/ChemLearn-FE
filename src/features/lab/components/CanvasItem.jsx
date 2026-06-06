@@ -71,7 +71,7 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
       thickness: item.solidThickness || (content.liquid ? 33.3 : 100)
     };
   }
-  if (legacyGasContent || item.reactionState === 'violent') {
+  if (legacyGasContent || item.reactionState === 'violent' || item.reactionState === 'bubbling') {
     content.gas = {
       label: legacyGasContent,
       type: item.reactionState === 'violent' ? 'violent' : 'normal'
@@ -118,7 +118,7 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
        const wrapperBgColor = isSolidOnly ? getLiquidBg(content.solid.label) : content.liquid?.color;
 
        return (
-         <div className={`relative group ${item.reactionState === 'violent' ? 'animate-pulse' : ''}`}>
+         <div className={`relative group ${item.reactionState === 'violent' ? 'shake-animation' : ''}`}>
            {/* LỚP CHẤT LỎNG & RẮN */}
            {(content.liquid || content.solid) && (
              <div
@@ -142,8 +142,13 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
                  </div>
                )}
 
+               {/* LITMUS PAPER */}
+               {item.indicatorPaperColor && (
+                 <div className="litmus-paper" style={{ backgroundColor: item.indicatorPaperColor }}></div>
+               )}
+
                {/* BUBBLES */}
-               {(item.isHeated || item.reactionState === 'violent') && layout.bubbles?.map((b, idx) => (
+               {(item.isHeated || item.reactionState === 'violent' || item.reactionState === 'bubbling') && layout.bubbles?.map((b, idx) => (
                   <div key={idx} className={`bubble-animation absolute ${b.className}`} style={{ animationDelay: b.animationDelay }}></div>
                ))}
              </div>

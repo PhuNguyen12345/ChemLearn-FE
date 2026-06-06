@@ -19,7 +19,7 @@ export const REACTION_MAP = {
   'H2O_Na (Rắn)': {
     liquidContent: 'NaOH',
     gasContent: 'H₂',
-    liquidColor: '#ec4899',
+    liquidColor: 'rgba(200, 230, 255, 0.7)',
     reactionState: 'violent',
     clearStateAfter: 4000,
     reactionInfo: {
@@ -136,7 +136,7 @@ export const REACTION_MAP = {
     liquidContent: 'ZnCl₂',
     gasContent: 'H₂',
     liquidColor: 'rgba(200, 230, 255, 0.7)',
-    reactionState: 'violent',
+    reactionState: 'bubbling',
     clearStateAfter: 3000,
     reactionInfo: {
       equation: 'Zn + 2HCl → ZnCl₂ + H₂↑',
