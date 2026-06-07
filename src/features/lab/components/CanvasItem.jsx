@@ -67,7 +67,7 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
   if (legacySolidContent || item.precipitateColor || item.reactionState === 'precipitation') {
     content.solid = {
       label: legacySolidContent,
-      color: item.precipitateColor || 'rgba(255, 255, 255, 0.95)',
+      color: item.precipitateColor || LIQUID_COLORS[legacySolidContent] || 'rgba(255, 255, 255, 0.95)',
       thickness: item.solidThickness || (content.liquid ? 33.3 : 100)
     };
   }
@@ -99,7 +99,6 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
               </div>
             )}
          </div>
-         {gas.type === 'violent' && <div className="violent-fire text-3xl relative z-20 mt-2">🔥</div>}
       </div>
     );
   };
@@ -110,27 +109,32 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
     if (layout) {
        const isSolidOnly = !content.liquid && content.solid;
        
+       const CHUNK_METALS = ['Zn (Rắn)', 'Na (Rắn)', 'Fe (Rắn)', 'Cu (Rắn)', 'K (Rắn)', 'Ag (Rắn)', 'Ba (Rắn)', 'Ca (Rắn)'];
+       const isChunk = content.solid ? CHUNK_METALS.includes(content.solid.label) : false;
+
        // Toán học bảo vệ Overflow (95%)
        const liquidHeight = content.liquid?.volumeRatio || 0;
        
        // Wrapper lấy tỷ lệ lỏng (55%) hoặc rẽ nhánh nhỏ bé (18%) nếu chỉ chứa rắn
        const wrapperHeight = Math.min(isSolidOnly ? 18 : liquidHeight, 95); 
-       const wrapperBgColor = isSolidOnly ? getLiquidBg(content.solid.label) : content.liquid?.color;
+       const wrapperBgColor = (isSolidOnly && isChunk) ? 'transparent' : (isSolidOnly ? getLiquidBg(content.solid.label) : content.liquid?.color);
 
        return (
          <div className={`relative group ${item.reactionState === 'violent' ? 'shake-animation' : ''}`}>
            {/* LỚP CHẤT LỎNG & RẮN */}
            {(content.liquid || content.solid) && (
              <div
-               className={`absolute transition-all duration-1000 ease-in-out overflow-hidden ${item.reactionState === 'exothermic' ? 'exothermic-glow' : ''} ${item.reactionState === 'endothermic' ? 'endothermic-glow' : ''}`}
+               className={`absolute transition-all ease-in-out overflow-hidden ${item.reactionState === 'exothermic' ? 'exothermic-glow' : ''} ${item.reactionState === 'endothermic' ? 'endothermic-glow' : ''}`}
                style={{
                  ...layout.liquidStyle,
                  height: `${wrapperHeight}%`,
                  backgroundColor: wrapperBgColor,
+                 transitionDuration: item.indicator === 'PHENOLPHTHALEIN' ? '2s' : '1s',
                  zIndex: 0
                }}
              >
-               {content.solid && (
+               {/* LỚP KẾT TỦA HOẶC BỘT RẮN (Precipitate/Powder) */}
+               {content.solid && !isChunk && (
                  <div
                    className={`absolute bottom-0 left-0 right-0 flex items-center justify-center shadow-inner ${isSolidOnly ? 'rounded-b-[5px]' : 'border-t border-white/20'}`}
                    style={{
@@ -142,15 +146,68 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
                  </div>
                )}
 
-               {/* LITMUS PAPER */}
-               {item.indicatorPaperColor && (
-                 <div className="litmus-paper" style={{ backgroundColor: item.indicatorPaperColor }}></div>
+               {/* BUBBLES */}
+               {(item.isHeated || item.reactionState === 'violent' || item.reactionState === 'bubbling') && layout.bubbles?.map((b, idx) => {
+                  const isNa = content.solid?.label === 'Na (Rắn)';
+                  const customBottom = isNa ? `calc(${wrapperHeight}% - 15px)` : undefined;
+                  const classNameWithoutBottom = b.className.replace(/bottom-\d+/, '');
+                  return (
+                    <div 
+                      key={idx} 
+                      className={`bubble-animation absolute ${customBottom ? classNameWithoutBottom : b.className}`} 
+                      style={{ animationDelay: b.animationDelay, bottom: customBottom || undefined }}
+                    ></div>
+                  );
+               })}
+             </div>
+           )}
+
+           {/* DROPPING SOLIDS & LITMUS PAPER (Outside overflow-hidden) */}
+           {(content.liquid || content.solid || item.fallingSolid || item.indicatorPaperColor) && (
+             <div
+               className="absolute pointer-events-none"
+               style={{
+                 ...layout.liquidStyle,
+                 height: `${wrapperHeight}%`,
+                 zIndex: 10
+               }}
+             >
+               {/* KHỐI KIM LOẠI RƠI (Falling Solid - Giai đoạn 1) */}
+               {item.fallingSolid && !item.fallingSolid.isLitmus && (
+                 <div
+                   className="absolute left-1/2 -translate-x-1/2 w-6 h-6 rounded-md shadow-lg dropping-animation"
+                   style={{
+                     bottom: item.fallingSolid.label === 'Na (Rắn)' ? `calc(${Math.max(wrapperHeight, 10)}% - 12px)` : '8px',
+                     backgroundColor: item.fallingSolid.color,
+                     boxShadow: 'inset 0 -2px 6px rgba(0,0,0,0.5)'
+                   }}
+                 >
+                 </div>
                )}
 
-               {/* BUBBLES */}
-               {(item.isHeated || item.reactionState === 'violent' || item.reactionState === 'bubbling') && layout.bubbles?.map((b, idx) => (
-                  <div key={idx} className={`bubble-animation absolute ${b.className}`} style={{ animationDelay: b.animationDelay }}></div>
-               ))}
+               {/* KHỐI KIM LOẠI ĐÃ CHẠM ĐÁY (Solid Chunk - Giai đoạn 2) */}
+               {content.solid && isChunk && !item.fallingSolid && (
+                 <div
+                   className={`absolute left-1/2 -translate-x-1/2 w-6 h-6 rounded-md z-10 flex justify-center ${item.isDissolving ? 'shrinking-solid' : ''}`}
+                   style={{
+                     bottom: content.solid.label === 'Na (Rắn)' ? `calc(${Math.max(wrapperHeight, 10)}% - 12px)` : '8px',
+                     backgroundColor: content.solid.color,
+                     boxShadow: 'inset 0 -2px 6px rgba(0,0,0,0.5)',
+                     '--duration': `${item.reactionDuration || 3000}ms`
+                   }}
+                 >
+                    {content.solid.label === 'Na (Rắn)' && item.reactionState === 'violent' && (
+                       <div className="absolute bottom-[80%] text-3xl violent-fire pointer-events-none drop-shadow-md">🔥</div>
+                    )}
+                 </div>
+               )}
+
+               {/* LITMUS PAPER (Với Wrapper để fix vị trí) */}
+               {(item.indicatorPaperColor || item.fallingSolid?.isLitmus) && (
+                 <div className="litmus-wrapper absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-12">
+                   <div className="litmus-paper" style={{ '--target-color': item.indicatorPaperColor || 'transparent' }}></div>
+                 </div>
+               )}
              </div>
            )}
 

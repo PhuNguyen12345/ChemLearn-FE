@@ -96,9 +96,8 @@ export const REACTION_MAP = {
   // 7. Fe (Rắn) + CuSO4  →  FeSO₄ (liquid) + Cu (copper precipitate deposit)
   'CuSO4_Fe (Rắn)': {
     liquidContent: 'FeSO₄',
-    solidContent: 'Cu',
+    solidContent: 'Cu (Rắn)',
     liquidColor: 'rgba(187, 247, 208, 0.7)',
-    precipitateColor: 'rgba(180, 83, 9, 0.8)',
     reactionInfo: {
       equation: 'Fe + CuSO₄ → FeSO₄ + Cu↓',
       condition: 'Nhiệt độ thường',
@@ -122,7 +121,7 @@ export const REACTION_MAP = {
     liquidContent: 'NaCl + H₂O',
     gasContent: 'CO₂',
     liquidColor: 'rgba(200, 230, 255, 0.7)',
-    reactionState: 'violent',
+    reactionState: 'bubbling',
     clearStateAfter: 3000,
     reactionInfo: {
       equation: 'Na₂CO₃ + 2HCl → 2NaCl + CO₂↑ + H₂O',

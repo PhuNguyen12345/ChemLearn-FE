@@ -374,15 +374,50 @@ button:focus-visible {
   animation: violentShake 0.3s infinite linear;
 }
 
+@keyframes dropIntoLiquid {
+  /* Chặng 1: Bắt đầu thả từ trên cao xuống */
+  0% {
+    transform: translateY(-150px) scale(1);
+    opacity: 0;
+    animation-timing-function: ease-in;
+  }
+  20% { opacity: 1; }
+  /* Chặng 2: Chạm mặt nước (Bị cản lại) */
+  60% {
+    transform: translateY(-40px) scale(1);
+    animation-timing-function: ease-out;
+  }
+  /* Chặng 3: Chạm đáy bình */
+  100% { transform: translateY(0) scale(1); }
+}
+
+.dropping-animation {
+  animation: dropIntoLiquid 0.8s forwards;
+}
+
+@keyframes shrinkSolid {
+  0% { transform: scale(1) translateY(0); opacity: 1; }
+  100% { transform: scale(0) translateY(10px); opacity: 0; }
+}
+
+.shrinking-solid {
+  animation: shrinkSolid var(--duration, 3s) ease-in forwards;
+}
+
+@keyframes wickColor {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 0% 100%; }
+}
+
 .litmus-paper {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(10deg);
   width: 14px;
   height: 40px;
   border-radius: 2px;
   box-shadow: 1px 1px 4px rgba(0,0,0,0.4);
-  transition: background-color 1.5s ease-in-out;
-  z-index: 15;
+  /* Phủ gradient tím nửa trên, màu mục tiêu nửa dưới để lan từ dưới lên */
+  background: linear-gradient(to bottom, #8b5cf6 50%, var(--target-color) 50%);
+  background-size: 100% 200%;
+  background-position: 0% 0%;
+  /* Hiệu ứng rơi rớt xuống rồi mới lan màu */
+  animation: dropIntoLiquid 0.8s forwards, wickColor 1.5s ease-out 0.8s forwards;
 }
