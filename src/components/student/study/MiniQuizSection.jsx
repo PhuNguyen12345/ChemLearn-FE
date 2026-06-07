@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { CheckCircle2, CircleAlert, HelpCircle, LoaderCircle, RefreshCcw, Send } from 'lucide-react';
 import { submitLessonMiniQuiz } from '../../../lib/api';
 import { useBiMascot } from '../mascot/BiMascot';
+import { formatChemistryText } from '../../../utils/chemistryFormatting';
 
 const OPTION_KEYS = [
   ['A', 'optionA'],
@@ -113,7 +114,10 @@ const MiniQuizSection = ({ lessonId, questions = [] }) => {
                   <div className="text-xs font-black uppercase tracking-wide text-indigo-600">
                     Câu hỏi {index + 1}
                   </div>
-                  <p className="mt-1 text-sm font-bold leading-6 text-slate-800">{question.prompt}</p>
+                  <p
+                    className="mt-1 text-sm font-bold leading-6 text-slate-800"
+                    dangerouslySetInnerHTML={{ __html: formatChemistryText(question.prompt || '') }}
+                  />
                 </div>
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black uppercase text-slate-500">
                   {type === 'MULTIPLE_CHOICE' ? 'Chọn tất cả' : 'Chọn một'}
@@ -132,18 +136,19 @@ const MiniQuizSection = ({ lessonId, questions = [] }) => {
                       type="button"
                       disabled={!!result || submitting}
                       onClick={() => updateAnswer(question, letter)}
-                      className={`flex min-h-12 items-center gap-3 rounded-xl border px-3 py-2 text-left transition ${
-                        isSelected
+                      className={`flex min-h-12 items-center gap-3 rounded-xl border px-3 py-2 text-left transition ${isSelected
                           ? 'border-indigo-500 bg-indigo-50 text-indigo-900 ring-2 ring-indigo-100'
                           : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
-                      } disabled:cursor-default`}
+                        } disabled:cursor-default`}
                     >
-                      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border text-xs font-black ${
-                        isSelected ? 'border-indigo-500 bg-indigo-600 text-white' : 'border-slate-200 bg-slate-50 text-slate-500'
-                      }`}>
+                      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border text-xs font-black ${isSelected ? 'border-indigo-500 bg-indigo-600 text-white' : 'border-slate-200 bg-slate-50 text-slate-500'
+                        }`}>
                         {letter}
                       </span>
-                      <span className="text-sm font-semibold leading-5">{optionText}</span>
+                      <span
+                        className="text-sm font-semibold leading-5"
+                        dangerouslySetInnerHTML={{ __html: formatChemistryText(optionText) }}
+                      />
                     </button>
                   );
                 })}
@@ -160,9 +165,8 @@ const MiniQuizSection = ({ lessonId, questions = [] }) => {
         )}
 
         {result && (
-          <div className={`rounded-xl border px-4 py-3 ${
-            result.passed ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-amber-200 bg-amber-50 text-amber-800'
-          }`}>
+          <div className={`rounded-xl border px-4 py-3 ${result.passed ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-amber-200 bg-amber-50 text-amber-800'
+            }`}>
             <div className="flex items-center gap-2 text-sm font-black">
               <CheckCircle2 className="h-4 w-4" />
               Điểm số: {result.score}% ({result.correctAnswers}/{result.totalQuestions})

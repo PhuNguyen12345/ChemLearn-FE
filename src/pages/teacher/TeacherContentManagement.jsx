@@ -44,7 +44,7 @@ const TeacherContentManagement = () => {
   const [editingLesson, setEditingLesson] = useState(null);
 
   // Forms
-  const [chapterForm, setChapterForm] = useState({ title: '', description: '', orderIndex: 0, published: true });
+  const [chapterForm, setChapterForm] = useState({ classId: '', title: '', description: '', orderIndex: 0, published: true });
   const [lessonForm, setLessonForm] = useState({ title: '', content: '', durationMinutes: 10, orderIndex: 0, published: true });
 
   const loadData = async () => {
@@ -88,12 +88,13 @@ const TeacherContentManagement = () => {
       setChapterForm({
         title: chapter.title,
         description: chapter.description || '',
+        classId: chapter.ownerClassId ?? chapter.classId ?? teacherClasses[0]?.id ?? '',
         orderIndex: chapter.orderIndex ?? chapter.displayOrder ?? 0,
         published: chapter.published ?? true
       });
     } else {
       setEditingChapter(null);
-      setChapterForm({ title: '', description: '', orderIndex: 0, published: true });
+      setChapterForm({ classId: teacherClasses[0]?.id ?? '', title: '', description: '', orderIndex: 0, published: true });
     }
     setShowChapterModal(true);
   };
@@ -102,10 +103,13 @@ const TeacherContentManagement = () => {
     e.preventDefault();
     setSubmitting(true);
     try {
+      const orderIndex = Number.isFinite(Number(chapterForm.orderIndex)) ? Number(chapterForm.orderIndex) : 0;
       const payload = {
+        classId: chapterForm.classId,
         title: chapterForm.title,
         description: chapterForm.description,
-        displayOrder: Number.isFinite(Number(chapterForm.orderIndex)) ? Number(chapterForm.orderIndex) : 0,
+        orderIndex,
+        displayOrder: orderIndex,
         published: chapterForm.published
       };
       if (editingChapter) {
@@ -169,12 +173,14 @@ const TeacherContentManagement = () => {
     if (!selectedChapter) return;
     setSubmitting(true);
     try {
+      const orderIndex = Number.isFinite(Number(lessonForm.orderIndex)) ? Number(lessonForm.orderIndex) : 0;
       const payload = {
         chapterId: String(selectedChapter.id),
         title: lessonForm.title,
         content: lessonForm.content,
         estimatedMinutes: Number.isFinite(Number(lessonForm.durationMinutes)) ? Number(lessonForm.durationMinutes) : 0,
-        displayOrder: Number.isFinite(Number(lessonForm.orderIndex)) ? Number(lessonForm.orderIndex) : 0,
+        orderIndex,
+        displayOrder: orderIndex,
         published: lessonForm.published
       };
       if (editingLesson) {
@@ -245,7 +251,9 @@ const TeacherContentManagement = () => {
                 </CardContent>
               </Card>
             ) : (
-              chapters.map((chapter) => (
+              chapters.map((chapter) => {
+                const canEditChapter = Boolean(chapter.ownerClassId ?? chapter.classId);
+                return (
                 <div
                   key={chapter.id}
                   className={`group relative rounded-2xl border-2 transition-all duration-300 ${
@@ -271,6 +279,7 @@ const TeacherContentManagement = () => {
                     </div>
                   </button>
                   
+                  {canEditChapter && (
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={(e) => { e.stopPropagation(); handleOpenChapterModal(chapter); }}
@@ -285,8 +294,10 @@ const TeacherContentManagement = () => {
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
+                  )}
                 </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
@@ -400,6 +411,21 @@ const TeacherContentManagement = () => {
                     className="w-full px-4 py-3 rounded-xl border-2 border-slate-100 focus:border-indigo-500 outline-none transition-all font-medium"
                     placeholder="e.g. Introduction to Organic Chemistry"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1.5">Lớp học</label>
+                  <select
+                    required
+                    disabled={Boolean(editingChapter)}
+                    value={chapterForm.classId}
+                    onChange={e => setChapterForm({ ...chapterForm, classId: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border-2 border-slate-100 focus:border-indigo-500 outline-none transition-all font-medium disabled:bg-slate-50 disabled:text-slate-500"
+                  >
+                    <option value="">Chọn lớp học</option>
+                    {teacherClasses.map((classRoom) => (
+                      <option key={classRoom.id} value={classRoom.id}>{classRoom.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1.5">Mô tả</label>

@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   LoaderCircle,
   BookOpen,
-  ChevronLeft,
 } from 'lucide-react';
 import {
   getStudyChapters,
@@ -18,8 +17,19 @@ const StudyZone = () => {
   const [lessonDetail, setLessonDetail] = useState(null);
   const [loadingLesson, setLoadingLesson] = useState(false);
   const [error, setError] = useState('');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const hasLessons = chapters.some((chapter) => (chapter.lessons || []).length > 0);
+  const orderedLessons = useMemo(
+    () => chapters.flatMap((chapter) => chapter?.lessons || []),
+    [chapters]
+  );
+  const activeLessonIndex = orderedLessons.findIndex(
+    (lesson) => String(lesson.id) === String(activeLessonId)
+  );
+  const previousLesson = activeLessonIndex > 0 ? orderedLessons[activeLessonIndex - 1] : null;
+  const nextLesson = activeLessonIndex >= 0 && activeLessonIndex < orderedLessons.length - 1
+    ? orderedLessons[activeLessonIndex + 1]
+    : null;
 
   useEffect(() => {
     const loadChapters = async () => {
@@ -58,29 +68,34 @@ const StudyZone = () => {
     loadLesson();
   }, [activeLessonId]);
 
+  const handleSelectLesson = (lessonId) => {
+    setActiveLessonId(lessonId);
+
+    if (window.matchMedia('(max-width: 767px)').matches) {
+      setIsSidebarOpen(false);
+    }
+  };
+
   return (
-    <div className="relative flex min-h-[calc(100vh-9rem)] w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-sm flex-col lg:flex-row">
+    <>
+      {isSidebarOpen && (
+        <button
+          type="button"
+          aria-label="Thu gọn danh sách chương"
+          onClick={() => setIsSidebarOpen(false)}
+          className="fixed inset-x-0 bottom-0 top-16 z-40 bg-slate-950/30 backdrop-blur-[1px] transition-opacity"
+        />
+      )}
+
       <ChapterSidebar
         chapters={chapters}
         activeLessonId={activeLessonId}
-        onSelectLesson={setActiveLessonId}
+        onSelectLesson={handleSelectLesson}
         isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
+        onClose={() => setIsSidebarOpen((current) => !current)}
       />
 
-      {!isSidebarOpen && (
-        <button
-          type="button"
-          onClick={() => setIsSidebarOpen(true)}
-          className="absolute right-4 top-4 z-30 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-lg shadow-slate-900/10 transition hover:-translate-y-0.5 hover:bg-slate-50 hover:text-slate-950"
-          title="Hiển thị danh sách chương"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Chương học
-        </button>
-      )}
-
-      <div className="flex-1 min-w-0 overflow-y-auto bg-white relative flex flex-col">
+      <div className="relative flex min-h-[calc(100vh-9rem)] w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:mr-16 md:w-[calc(100%-4rem)] lg:mr-20 lg:w-[calc(100%-5rem)]">
         {error && (
           <div className="mx-6 mt-6 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-semibold text-rose-700">
             {error}
@@ -94,7 +109,12 @@ const StudyZone = () => {
         )}
 
         {!loadingLesson && lessonDetail && (
-          <LessonContent lessonDetail={lessonDetail} />
+          <LessonContent
+            lessonDetail={lessonDetail}
+            previousLesson={previousLesson}
+            nextLesson={nextLesson}
+            onNavigateLesson={handleSelectLesson}
+          />
         )}
 
         {!loadingLesson && !lessonDetail && (
@@ -115,7 +135,7 @@ const StudyZone = () => {
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 };
 

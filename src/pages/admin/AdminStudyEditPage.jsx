@@ -45,7 +45,7 @@ const AdminStudyEditPage = () => {
           setChapterForm({
             title: entity?.title || '',
             description: entity?.description || '',
-            orderIndex: entity?.orderIndex ?? 0,
+            orderIndex: entity?.orderIndex ?? entity?.displayOrder ?? 0,
             published: entity?.published ?? true,
           });
         } else {
@@ -76,7 +76,7 @@ const AdminStudyEditPage = () => {
       const payload = {
         title: chapterForm.title.trim(),
         description: chapterForm.description.trim(),
-        displayOrder: Number.isFinite(Number(chapterForm.orderIndex)) ? Number(chapterForm.orderIndex) : 0,
+        orderIndex: Number.isFinite(Number(chapterForm.orderIndex)) ? Number(chapterForm.orderIndex) : 0,
         published: chapterForm.published,
       };
 
