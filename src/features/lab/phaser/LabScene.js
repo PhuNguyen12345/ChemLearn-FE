@@ -205,10 +205,11 @@ export default class LabScene extends Phaser.Scene {
       if (!this.containers[item.instanceId]) {
         // TẠO MỚI TƯỜNG VẬT LÝ
         // padY nhỏ hơn để đáy vật lý lọt thỏm xuống đường cong thủy tinh
+        // padY nhỏ hơn để đáy vật lý lọt thỏm xuống đường cong thủy tinh
         const padX = item.templateId === 'test_tube' ? 12 : 11.5;
         const padY = item.templateId === 'test_tube' ? 0 : 0;
-        const wallW = 100; // Tăng độ dày lên 100 để chống Tunneling
-        const botH = 100;
+        const wallW = 20; // Giảm độ dày tường để các bình có thể đứng sát nhau
+        const botH = 20;
         
         // Dùng Phaser GameObject (tàng hình) để dễ dàng setPosition sau này
         // Căn chỉnh sao cho mép trong của tường trùng với mép bình
@@ -239,8 +240,8 @@ export default class LabScene extends Phaser.Scene {
 
       // CẬP NHẬT VỊ TRÍ
       const container = this.containers[item.instanceId];
-      const wallW = 100;
-      const botH = 100;
+      const wallW = 20;
+      const botH = 20;
       const padX = item.templateId === 'test_tube' ? 12 : 11.5;
       const padY = item.templateId === 'test_tube' ? 6 : 6;
       
