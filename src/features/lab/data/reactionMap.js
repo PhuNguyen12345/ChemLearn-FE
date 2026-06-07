@@ -98,6 +98,7 @@ export const REACTION_MAP = {
     liquidContent: 'FeSO₄',
     solidContent: 'Cu (Rắn)',
     liquidColor: 'rgba(187, 247, 208, 0.7)',
+    precipitateColor: '#b45309',
     reactionInfo: {
       equation: 'Fe + CuSO₄ → FeSO₄ + Cu↓',
       condition: 'Nhiệt độ thường',
