@@ -438,7 +438,7 @@ export default function RequestAccessPage() {
                       <Input
                         id="email"
                         type="email"
-                        placeholder="name@school.edu.vn"
+                        placeholder="name@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
@@ -465,6 +465,7 @@ export default function RequestAccessPage() {
                         className="bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:ring-blue-100 pl-10 pr-10"
                       />
                       <button
+                        tabIndex="-1"
                         type="button"
                         onClick={() => setShowPassword((prev) => !prev)}
                         className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
@@ -492,6 +493,7 @@ export default function RequestAccessPage() {
                         className="bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:ring-blue-100 pl-10 pr-10"
                       />
                       <button
+                        tabIndex="-1"
                         type="button"
                         onClick={() => setShowConfirmPassword((prev) => !prev)}
                         className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors"

@@ -598,18 +598,18 @@ const LandingPage = () => {
               <ul className="space-y-4 text-sm font-medium text-purple-100">
                 <li><a href="#features" className="hover:text-white transition-colors">Tính năng</a></li>
                 <li><Link to="/lab" className="hover:text-white transition-colors">Phòng thí nghiệm ảo</Link></li>
-                <li><a href="#" className="hover:text-white transition-colors">Bảng giá</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Dành cho trường học</a></li>
+                <li><Link to="/info/pricing" className="hover:text-white transition-colors">Bảng giá</Link></li>
+                <li><Link to="/info/schools" className="hover:text-white transition-colors">Dành cho trường học</Link></li>
               </ul>
             </div>
 
             <div>
               <h4 className="text-white font-extrabold mb-6 text-lg">Công ty</h4>
               <ul className="space-y-4 text-sm font-medium text-purple-100">
-                <li><a href="#" className="hover:text-white transition-colors">Về chúng tôi</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Liên hệ</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Chính sách bảo mật</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Điều khoản sử dụng</a></li>
+                <li><Link to="/info/about" className="hover:text-white transition-colors">Về chúng tôi</Link></li>
+                <li><Link to="/info/contact" className="hover:text-white transition-colors">Liên hệ</Link></li>
+                <li><Link to="/info/privacy" className="hover:text-white transition-colors">Chính sách bảo mật</Link></li>
+                <li><Link to="/info/terms" className="hover:text-white transition-colors">Điều khoản sử dụng</Link></li>
               </ul>
             </div>
           </div>
@@ -617,8 +617,8 @@ const LandingPage = () => {
           <div className="border-t border-purple-400 pt-8 flex flex-col md:flex-row items-center justify-between text-sm font-medium text-purple-100">
             <p>© 2026 ChemLearn. Bảo lưu mọi quyền.</p>
             <div className="flex space-x-8 mt-4 md:mt-0">
-              <a href="#" className="hover:text-white transition-colors">Hỗ trợ</a>
-              <a href="#" className="hover:text-white transition-colors">Câu hỏi thường gặp</a>
+              <Link to="/info/support" className="hover:text-white transition-colors">Hỗ trợ</Link>
+              <Link to="/info/faq" className="hover:text-white transition-colors">Câu hỏi thường gặp</Link>
             </div>
           </div>
         </div>
