@@ -78,26 +78,20 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
     };
   }
 
-  // --- GAS RENDERER COMPONENT ---
-  const GasRenderer = ({ gas, template }) => {
-    if (!gas) return null;
-    const isTestTube = template === 'test_tube';
+  // --- GAS RENDERER COMPONENT BỊ LOẠI BỎ Ở PHASE 4 ---
+  // Phaser WebGL sẽ đảm nhiệm việc vẽ bọt khí và khói lửa.
+  // Ta chỉ còn giữ lại phần render text label (nếu cần).
+  const GasLabelRenderer = ({ gas, template }) => {
+    if (!gas || !gas.label) return null;
     return (
       <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-[30%] z-20 pointer-events-none flex flex-col items-center w-full`}>
          <div className={`absolute bottom-6 w-[80%] h-10 z-10 block`}>
-            {/* Simple static generic smoke particles */}
-            <div className={`smoke-particle ${isTestTube ? 'text-xl' : 'text-3xl'} absolute bottom-0 left-0`} style={{ animation: 'smoke-float-left 2s ease-in infinite', opacity: 0 }}>💨</div>
-            <div className={`smoke-particle ${isTestTube ? 'text-3xl' : 'text-4xl'} absolute bottom-0 left-1/2 -translate-x-1/2`} style={{ animation: 'smoke-rise-up 2.5s ease-in infinite 0.2s', opacity: 0 }}>💨</div>
-            <div className={`smoke-particle ${isTestTube ? 'text-xl' : 'text-3xl'} absolute bottom-0 right-0`} style={{ animation: 'smoke-float-right 2.8s ease-in infinite 1.1s', opacity: 0 }}>💨</div>
-            
-            {gas.label && (
-              <div
-                className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] font-black text-white bg-black/50 rounded px-1 py-0.5 select-none pointer-events-none whitespace-nowrap"
-                style={{ animation: 'smoke-rise-up 2.5s ease-in infinite 0.2s' }}
-              >
-                {gas.label}↑
-              </div>
-            )}
+            <div
+              className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] font-black text-white bg-black/50 rounded px-1 py-0.5 select-none pointer-events-none whitespace-nowrap"
+              style={{ animation: 'smoke-rise-up 2.5s ease-in infinite 0.2s' }}
+            >
+              {gas.label}↑
+            </div>
          </div>
       </div>
     );
@@ -109,7 +103,7 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
     if (layout) {
        const isSolidOnly = !content.liquid && content.solid;
        
-       const CHUNK_METALS = ['Zn (Rắn)', 'Na (Rắn)', 'Fe (Rắn)', 'Cu (Rắn)', 'K (Rắn)', 'Ag (Rắn)', 'Ba (Rắn)', 'Ca (Rắn)'];
+       const CHUNK_METALS = ['Zn (Rắn)', 'Na (Rắn)', 'Fe (Rắn)', 'K (Rắn)', 'Ag (Rắn)', 'Ba (Rắn)', 'Ca (Rắn)'];
        const isChunk = content.solid ? CHUNK_METALS.includes(content.solid.label) : false;
 
        // Toán học bảo vệ Overflow (95%)
@@ -146,19 +140,7 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
                  </div>
                )}
 
-               {/* BUBBLES */}
-               {(item.isHeated || item.reactionState === 'violent' || item.reactionState === 'bubbling') && layout.bubbles?.map((b, idx) => {
-                  const isNa = content.solid?.label === 'Na (Rắn)';
-                  const customBottom = isNa ? `calc(${wrapperHeight}% - 15px)` : undefined;
-                  const classNameWithoutBottom = b.className.replace(/bottom-\d+/, '');
-                  return (
-                    <div 
-                      key={idx} 
-                      className={`bubble-animation absolute ${customBottom ? classNameWithoutBottom : b.className}`} 
-                      style={{ animationDelay: b.animationDelay, bottom: customBottom || undefined }}
-                    ></div>
-                  );
-               })}
+               {/* BUBBLES ĐÃ CHUYỂN SANG PHASER */}
              </div>
            )}
 
@@ -172,35 +154,7 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
                  zIndex: 10
                }}
              >
-               {/* KHỐI KIM LOẠI RƠI (Falling Solid - Giai đoạn 1) */}
-               {item.fallingSolid && !item.fallingSolid.isLitmus && (
-                 <div
-                   className="absolute left-1/2 -translate-x-1/2 w-6 h-6 rounded-md shadow-lg dropping-animation"
-                   style={{
-                     bottom: item.fallingSolid.label === 'Na (Rắn)' ? `calc(${Math.max(wrapperHeight, 10)}% - 12px)` : '8px',
-                     backgroundColor: item.fallingSolid.color,
-                     boxShadow: 'inset 0 -2px 6px rgba(0,0,0,0.5)'
-                   }}
-                 >
-                 </div>
-               )}
-
-               {/* KHỐI KIM LOẠI ĐÃ CHẠM ĐÁY (Solid Chunk - Giai đoạn 2) */}
-               {content.solid && isChunk && !item.fallingSolid && (
-                 <div
-                   className={`absolute left-1/2 -translate-x-1/2 w-6 h-6 rounded-md z-10 flex justify-center ${item.isDissolving ? 'shrinking-solid' : ''}`}
-                   style={{
-                     bottom: content.solid.label === 'Na (Rắn)' ? `calc(${Math.max(wrapperHeight, 10)}% - 12px)` : '8px',
-                     backgroundColor: content.solid.color,
-                     boxShadow: 'inset 0 -2px 6px rgba(0,0,0,0.5)',
-                     '--duration': `${item.reactionDuration || 3000}ms`
-                   }}
-                 >
-                    {content.solid.label === 'Na (Rắn)' && item.reactionState === 'violent' && (
-                       <div className="absolute bottom-[80%] text-3xl violent-fire pointer-events-none drop-shadow-md">🔥</div>
-                    )}
-                 </div>
-               )}
+               {/* HIỆU ỨNG LỬA ĐÃ ĐƯỢC CHUYỂN SANG PHASER WEBGL */}
 
                {/* LITMUS PAPER (Với Wrapper để fix vị trí) */}
                {(item.indicatorPaperColor || item.fallingSolid?.isLitmus) && (
@@ -221,9 +175,9 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
            </svg>
 
            {/* LỚP KHÍ Z-20 */}
-           {content.gas && (
+           {(content.gas) && (
              <div className="absolute w-full z-20 pointer-events-none" style={{ bottom: layout.gasOrigin }}>
-               <GasRenderer gas={content.gas} template={item.templateId} />
+               <GasLabelRenderer gas={content.gas} template={item.templateId} />
              </div>
            )}
          </div>

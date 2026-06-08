@@ -67,6 +67,115 @@ export function useLabDragDrop({ scale, inventory }) {
     };
   }, []);
 
+  // Lắng nghe sự kiện vật lý từ Phaser báo kim loại chạm nước
+  useEffect(() => {
+    const handlePhaserHitLiquid = (e) => {
+      const { containerId, chemicalName, chunkId } = e.detail;
+      
+      setPlacedItems(curr => {
+        let nextItems = [...curr];
+        const targetContainerIndex = nextItems.findIndex(i => i.instanceId === containerId);
+        if (targetContainerIndex !== -1) {
+          let container = { ...nextItems[targetContainerIndex] };
+          const currentContent = container.content;
+          const isJustIndicator = currentContent === 'Litmus Paper' || currentContent === 'Phenolphthalein';
+          
+          const key = getReactionKey(currentContent, chemicalName);
+          const reaction = REACTION_MAP[key];
+
+          if (reaction && currentContent && !isJustIndicator) {
+            const previousActions = useLabStore.getState().progress.completed_actions;
+            if (!previousActions.includes(key)) {
+              if (labType === 'PREMADE') {
+                toast.success(`Phản ứng mới: ${reaction?.reactionInfo?.equation || key}`, { description: 'Bạn nhận được EXP!', position: 'bottom-right' });
+              } else if (labType === 'SANDBOX') {
+                toast.success(`Phản ứng mới: ${reaction?.reactionInfo?.equation || key}`, { position: 'bottom-right' });
+              }
+              useLabStore.getState().recordReaction(key);
+              completeTask(key);
+            }
+
+            container.liquidContent = reaction.liquidContent ?? null;
+            container.gasContent = reaction.gasContent ?? null;
+            container.solidContent = reaction.solidContent ?? null;
+            container.content = reaction.liquidContent ?? reaction.solidContent ?? null;
+
+            if (reaction.liquidColor) container.liquidColor = reaction.liquidColor;
+            if (reaction.precipitateColor) container.precipitateColor = reaction.precipitateColor;
+            if (reaction.reactionState) container.reactionState = reaction.reactionState;
+            if (reaction.reactionInfo) setReactionInfo(reaction.reactionInfo);
+
+            if (reaction.clearStateAfter) {
+              const timeoutId = window.setTimeout(() => {
+                reactionTimeoutsRef.current = reactionTimeoutsRef.current.filter((id) => id !== timeoutId);
+                setPlacedItems(c =>
+                  c.map(it =>
+                    it.instanceId === containerId ? { 
+                      ...it, 
+                      reactionState: null, 
+                      gasContent: null,
+                      isDissolving: false,
+                    } : it
+                  )
+                );
+                
+                // PHASE 4: STOP PARTICLES
+                window.dispatchEvent(new CustomEvent('PHASER_STOP_PARTICLES', {
+                  detail: { containerId }
+                }));
+              }, reaction.clearStateAfter);
+              reactionTimeoutsRef.current.push(timeoutId);
+            }
+            
+            // Xóa tan viên kim loại/hóa chất rắn ngay khi có phản ứng
+            container.isDissolving = true;
+            container.reactionDuration = reaction.clearStateAfter || 3000;
+            window.dispatchEvent(new CustomEvent('PHASER_DISSOLVE_CHUNK', {
+              detail: { chunkId, duration: container.reactionDuration }
+            }));
+            
+            // PHASE 4: START PARTICLES
+            if (reaction.reactionState === 'bubbling' || reaction.reactionState === 'violent') {
+              window.dispatchEvent(new CustomEvent('PHASER_START_PARTICLES', {
+                detail: { 
+                  containerId, 
+                  type: reaction.reactionState,
+                  duration: container.reactionDuration
+                }
+              }));
+            }
+          } else if (!currentContent || isJustIndicator) {
+            const chemicalItem = inventory.find(i => TEMPLATE_TO_CONTENT[i.id] === chemicalName) || inventory.find(i => i.name === chemicalName);
+            const isSolid = chemicalName.includes('(Rắn)') || chemicalItem?.state === PHYSICAL_STATE.SOLID;
+            if (isSolid) {
+              container.solidContent = chemicalName;
+              container.content = chemicalName;
+            } else {
+              container.liquidContent = chemicalName;
+              container.content = chemicalName;
+            }
+            setReactionInfo({
+              equation: `${chemicalName} Added`,
+              condition: 'Mixing',
+              description: `${chemicalName} đã được thêm vào dụng cụ.`,
+            });
+            completeTask(`DRAG_${chemicalName.toUpperCase()}_TO_FLASK`);
+          }
+          
+          if (container.content) {
+            container.phLevel = getPhLevel(container.content);
+            applyIndicatorEffect(container);
+          }
+          nextItems[targetContainerIndex] = container;
+        }
+        return nextItems;
+      });
+    };
+
+    window.addEventListener('PHASER_HIT_LIQUID', handlePhaserHitLiquid);
+    return () => window.removeEventListener('PHASER_HIT_LIQUID', handlePhaserHitLiquid);
+  }, [completeTask, labType, setReactionInfo, setPlacedItems]);
+
   // ─── Active drag item for DragOverlay preview ───────────────────────────────
   const activeDragItem = useMemo(() => {
     if (!activeDragData) return null;
@@ -144,6 +253,7 @@ export function useLabDragDrop({ scale, inventory }) {
       };
 
       setPlacedItems(prev => checkProximity([...prev, newItem]));
+
       setReactionInfo({
         equation: 'Adding ' + (inventory.find(i => i.id === sourceData.templateId)?.name ?? ''),
         condition: 'Workspace setup',
@@ -190,8 +300,15 @@ export function useLabDragDrop({ scale, inventory }) {
             // Indicator drop logic
             const isJustIndicator = currentContent === 'Litmus Paper' || currentContent === 'Phenolphthalein';
             const originalItem = inventory.find(item => item.id === draggedObj.templateId);
-            const isSolid = originalItem?.state === PHYSICAL_STATE.SOLID || draggedContentName.includes('(Rắn)');
             const isLitmus = draggedObj.templateId === 'litmus_paper';
+            
+            const subCategory = originalItem?.sub_category || originalItem?.subCategory;
+            const isMetal = subCategory === 'METAL';
+            const isSaltSolid = subCategory === 'SALT_SOLID' || subCategory === 'OXIDE';
+            
+            // Chỉ thả khối kim loại rơi tự do
+            const isChunkMetal = isMetal || draggedContentName.includes(' (Rắn)');
+            const isPowder = isSaltSolid || draggedContentName.includes('(Bột)');
 
             const processReaction = (container) => {
               if (draggedObj.templateId === 'litmus_paper') {
@@ -255,6 +372,11 @@ export function useLabDragDrop({ scale, inventory }) {
                           } : it
                         )
                       );
+                      
+                      // PHASE 4: STOP PARTICLES
+                      window.dispatchEvent(new CustomEvent('PHASER_STOP_PARTICLES', {
+                        detail: { containerId: instanceToUpdate }
+                      }));
                     }, reaction.clearStateAfter);
                     reactionTimeoutsRef.current.push(timeoutId);
                   }
@@ -267,11 +389,23 @@ export function useLabDragDrop({ scale, inventory }) {
                         container.isDissolving = true;
                         container.reactionDuration = reaction.clearStateAfter || 3000;
                         container.solidContent = draggedIsSolid ? draggedContentName : currentContent;
+                        window.dispatchEvent(new CustomEvent('PHASER_DISSOLVE_CHUNK', {
+                          detail: { containerId: instanceToUpdate, duration: container.reactionDuration }
+                        }));
                      }
+                     // PHASE 4: START PARTICLES FOR INSTANT REACTIONS
+                     window.dispatchEvent(new CustomEvent('PHASER_START_PARTICLES', {
+                       detail: { 
+                         containerId: instanceToUpdate, 
+                         type: reaction.reactionState,
+                         duration: reaction.clearStateAfter || 3000
+                       }
+                     }));
                   }
                 } else if (!currentContent || isJustIndicator) {
                   // ── EMPTY CONTAINER OR ONLY INDICATOR: deposit chemical ─────────
-                  if (isSolid) {
+                  const depositSolid = isChunkMetal || isPowder || (originalItem?.state === PHYSICAL_STATE.SOLID && !isLitmus);
+                  if (depositSolid) {
                     container.solidContent = draggedContentName;
                     if (!isJustIndicator) container.liquidContent = null;
                     container.content = draggedContentName;
@@ -302,18 +436,39 @@ export function useLabDragDrop({ scale, inventory }) {
               }
             }; // end processReaction
 
-            const shouldDefer = isSolid || isLitmus;
+            // Bỏ Hóa chất vừa kéo khỏi Canvas (đã thả vào bình)
+            updatedItems = updatedItems.filter(i => i.instanceId !== instanceId);
 
-            if (shouldDefer) {
-               // Giai đoạn 1: Drop Phase
+            if (isChunkMetal && !isPowder) {
+               // SPAWN TRONG PHASER VÀ CHỜ SỰ KIỆN CHẠM NƯỚC
+               const hexColor = (draggedObj.templateId === 'zn' || draggedObj.templateId.includes('Zn')) ? 0x9ca3af : 
+                                (draggedObj.templateId === 'na' || draggedObj.templateId.includes('Na')) ? 0x94a3b8 :
+                                (draggedObj.templateId === 'fe' || draggedObj.templateId.includes('Fe')) ? 0x475569 :
+                                (draggedObj.templateId === 'kmno4_powder' || draggedObj.templateId.includes('KMnO4')) ? 0x581c87 :
+                                (draggedObj.templateId === 'cu' || draggedObj.templateId.includes('Cu')) ? 0xb45309 : 
+                                0x94a3b8;
+               
+               const spawnX = targetContainer.x + (targetContainer.templateId === 'beaker' ? 48 : 24);
+               window.dispatchEvent(new CustomEvent('PHASER_SPAWN', { 
+                 detail: { 
+                   x: spawnX, // Thả ngay giữa miệng bình
+                   y: targetContainer.y + 15, // Thả bên TRONG miệng bình để tránh kẹt ở trần thế giới (y=0)
+                   name: draggedContentName,
+                   color: hexColor 
+                 } 
+               }));
+               
+               // KHÔNG GỌI processReaction Ở ĐÂY NỮA
+               updatedItems[targetContainerIndex] = targetContainer;
+            } else if (isLitmus) {
+               // Giấy quỳ vẫn xử lý ngay lập tức bằng CSS (Phaser chưa hỗ trợ giấy quỳ)
                targetContainer.fallingSolid = {
                  label: draggedContentName,
-                 color: isLitmus ? null : (EMPTY_DROP_LIQUID_COLOR[draggedObj.templateId] || 'rgba(156, 163, 175, 0.9)'),
-                 isLitmus: isLitmus
+                 color: null,
+                 isLitmus: true
                };
                updatedItems[targetContainerIndex] = targetContainer;
                
-               // Giai đoạn 2: Reaction Phase (sau 800ms)
                setTimeout(() => {
                  setPlacedItems(curr => {
                    let nextItems = [...curr];
@@ -327,11 +482,10 @@ export function useLabDragDrop({ scale, inventory }) {
                  });
                }, 800);
             } else {
+               // Chất lỏng xử lý ngay lập tức
                processReaction(targetContainer);
                updatedItems[targetContainerIndex] = targetContainer;
             }
-            // Remove the deposited chemical from the canvas
-            updatedItems = updatedItems.filter(i => i.instanceId !== instanceId);
           }
         }
 
