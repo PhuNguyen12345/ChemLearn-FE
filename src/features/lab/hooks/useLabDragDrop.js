@@ -243,6 +243,8 @@ export function useLabDragDrop({ scale, inventory }) {
       const x = Math.max(0, relativeCenterX - 45);
       const y = Math.max(0, relativeCenterY - 45);
 
+      const originalItem = inventory.find(i => i.id === sourceData.templateId);
+
       const newItem = {
         instanceId: newId,
         templateId: sourceData.templateId,
@@ -250,6 +252,10 @@ export function useLabDragDrop({ scale, inventory }) {
         y,
         content: null,
         isHeated: false,
+        type: originalItem?.type,
+        state: originalItem?.state,
+        iconFill: originalItem?.iconFill,
+        name: originalItem?.name,
       };
 
       setPlacedItems(prev => checkProximity([...prev, newItem]));
@@ -441,12 +447,10 @@ export function useLabDragDrop({ scale, inventory }) {
 
             if (isChunkMetal && !isPowder) {
                // SPAWN TRONG PHASER VÀ CHỜ SỰ KIỆN CHẠM NƯỚC
-               const hexColor = (draggedObj.templateId === 'zn' || draggedObj.templateId.includes('Zn')) ? 0x9ca3af : 
-                                (draggedObj.templateId === 'na' || draggedObj.templateId.includes('Na')) ? 0x94a3b8 :
-                                (draggedObj.templateId === 'fe' || draggedObj.templateId.includes('Fe')) ? 0x475569 :
-                                (draggedObj.templateId === 'kmno4_powder' || draggedObj.templateId.includes('KMnO4')) ? 0x581c87 :
-                                (draggedObj.templateId === 'cu' || draggedObj.templateId.includes('Cu')) ? 0xb45309 : 
-                                0x94a3b8;
+               let hexColor = 0x94a3b8; // Default gray
+               if (draggedObj.iconFill) {
+                 hexColor = parseInt(draggedObj.iconFill.replace('#', '0x'), 16);
+               }
                
                const spawnX = targetContainer.x + (targetContainer.templateId === 'beaker' ? 48 : 24);
                window.dispatchEvent(new CustomEvent('PHASER_SPAWN', { 

@@ -184,30 +184,51 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
        );
     } 
 
-    // FALLBACKS KIỂU CŨ
-    switch (item.templateId) {
-      case 'bunsen_burner':
-        return (
-          <div className="relative">
-             <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-8 h-12 origin-bottom animate-pulse pointer-events-none z-20">
-                <svg viewBox="0 0 30 60" className="w-full h-full drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]">
-                  <path d="M 15 0 Q 5 20 5 40 A 10 10 0 0 0 25 40 Q 25 20 15 0 Z" fill="#ef4444" />
-                  <path d="M 15 20 Q 10 35 10 45 A 5 5 0 0 0 20 45 Q 20 35 15 20 Z" fill="#facc15" />
-                </svg>
+    // FALLBACKS CHO CÁC VẬT PHẨM CHƯA CÓ SVG
+    if (item.type === 'CHEMICAL') {
+       const isLiquid = item.state === 'LIQUID';
+       const bgHex = item.iconFill || '#cccccc';
+
+       if (isLiquid) {
+          // BONG BÓNG LỎNG (LIQUID)
+          return (
+             <div 
+               className="w-10 h-10 rounded-full border border-black/10 shadow-sm drop-shadow-md hover:scale-105 transition-transform relative"
+               style={{ backgroundColor: bgHex }}
+             >
+                <div className="w-3 h-3 bg-white rounded-full absolute top-1.5 right-2 opacity-60"></div>
              </div>
-            <svg width="60" height="80" viewBox="0 0 60 80" className="drop-shadow-lg relative z-10">
-               <rect x="22" y="30" width="16" height="40" fill="#94a3b8" />
-               <rect x="10" y="70" width="40" height="10" fill="#334155" rx="2" />
-               <rect x="18" y="65" width="24" height="5" fill="#64748b" />
-            </svg>
-          </div>
-        );
-      case 'sodium': return <div className="w-10 h-10 bg-slate-200 rounded-md border-2 border-slate-300 shadow-sm flex items-center justify-center font-bold text-xs text-slate-500 hover:scale-105 transition-transform">Na</div>;
-      case 'copper': return <div className="w-10 h-10 bg-amber-700 rounded-md border-2 border-amber-800 shadow-sm flex items-center justify-center font-bold text-xs text-amber-100 hover:scale-105 transition-transform">Cu</div>;
-      case 'kmno4':  return <div className="w-10 h-10 bg-purple-600 rounded-full border-2 border-purple-800 shadow-sm flex items-center justify-center font-bold text-xs text-white hover:scale-105 transition-transform">K+</div>;
-      case 'water':  return <div className="w-10 h-10 rounded-full bg-blue-400 opacity-90 border-2 border-blue-500 shadow-sm drop-shadow-md flex items-center justify-center hover:scale-105 transition-transform"><div className="w-3 h-3 bg-white rounded-full absolute top-1 right-2 opacity-60"></div></div>;
-      default:       return <div className="p-2 bg-white rounded shadow text-xs font-bold border">{item.templateId}</div>;
+          );
+       } else {
+          // VIÊN NÉN RẮN (SOLID)
+          return (
+             <div 
+               className="w-10 h-10 rounded-xl border border-black/20 shadow-sm drop-shadow-md hover:scale-105 transition-transform"
+               style={{ backgroundColor: bgHex }}
+             />
+          );
+       }
     }
+
+    if (item.templateId === 'bunsen_burner') {
+      return (
+        <div className="relative">
+           <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-8 h-12 origin-bottom animate-pulse pointer-events-none z-20">
+              <svg viewBox="0 0 30 60" className="w-full h-full drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]">
+                <path d="M 15 0 Q 5 20 5 40 A 10 10 0 0 0 25 40 Q 25 20 15 0 Z" fill="#ef4444" />
+                <path d="M 15 20 Q 10 35 10 45 A 5 5 0 0 0 20 45 Q 20 35 15 20 Z" fill="#facc15" />
+              </svg>
+           </div>
+          <svg width="60" height="80" viewBox="0 0 60 80" className="drop-shadow-lg relative z-10">
+             <rect x="22" y="30" width="16" height="40" fill="#94a3b8" />
+             <rect x="10" y="70" width="40" height="10" fill="#334155" rx="2" />
+             <rect x="18" y="65" width="24" height="5" fill="#64748b" />
+          </svg>
+        </div>
+      );
+    }
+
+    return <div className="p-2 bg-white rounded shadow text-xs font-bold border">{item.templateId}</div>;
   };
 
   return (
@@ -232,31 +253,37 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
               {renderSVG()}
             </div>
           </TooltipTrigger>
-          {(content.liquid?.label || content.solid?.label || content.gas?.label) && (
-             <TooltipContent className="bg-slate-800 text-white font-medium p-3 text-base shadow-xl border-slate-700 pointer-events-none rounded-lg max-w-[200px]">
-               <div className="flex flex-col gap-1.5">
-                 {content.liquid?.label && (
-                   <div className="flex items-center gap-2">
-                     <span className="w-2 h-2 rounded-full bg-blue-400"></span>
-                     <span className="text-slate-300">Dung dịch:</span> 
-                     <span className="font-bold text-blue-100">{formatChemicalText(content.liquid.label)}</span>
-                   </div>
-                 )}
-                 {content.solid?.label && (
-                   <div className="flex items-center gap-2">
-                     <span className="w-2 h-2 rounded-[2px] bg-amber-500"></span>
-                     <span className="text-slate-300">{isSolidOnly ? 'Chất rắn:' : 'Kết tủa:'}</span> 
-                     <span className="font-bold text-amber-100">{formatChemicalText(content.solid.label)}</span>
-                   </div>
-                 )}
-                 {content.gas?.label && (
-                   <div className="flex items-center gap-2">
-                     <span className="w-2 h-2 rounded-full border border-slate-300 border-dashed"></span>
-                     <span className="text-slate-300">Khí:</span> 
-                     <span className="font-bold text-slate-100">{formatChemicalText(content.gas.label)}</span>
-                   </div>
-                 )}
-               </div>
+          {(content.liquid?.label || content.solid?.label || content.gas?.label || item.type === 'CHEMICAL') && (
+             <TooltipContent className="bg-slate-800 text-white font-medium p-3 text-base shadow-xl border-slate-700 pointer-events-none rounded-lg max-w-[200px] z-[9999]">
+               {item.type === 'CHEMICAL' ? (
+                 <div className="text-slate-100 font-bold text-center">
+                    {item.name}
+                 </div>
+               ) : (
+                 <div className="flex flex-col gap-1.5">
+                   {content.liquid?.label && (
+                     <div className="flex items-center gap-2">
+                       <span className="w-2 h-2 rounded-full bg-blue-400"></span>
+                       <span className="text-slate-300">Dung dịch:</span> 
+                       <span className="font-bold text-blue-100">{formatChemicalText(content.liquid.label)}</span>
+                     </div>
+                   )}
+                   {content.solid?.label && (
+                     <div className="flex items-center gap-2">
+                       <span className="w-2 h-2 rounded-[2px] bg-amber-500"></span>
+                       <span className="text-slate-300">{!content.liquid && content.solid ? 'Chất rắn:' : 'Kết tủa:'}</span> 
+                       <span className="font-bold text-amber-100">{formatChemicalText(content.solid.label)}</span>
+                     </div>
+                   )}
+                   {content.gas?.label && (
+                     <div className="flex items-center gap-2">
+                       <span className="w-2 h-2 rounded-full bg-slate-400 opacity-70"></span>
+                       <span className="text-slate-300">Khí:</span> 
+                       <span className="font-bold text-slate-100">{formatChemicalText(content.gas.label)}</span>
+                     </div>
+                   )}
+                 </div>
+               )}
              </TooltipContent>
           )}
         </Tooltip>
