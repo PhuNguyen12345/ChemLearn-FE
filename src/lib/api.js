@@ -513,4 +513,61 @@ export const resetVirtualLab = async (labId) => {
   return response.data;
 };
 
+// AI Tutor operations
+export const aiChat = async (payload) => {
+  const response = await api.post('/api/v1/ai/chat', payload);
+  return response.data;
+};
+
+export const aiChatImage = async ({ image, ...fields }) => {
+  const formData = new FormData();
+  Object.entries(fields).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      formData.append(key, value);
+    }
+  });
+  formData.append('image', image);
+
+  const response = await api.post('/api/v1/ai/chat-image', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 90000,
+  });
+  return response.data;
+};
+
+export const generateAiExam = async (payload) => {
+  const response = await api.post('/api/v1/ai/generate-exam', payload);
+  return response.data;
+};
+
+export const submitGeneratedAiExam = async (payload) => {
+  const response = await api.post('/api/v1/ai/submit-generated-exam', payload);
+  return response.data;
+};
+
+export const getGeneratedAiExams = async (studentId) => {
+  const response = await api.get(`/api/v1/ai/generated-exams/by-student/${studentId}`);
+  return response.data;
+};
+
+export const getGeneratedAiExam = async (examId) => {
+  const response = await api.get(`/api/v1/ai/generated-exams/${examId}`);
+  return response.data;
+};
+
+export const analyzeAiResult = async (payload) => {
+  const response = await api.post('/api/v1/ai/analyze-result', payload);
+  return response.data;
+};
+
+export const getAiSessions = async (studentId) => {
+  const response = await api.get(`/api/v1/ai/sessions/${studentId}`);
+  return response.data;
+};
+
+export const getAiSessionMessages = async (sessionId) => {
+  const response = await api.get(`/api/v1/ai/sessions/${sessionId}/messages`);
+  return response.data;
+};
+
 export default api
