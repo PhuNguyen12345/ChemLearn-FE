@@ -9,7 +9,8 @@ import {
   Users,
   Map,
   Swords,
-  ChevronLeft
+  ChevronLeft,
+  Bot
 } from 'lucide-react';
 import { useStudentStore } from '../../../stores/useStudentStore';
 import { useSidebarStore } from '../../../stores/useSidebarStore';
@@ -18,6 +19,7 @@ const navItems = [
   { name: 'Trang chủ', icon: LayoutDashboard, path: '/student/home', id: 'dashboard', emoji: '🏠' },
   { name: 'Bản đồ tiến độ', icon: Map, path: '/student/progress-map', id: 'progressMap', emoji: '🗺️' },
   { name: 'Khu vực học tập', icon: BookOpen, path: '/student/study-zone', id: 'studyZone', emoji: '📚' },
+  { name: 'AI Tutor', icon: Bot, path: '/student/ai-tutor', id: 'aiTutor', emoji: 'AI' },
   { name: 'Phòng thí nghiệm ảo', icon: Microscope, path: '/student/virtual-lab', id: 'labDashboard', emoji: '🧪' },
   // { name: 'Nhiệm vụ',    icon: Target,          path: '/student/missions', id: 'missions', emoji: '🎯' },
   { name: 'Đấu trường PVP', icon: Swords, path: '/student/pvp', id: 'pvp', emoji: '⚔️' },
@@ -30,6 +32,7 @@ const itemAccent = {
   dashboard: { bg: 'bg-indigo-500', border: 'border-b-indigo-700', shadow: 'shadow-indigo-300/40' },
   progressMap: { bg: 'bg-cyan-500', border: 'border-b-cyan-700', shadow: 'shadow-cyan-300/40' },
   studyZone: { bg: 'bg-sky-500', border: 'border-b-sky-700', shadow: 'shadow-sky-300/40' },
+  aiTutor: { bg: 'bg-teal-600', border: 'border-b-teal-800', shadow: 'shadow-teal-300/40' },
   labDashboard: { bg: 'bg-purple-500', border: 'border-b-purple-700', shadow: 'shadow-purple-300/40' },
   // missions: { bg: 'bg-orange-500', border: 'border-b-orange-700', shadow: 'shadow-orange-300/40' },
   leaderboard: { bg: 'bg-amber-500', border: 'border-b-amber-700', shadow: 'shadow-amber-300/40' },
