@@ -48,7 +48,7 @@ const MiniQuizSection = ({ lessonId, questions = [] }) => {
   const submitQuiz = async () => {
     if (submitting || result) return;
     if (answeredCount !== questions.length) {
-      setError('Answer every mini-quiz question before submitting.');
+      setError('Trả lời tất cả các câu hỏi trước khi nộp bài.');
       return;
     }
 
@@ -63,7 +63,7 @@ const MiniQuizSection = ({ lessonId, questions = [] }) => {
       });
       setResult(response);
     } catch (err) {
-      setError(err?.response?.data?.message || 'Failed to submit mini quiz.');
+      setError(err?.response?.data?.message || 'Lỗi khi nộp bài. Vui lòng thử lại.');
     } finally {
       setSubmitting(false);
     }
@@ -168,7 +168,7 @@ const MiniQuizSection = ({ lessonId, questions = [] }) => {
               Điểm số: {result.score}% ({result.correctAnswers}/{result.totalQuestions})
             </div>
             <p className="mt-1 text-xs font-semibold opacity-80">
-              {result.passed ? 'Passed. Nice work.' : 'Not passed yet. Review the lesson and try again.'}
+              {result.passed ? 'Chính xác. Làm tốt lắm!' : 'Chưa đạt. Xem lại bài học và thử lại.'}
             </p>
           </div>
         )}

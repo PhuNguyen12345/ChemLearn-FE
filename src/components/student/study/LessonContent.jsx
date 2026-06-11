@@ -26,7 +26,7 @@ const LessonContent = ({ lessonDetail, previousLesson, nextLesson, onNavigateLes
         </div>
         <h1 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight leading-tight">{lessonDetail.title}</h1>
         <div className="flex items-center gap-3 mt-3">
-          <span className="text-xs font-bold text-slate-400">~{lessonDetail.estimatedMinutes || 8} min read</span>
+          <span className="text-xs font-bold text-slate-400">~{lessonDetail.estimatedMinutes || 8} phút đọc</span>
         </div>
       </div>
 

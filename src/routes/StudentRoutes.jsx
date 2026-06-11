@@ -2,7 +2,7 @@ import React from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import StudentLayout from "../components/layout/student/StudentLayout";
 import NotFoundPage from "../pages/shared/NotFoundPage";
-import StudentHome from "../pages/student/StudentHome";
+import Payments from "../pages/student/Payments";
 import Missions from "../pages/student/Missions";
 import Leaderboard from "../pages/student/Leaderboard";
 import StudyZone from "../pages/student/StudyZone";
@@ -23,7 +23,7 @@ export default function StudentRoutes() {
     <Routes>
       <Route element={<StudentLayout />}>
         <Route index element={<Navigate to="home" replace />} />
-        <Route path="home" element={<StudentHome />} />
+        <Route path="home" element={<Payments />} />
         <Route path="missions" element={<Missions />} />
         <Route path="leaderboard" element={<Leaderboard />} />
         <Route path="study-zone" element={<StudyZone />} />

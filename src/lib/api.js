@@ -508,4 +508,30 @@ export const resetVirtualLab = async (labId) => {
   return response.data;
 };
 
+// Payments & packages
+export const getPackages = async () => {
+  const response = await api.get('/api/v1/packages');
+  return normalizeListResponse(response.data);
+};
+
+export const getPackageByCode = async (packageCode) => {
+  const response = await api.get(`/api/v1/packages/${packageCode}`);
+  return response.data;
+};
+
+export const createPaymentLink = async (payload) => {
+  const response = await api.post('/api/v1/payments/create-link', payload);
+  return response.data;
+};
+
+export const getPaymentStatus = async (orderCode) => {
+  const response = await api.get(`/api/v1/payments/${orderCode}`);
+  return response.data;
+};
+
+export const getMyEntitlements = async () => {
+  const response = await api.get('/api/v1/me/entitlements');
+  return normalizeListResponse(response.data);
+};
+
 export default api

@@ -71,7 +71,7 @@ const StudyZone = () => {
   const handleSelectLesson = (lessonId) => {
     setActiveLessonId(lessonId);
 
-    if (window.matchMedia('(max-width: 767px)').matches) {
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches) {
       setIsSidebarOpen(false);
     }
   };
@@ -83,7 +83,7 @@ const StudyZone = () => {
           type="button"
           aria-label="Thu gọn danh sách chương"
           onClick={() => setIsSidebarOpen(false)}
-          className="fixed inset-x-0 bottom-0 top-16 z-40 bg-slate-950/30 backdrop-blur-[1px] transition-opacity"
+          className="fixed inset-x-0 bottom-0 top-16 z-40 bg-slate-950/25"
         />
       )}
 
