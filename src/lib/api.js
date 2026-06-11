@@ -534,4 +534,9 @@ export const getMyEntitlements = async () => {
   return normalizeListResponse(response.data);
 };
 
+export const cancelMyEntitlement = async (entitlementId) => {
+  const response = await api.patch(`/api/v1/me/entitlements/${entitlementId}/cancel`);
+  return response.data;
+};
+
 export default api

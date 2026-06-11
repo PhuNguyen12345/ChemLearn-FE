@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, User, Settings, LogOut, FlaskConical, Flame, Star, Sparkles } from 'lucide-react';
+import { Menu, User, Settings, LogOut, FlaskConical, Flame, Star, Sparkles, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -118,6 +118,13 @@ const Header = () => {
               >
                 <User className="mr-2.5 h-4 w-4 text-indigo-500" />
                 <span>Hồ sơ</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate('/student/subscriptions')}
+                className="cursor-pointer rounded-xl px-3 py-2.5 hover:bg-emerald-50 focus:bg-emerald-50 font-semibold"
+              >
+                <CreditCard className="mr-2.5 h-4 w-4 text-emerald-500" />
+                <span>Gói học của tôi</span>
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer rounded-xl px-3 py-2.5 hover:bg-slate-50 focus:bg-slate-50 font-semibold">
                 <Settings className="mr-2.5 h-4 w-4 text-slate-500" />
