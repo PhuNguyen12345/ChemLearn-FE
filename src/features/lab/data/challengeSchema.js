@@ -13,7 +13,7 @@ export const CHALLENGE_SCHEMA = {
     equation: "Zn + 2HCl -> ZnCl2 + H2↑",
     question: "Dựa vào thông số bạn vừa thiết lập, hãy tính thể tích khí H2 sinh ra (ở đkc 25 độ C, 1 bar) và khối lượng chất rắn còn dư (nếu có). Nhập 0 nếu không có chất rắn dư.",
     hints: [
-      "Bước 1: Tính số mol của Zn (n = m / 65) và HCl (n = C_M * V_L).",
+      "Bước 1: Tính số mol của Zn (n = m / 65) và HCl (n = CM * V(L)).",
       "Bước 2: Lập tỉ lệ để tìm chất dư, chất hết.",
       "Bước 3: Tính số mol khí H2 theo chất hết và nhân với 24.79 để ra thể tích."
     ],
@@ -40,7 +40,7 @@ export const CHALLENGE_SCHEMA = {
     question: "Dựa vào lượng dung dịch bạn vừa đổ vào, hãy tính khối lượng kết tủa xanh tạo thành và SỐ MOL của chất còn dư sau phản ứng.",
     hints: [
       "Bước 1: Đổi thể tích mL sang Lít (chia cho 1000).",
-      "Bước 2: Tính số mol của cả 2 dung dịch (n = C_M * V_L) trước khi so sánh."
+      "Bước 2: Tính số mol của cả 2 dung dịch (n = CM * V(L)) trước khi so sánh."
     ],
     requiredFields: [
       { id: 'cuoh2_mass', label: 'Khối lượng kết tủa Cu(OH)2', unit: 'Gam', evalPath: { type: 'product', targetName: 'Cu(OH)2', property: 'mass' } },

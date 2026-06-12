@@ -14,7 +14,7 @@ export default function MathChallengeModal() {
 
   if (!activeChallenge) return null;
 
-  const { schema, groundTruth, onComplete } = activeChallenge;
+  const { schema, groundTruth, inputA, inputB, onComplete } = activeChallenge;
 
   const handleInputChange = (fieldId, value) => {
     setAnswers(prev => ({ ...prev, [fieldId]: value }));
@@ -58,6 +58,15 @@ export default function MathChallengeModal() {
     }
   };
 
+  const renderInputParam = (input) => {
+    if (!input) return null;
+    const isSolid = input.name.includes('(Rắn)') || !input.molarity;
+    const unit = isSolid ? 'Gam' : 'mL';
+    const molarityText = !isSolid && input.molarity ? ` (${input.molarity}M)` : '';
+    const cleanName = input.name.replace(' (Rắn)', '');
+    return <li key={input.name} className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-500"></span><strong className="text-blue-700">{cleanName}:</strong> {input.amount} {unit}{molarityText}</li>;
+  };
+
   return (
     <div className="fixed inset-0 z-[9999] bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
@@ -75,6 +84,18 @@ export default function MathChallengeModal() {
 
         {/* BODY */}
         <div className="p-8">
+          
+          {/* HIỂN THỊ THÔNG SỐ ĐÃ THIẾT LẬP */}
+          {(inputA && inputB) && (
+            <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 mb-6">
+              <h4 className="text-sm font-bold text-slate-500 uppercase mb-2 tracking-wide">Thông số phản ứng</h4>
+              <ul className="text-slate-700 font-medium space-y-1">
+                {renderInputParam(inputA)}
+                {renderInputParam(inputB)}
+              </ul>
+            </div>
+          )}
+
           <p className="text-slate-700 text-lg leading-relaxed mb-6 font-medium">
             {schema.question}
           </p>

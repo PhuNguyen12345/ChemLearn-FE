@@ -63,10 +63,16 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
   // 1. Phân tách JSON state payload từ Data cũ
   const content = {};
   if (legacyLiquidContent) {
+    const containerConfig = CONTAINER_UI_MAP[item.templateId];
+    const maxCap = containerConfig?.maxCapacity || 500;
+    const volAmount = item.amount || 100;
+    const calculatedRatio = (volAmount / maxCap) * 100;
+    const safeRatio = Math.min(calculatedRatio, 95);
+
     content.liquid = {
       label: legacyLiquidContent,
       color: getLiquidBg(legacyLiquidContent),
-      volumeRatio: item.liquidVolume || (item.templateId === 'test_tube' ? 45 : 55)
+      volumeRatio: item.liquidVolume || safeRatio
     };
   }
   if (legacySolidContent || item.precipitateColor || item.reactionState === 'precipitation') {

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { CONTAINER_UI_MAP } from '../data/ContainerRendererMap';
 
 export default class LabScene extends Phaser.Scene {
   constructor() {
@@ -84,7 +85,7 @@ export default class LabScene extends Phaser.Scene {
 
     // PHASE 4: START PARTICLES (Sủi bọt / Lửa)
     this.handleStartParticles = (e) => {
-      const { containerId, type } = e.detail;
+      const { containerId, type, amount, molarity } = e.detail;
       const container = this.containers[containerId];
       if (!container) return;
 
@@ -96,16 +97,25 @@ export default class LabScene extends Phaser.Scene {
       const emitY = liquidSensorY + 25; // Gần đáy
       const surfaceY = liquidSensorY - 35; // Mặt nước
 
+      // Phase 4: Tính toán hệ số mãnh liệt (Intensity)
+      const reactAmount = amount || 10;
+      const reactMolarity = molarity || 1.0;
+      // Intensity dao động từ 0.5x đến 3x
+      const intensity = Math.min(Math.max((reactAmount / 20) * reactMolarity, 0.5), 3);
+
       if (type === 'bubbling' || type === 'violent') {
         const bubbleEmitter = this.add.particles(0, 0, 'soft-bubble', {
           x: { min: emitX - 25, max: emitX + 25 },
           y: emitY,
           lifespan: { min: 1000, max: 1500 },
-          speedY: { min: -100, max: -200 },
-          speedX: { min: -15, max: 15 },
-          scale: { start: 0.5, end: 1.2 }, // Texture 32x32 nên cần scale lớn để đạt 16px - 40px
+          // Hạt bay nhanh hơn nếu intensity cao
+          speedY: { min: -100 * intensity, max: -200 * intensity },
+          speedX: { min: -15 * intensity, max: 15 * intensity },
+          // Kích thước bong bóng to hơn 1 chút
+          scale: { start: 0.5 * Math.max(intensity, 1), end: 1.2 * Math.max(intensity, 1) }, 
           alpha: { start: 0.8, end: 0 },
-          frequency: 50, // Trả lại tốc độ sinh hạt dày đặc (20 hạt/giây) cho sống động
+          // Tần suất sinh hạt (frequency nhỏ = sinh nhanh hơn)
+          frequency: Math.max(50 / intensity, 15),
           blendMode: 'NORMAL' // Dùng NORMAL thay vì ADD để bong bóng nổi bật trên nền sáng
         });
         bubbleEmitter.setDepth(10);
@@ -117,12 +127,12 @@ export default class LabScene extends Phaser.Scene {
           x: { min: emitX - 15, max: emitX + 15 },
           y: surfaceY + 10,
           lifespan: { min: 400, max: 700 },
-          speedY: { min: -50, max: -120 },
-          speedX: { min: -15, max: 15 },
-          scale: { start: 0.8, end: 0.1 }, // Phóng to hạt sáng ở gốc và thu nhỏ về ngọn
+          speedY: { min: -50 * intensity, max: -120 * intensity },
+          speedX: { min: -15 * intensity, max: 15 * intensity },
+          scale: { start: 0.8 * intensity, end: 0.1 }, 
           alpha: { start: 1, end: 0 },
           tint: [ 0xfffb00, 0xff7300, 0xff0000, 0x444444 ], // Vàng sáng -> Cam -> Đỏ -> Khói đen
-          frequency: 30, // Sinh hạt liên tục tạo thành dòng chảy lửa
+          frequency: Math.max(30 / intensity, 10), // Bùng lửa mạnh hơn
           blendMode: 'ADD' // Vì là chấm sáng trắng, trộn ADD sẽ tự động tạo độ glow như lửa thật!
         });
         fireEmitter.setDepth(15);
@@ -168,7 +178,6 @@ export default class LabScene extends Phaser.Scene {
         const sensor = bodyA.isSensor ? bodyA : (bodyB.isSensor ? bodyB : null);
         const chunk = bodyA.isSensor ? bodyB : (bodyB.isSensor ? bodyA : null);
         
-        // Tránh kích hoạt nhiều lần cho cùng 1 viên
         if (sensor && sensor.label === 'liquidSensor' && chunk && chunk.label === 'chemicalChunk' && !chunk.hasHitWater) {
           chunk.hasHitWater = true;
           chunk.containerId = sensor.containerId; // Lưu containerId để di chuyển theo bình
@@ -177,7 +186,9 @@ export default class LabScene extends Phaser.Scene {
             detail: { 
               containerId: sensor.containerId, 
               chemicalName: chunk.chemicalName,
-              chunkId: chunk.id
+              chunkId: chunk.id,
+              amount: chunk.amount,
+              molarity: chunk.molarity
             } 
           }));
         }
@@ -287,12 +298,22 @@ export default class LabScene extends Phaser.Scene {
   }
 
   handleSpawnChemical(data) {
-    const { x, y, name, color } = data;
+    const { x, y, name, color, amount, molarity, containerTemplate } = data;
     
-    // Thu nhỏ size cục hóa chất để vừa ống nghiệm (48px)
-    // Dùng màu sắc truyền từ React (fallback là màu xám)
-    const fillColor = typeof color === 'number' ? color : 0x94a3b8;
-    const rect = this.add.rectangle(x, y, 15, 15, fillColor);
+    // Ép kiểu an toàn, tránh NaN làm tàng hình object
+    const validColor = (typeof color === 'number' && !isNaN(color)) ? color : 0x94a3b8;
+    
+    // Dynamic Solid Scale (Theo yêu cầu: không vượt quá 80% miệng bình)
+    const containerConfig = CONTAINER_UI_MAP[containerTemplate || 'beaker'];
+    const maxInnerWidth = containerConfig ? containerConfig.innerWidth : 70;
+    const maxAllowedSize = maxInnerWidth * 0.8;
+    
+    // Hàm Scale: 1g -> 8px (min), 50g -> maxAllowedSize (Giả sử 50g là slider max)
+    const mass = parseFloat(amount) || 10;
+    let calculatedSize = 8 + (mass / 50) * (maxAllowedSize - 8);
+    const finalSize = Math.min(Math.max(calculatedSize, 8), maxAllowedSize);
+    
+    const rect = this.add.rectangle(x, y, finalSize, finalSize, validColor);
     
     this.matter.add.gameObject(rect, {
       restitution: 0.6, // Tăng độ nảy lên để thấy rõ lộp bộp
@@ -303,6 +324,8 @@ export default class LabScene extends Phaser.Scene {
     
     // Gắn metadata vào body để xử lý va chạm
     rect.body.chemicalName = name;
+    rect.body.amount = amount;
+    rect.body.molarity = molarity;
   }
 
   update() {

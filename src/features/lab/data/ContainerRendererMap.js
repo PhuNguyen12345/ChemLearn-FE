@@ -1,5 +1,7 @@
 export const CONTAINER_UI_MAP = {
   beaker: {
+    maxCapacity: 500, // mL
+    innerWidth: 70, // px
     svgViewBox: "0 0 100 125",
     svgPaths: [
       { d: "M 10 10 L 10 90 Q 10 95 15 95 L 65 95 Q 70 95 70 90 L 70 10 M 5 10 L 15 10 M 65 10 L 75 10", stroke: "rgba(255,255,255,0.9)", strokeWidth: "4" },
@@ -20,6 +22,8 @@ export const CONTAINER_UI_MAP = {
     ]
   },
   test_tube: {
+    maxCapacity: 50, // mL
+    innerWidth: 24, // px
     svgViewBox: "0 0 50 150",
     svgPaths: [
       { d: "M 10 10 L 10 110 A 10 10 0 0 0 30 110 L 30 10 M 5 10 L 15 10 M 25 10 L 35 10", stroke: "#94a3b8", strokeWidth: "2" }

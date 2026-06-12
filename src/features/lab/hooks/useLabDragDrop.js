@@ -107,7 +107,15 @@ export function useLabDragDrop({ scale, inventory }) {
             if (reaction.reactionState) container.reactionState = reaction.reactionState;
             if (reaction.reactionInfo) setReactionInfo(reaction.reactionInfo);
 
-            if (reaction.clearStateAfter) {
+            // Phase 4: Tính toán thời gian tan và cường độ phản ứng dựa trên lượng chất
+            const baseDuration = reaction.clearStateAfter || 3000;
+            const reactAmount = parseFloat(e.detail.amount) || 10;
+            // Scale: 10g -> 1x, 50g -> ~2.3x thời gian tan
+            const durationMultiplier = Math.min(Math.max(1 + (reactAmount - 10) / 30, 1), 3);
+            container.reactionDuration = baseDuration * durationMultiplier;
+            container.isDissolving = true;
+
+            if (baseDuration > 0) {
               const timeoutId = window.setTimeout(() => {
                 reactionTimeoutsRef.current = reactionTimeoutsRef.current.filter((id) => id !== timeoutId);
                 setPlacedItems(c =>
@@ -125,24 +133,24 @@ export function useLabDragDrop({ scale, inventory }) {
                 window.dispatchEvent(new CustomEvent('PHASER_STOP_PARTICLES', {
                   detail: { containerId }
                 }));
-              }, reaction.clearStateAfter);
+              }, container.reactionDuration);
               reactionTimeoutsRef.current.push(timeoutId);
             }
             
-            // Xóa tan viên kim loại/hóa chất rắn ngay khi có phản ứng
-            container.isDissolving = true;
-            container.reactionDuration = reaction.clearStateAfter || 3000;
+            // Bắn event làm tan từ từ viên kim loại bên Phaser
             window.dispatchEvent(new CustomEvent('PHASER_DISSOLVE_CHUNK', {
               detail: { chunkId, duration: container.reactionDuration }
             }));
             
-            // PHASE 4: START PARTICLES
+            // PHASE 4: START PARTICLES (Truyền thêm amount/molarity để điều chỉnh cường độ bọt)
             if (reaction.reactionState === 'bubbling' || reaction.reactionState === 'violent') {
               window.dispatchEvent(new CustomEvent('PHASER_START_PARTICLES', {
                 detail: { 
                   containerId, 
                   type: reaction.reactionState,
-                  duration: container.reactionDuration
+                  duration: container.reactionDuration,
+                  amount: reactAmount,
+                  molarity: parseFloat(e.detail.molarity) || container.molarity || 1.0
                 }
               }));
             }
@@ -152,9 +160,12 @@ export function useLabDragDrop({ scale, inventory }) {
             if (isSolid) {
               container.solidContent = chemicalName;
               container.content = chemicalName;
+              container.amount = e.detail.amount || 10;
             } else {
               container.liquidContent = chemicalName;
               container.content = chemicalName;
+              container.amount = e.detail.amount || 100;
+              container.molarity = e.detail.molarity || 1.0;
             }
             setReactionInfo({
               equation: `${chemicalName} Added`,
@@ -329,6 +340,14 @@ export function useLabDragDrop({ scale, inventory }) {
                  if (!freshTarget) return nextItems;
 
                  const processReaction = (container) => {
+                   const droppedIsSolid = draggedContentName.includes('(Rắn)') || draggedContentName.includes('(Bột)');
+                   const isIndicator = draggedObj.templateId === 'litmus_paper' || draggedObj.templateId === 'phenolphthalein';
+                   
+                   // Cộng dồn thể tích nếu đổ chất lỏng vào bình đã có hóa chất
+                   if (!droppedIsSolid && !isIndicator && currentContent) {
+                     container.amount = (container.amount || 100) + (draggedObj.amount || 100);
+                   }
+
                    if (draggedObj.templateId === 'litmus_paper') {
                      container.indicator = 'LITMUS';
                      if (!container.content) {
@@ -457,7 +476,15 @@ export function useLabDragDrop({ scale, inventory }) {
                     }
                     const spawnX = freshTarget.x + (freshTarget.templateId === 'beaker' ? 48 : 24);
                     window.dispatchEvent(new CustomEvent('PHASER_SPAWN', { 
-                      detail: { x: spawnX, y: freshTarget.y + 15, name: draggedContentName, color: hexColor } 
+                      detail: { 
+                         x: spawnX, 
+                         y: freshTarget.y + 15, 
+                         name: draggedContentName, 
+                         color: hexColor,
+                         amount: draggedObj.amount,
+                         molarity: draggedObj.molarity,
+                         containerTemplate: freshTarget.templateId
+                      } 
                     }));
                  } else if (isLitmus) {
                     freshTarget.fallingSolid = { label: draggedContentName, color: null, isLitmus: true };
@@ -487,8 +514,19 @@ export function useLabDragDrop({ scale, inventory }) {
             // --- KIỂM TRA ĐIỀU KIỆN CHẶN LẠI ĐỂ HIỂN THỊ CHALLENGE ---
             if (labType === 'PREMADE' && schema && currentContent && !isJustIndicator) {
                // Thu thập thông số từ state
-               const inputA = { name: currentContent, amount: targetContainer.amount || 100, molarity: targetContainer.molarity || 1.0 };
-               const inputB = { name: draggedContentName, amount: draggedObj.amount || 10, molarity: draggedObj.molarity || 1.0 };
+               const isSolidA = currentContent.includes('(Rắn)');
+               const isSolidB = draggedContentName.includes('(Rắn)');
+               
+               const inputA = { 
+                 name: currentContent, 
+                 amount: targetContainer.amount || (isSolidA ? 10 : 100), 
+                 molarity: isSolidA ? undefined : (targetContainer.molarity || 1.0) 
+               };
+               const inputB = { 
+                 name: draggedContentName, 
+                 amount: draggedObj.amount || (isSolidB ? 10 : 100), 
+                 molarity: isSolidB ? undefined : (draggedObj.molarity || 1.0) 
+               };
                
                // Tính toán Ground Truth
                const groundTruth = schema.calculateGroundTruth(inputA, inputB);
@@ -497,6 +535,8 @@ export function useLabDragDrop({ scale, inventory }) {
                useLabStore.getState().setActiveChallenge({
                   schema,
                   groundTruth,
+                  inputA,
+                  inputB,
                   onComplete: () => {
                      // Tiếp tục chạy phản ứng và đổ/spawns sau khi học sinh giải toán đúng
                      finalizeDropExecution();
