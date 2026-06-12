@@ -1,9 +1,9 @@
-
 import React, { useState, useRef } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { ZoomIn, ZoomOut, Maximize } from 'lucide-react';
 import CanvasItem from './CanvasItem';
 import PhaserLabCanvas from './PhaserLabCanvas';
+import MathChallengeModal from './MathChallengeModal';
 
 export default function CentralWorkspace({ placedItems, scale, setScale, selectedItemId, setSelectedItemId, onDeleteItem  }) {
   const { isOver, setNodeRef } = useDroppable({ id: 'canvas' });
@@ -177,6 +177,9 @@ export default function CentralWorkspace({ placedItems, scale, setScale, selecte
           ))}
         </div>
       </div>
+
+      {/* MODAL GIẢI TOÁN (Hiển thị đè lên trên cùng) */}
+      <MathChallengeModal />
     </div>
   );
 }

@@ -3,9 +3,14 @@ import { useDraggable } from '@dnd-kit/core';
 import { Trash2 } from 'lucide-react';
 import { CONTAINER_UI_MAP } from '../data/ContainerRendererMap';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Slider } from '@/components/ui/slider';
+import { Input } from '@/components/ui/input';
 import { formatChemicalText } from '../utils/textFormatting';
+import { useLabStore } from '../stores/useLabStore';
 
 export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
+  const updateWorkspaceItem = useLabStore(state => state.updateWorkspaceItem);
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: item.instanceId,
     data: { source: 'canvas', instanceId: item.instanceId, templateId: item.templateId }
@@ -189,25 +194,92 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
        const isLiquid = item.state === 'LIQUID';
        const bgHex = item.iconFill || '#cccccc';
 
-       if (isLiquid) {
-          // BONG BÓNG LỎNG (LIQUID)
-          return (
-             <div 
-               className="w-10 h-10 rounded-full border border-black/10 shadow-sm drop-shadow-md hover:scale-105 transition-transform relative"
-               style={{ backgroundColor: bgHex }}
-             >
-                <div className="w-3 h-3 bg-white rounded-full absolute top-1.5 right-2 opacity-60"></div>
-             </div>
-          );
-       } else {
-          // VIÊN NÉN RẮN (SOLID)
-          return (
-             <div 
-               className="w-10 h-10 rounded-xl border border-black/20 shadow-sm drop-shadow-md hover:scale-105 transition-transform"
-               style={{ backgroundColor: bgHex }}
-             />
-          );
-       }
+       // Local state variables for Slider/Input
+       const amount = item.amount || (isLiquid ? 100 : 10);
+       const molarity = item.molarity || 1.0;
+
+       // Updater helpers
+       const setAmount = (val) => updateWorkspaceItem(item.instanceId, { amount: val });
+       const setMolarity = (val) => updateWorkspaceItem(item.instanceId, { molarity: val });
+
+       const chemicalShape = isLiquid ? (
+           <div className="w-10 h-10 rounded-full border border-black/10 shadow-sm drop-shadow-md hover:scale-105 transition-transform relative" style={{ backgroundColor: bgHex }}>
+              <div className="w-3 h-3 bg-white rounded-full absolute top-1.5 right-2 opacity-60"></div>
+           </div>
+       ) : (
+           <div className="w-10 h-10 rounded-xl border border-black/20 shadow-sm drop-shadow-md hover:scale-105 transition-transform" style={{ backgroundColor: bgHex }} />
+       );
+
+       return (
+          <Popover open={isSelected}>
+            <PopoverTrigger asChild>
+               <div className="cursor-pointer relative">
+                 {chemicalShape}
+                 {/* Thêm một icon bánh răng nhỏ khi được chọn để nhắc nhở UX */}
+                 {isSelected && (
+                   <div className="absolute -bottom-2 -right-2 bg-blue-500 text-white p-1 rounded-full shadow pointer-events-none z-10">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                   </div>
+                 )}
+               </div>
+            </PopoverTrigger>
+            <PopoverContent 
+               className="w-72 p-5 z-50 pointer-events-auto shadow-2xl border-slate-200 rounded-xl" 
+               // Prevent drag/drop interactions from firing when interacting with inputs
+               onPointerDown={(e) => e.stopPropagation()} 
+               onKeyDown={(e) => e.stopPropagation()}
+            >
+               <div className="space-y-5">
+                  <h4 className="font-bold text-base text-slate-800 border-b pb-2">Thiết lập thông số</h4>
+                  
+                  {/* SLIDER MASS/VOLUME */}
+                  <div className="space-y-4">
+                     <div className="flex justify-between items-center">
+                        <label className="text-sm font-semibold text-slate-700">
+                          {isLiquid ? 'Thể tích (mL)' : 'Khối lượng (Gam)'}
+                        </label>
+                        <Input 
+                          type="number" 
+                          value={amount} 
+                          onChange={(e) => setAmount(Number(e.target.value))}
+                          className="w-20 h-8 text-sm font-medium px-2 py-1 text-center border-slate-300 focus-visible:ring-blue-500"
+                        />
+                     </div>
+                     <Slider 
+                        value={[amount]} 
+                        max={isLiquid ? 500 : 50} 
+                        step={isLiquid ? 5 : 0.1}
+                        onValueChange={(vals) => setAmount(vals[0])}
+                        className="cursor-grab active:cursor-grabbing py-2"
+                     />
+                  </div>
+
+                  {/* SLIDER MOLARITY (Chỉ hiện nếu là chất lỏng) */}
+                  {isLiquid && (
+                     <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                           <label className="text-sm font-semibold text-slate-700">Nồng độ (Mol)</label>
+                           <Input 
+                             type="number" 
+                             value={molarity} 
+                             onChange={(e) => setMolarity(Number(e.target.value))}
+                             className="w-20 h-8 text-sm font-medium px-2 py-1 text-center border-slate-300 focus-visible:ring-blue-500"
+                             step="0.1"
+                           />
+                        </div>
+                        <Slider 
+                           value={[molarity]} 
+                           max={5} 
+                           step={0.1}
+                           onValueChange={(vals) => setMolarity(vals[0])}
+                           className="cursor-grab active:cursor-grabbing py-2"
+                        />
+                     </div>
+                  )}
+               </div>
+            </PopoverContent>
+          </Popover>
+       );
     }
 
     if (item.templateId === 'bunsen_burner') {
