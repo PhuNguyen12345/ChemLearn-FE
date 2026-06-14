@@ -169,7 +169,7 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
 
                {/* LITMUS PAPER (Với Wrapper để fix vị trí) */}
                {(item.indicatorPaperColor || item.fallingSolid?.isLitmus) && (
-                 <div className="litmus-wrapper absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-12">
+                 <div className="litmus-wrapper absolute bottom-0 left-1/2 -translate-x-1/2 origin-bottom rotate-12">
                    <div className="litmus-paper" style={{ '--target-color': item.indicatorPaperColor || 'transparent' }}></div>
                  </div>
                )}
