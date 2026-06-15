@@ -13,11 +13,16 @@ import {
   Star,
   Sparkles,
   ChevronRight,
-  Flame
+  Flame,
+  MessageSquare,
+  Bug,
+  Send,
+  Lightbulb
 } from 'lucide-react';
 
 import { getGamificationProfile, logDailyActivity, getDailyQuests, claimQuest } from '../../api/studentApi';
 import { toast } from 'sonner';
+import { createFeedbackReport } from '../../lib/api';
 
 /* ─────────────────────────────────────────────
    Reusable: Neon XP / HP progress bar
@@ -71,6 +76,12 @@ const StudentHome = () => {
   const navigate = useNavigate();
   const { coins, experience, level, currentStreak, setGamificationProfile } = useStudentStore();
   const [dailyQuests, setDailyQuests] = React.useState([]);
+  const [feedbackForm, setFeedbackForm] = React.useState({
+    type: 'bug',
+    priority: 'medium',
+    title: '',
+    message: '',
+  });
 
   const sortQuests = (quests) => {
     const sorted = [...quests].sort((a, b) => {
@@ -99,6 +110,33 @@ const StudentHome = () => {
     } catch (err) {
       console.error("Failed to claim quest:", err);
       toast.error("Nhận thưởng thất bại. Vui lòng thử lại!");
+    }
+  };
+
+  const handleFeedbackChange = (event) => {
+    const { name, value } = event.target;
+    setFeedbackForm((current) => ({ ...current, [name]: value }));
+  };
+
+  const handleFeedbackSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!feedbackForm.title.trim() || !feedbackForm.message.trim()) {
+      toast.warning('Vui lòng nhập tiêu đề và nội dung góp ý.');
+      return;
+    }
+
+    try {
+      await createFeedbackReport(feedbackForm);
+      setFeedbackForm({
+        type: 'bug',
+        priority: 'medium',
+        title: '',
+        message: '',
+      });
+      toast.success('Đã gửi report/feedback cho admin. Cảm ơn bạn!');
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Không gửi được report/feedback lúc này.');
     }
   };
 
@@ -136,13 +174,6 @@ const StudentHome = () => {
             <span className="text-xl">💰</span>
             <span className="font-black text-yellow-300 text-sm sm:text-base">{coins} Vàng</span>
           </div>
-          <button
-            onClick={() => navigate('/student/island')}
-            className="flex min-h-10 items-center gap-2 bg-emerald-500/80 hover:bg-emerald-500 px-3 sm:px-4 py-2 rounded-full border border-emerald-400/50 backdrop-blur-md transition-all shadow-lg shadow-emerald-500/20"
-          >
-            <span className="text-xl">🏝️</span>
-            <span className="font-bold text-white uppercase text-xs sm:text-sm tracking-wider">Đảo Thú Cưng</span>
-          </button>
           <button
             onClick={() => navigate('/student/shop')}
             className="flex min-h-10 items-center gap-2 bg-white/20 hover:bg-white/30 px-3 sm:px-4 py-2 rounded-full border border-white/40 backdrop-blur-md transition-colors"
@@ -281,6 +312,98 @@ const StudentHome = () => {
       {/* ══════════════════════════════════════════
           4. MAIN QUEST + DAILY QUESTS
       ══════════════════════════════════════════ */}
+      <div className="grid gap-4 lg:grid-cols-[1fr_1.35fr]">
+        <div className="rounded-[2rem] border-2 border-slate-200 border-b-[6px] border-b-slate-300 bg-white p-5 shadow-sm">
+          <div className="mb-4 flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-100 text-sky-600">
+              <MessageSquare className="h-6 w-6" />
+            </div>
+            <div>
+              <h2 className="text-lg font-black text-slate-800">Report bug & feedback</h2>
+              <p className="text-sm font-semibold text-slate-500">Gửi lỗi hoặc góp ý để admin kiểm tra.</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="rounded-2xl bg-rose-50 p-3 text-rose-700">
+              <Bug className="mb-2 h-5 w-5" />
+              <p className="font-black">Bug</p>
+              <p className="text-xs font-semibold text-rose-500">Lỗi giao diện, lab, bài học, tài khoản.</p>
+            </div>
+            <div className="rounded-2xl bg-amber-50 p-3 text-amber-700">
+              <Lightbulb className="mb-2 h-5 w-5" />
+              <p className="font-black">Feedback</p>
+              <p className="text-xs font-semibold text-amber-600">Ý tưởng cải thiện trải nghiệm học.</p>
+            </div>
+          </div>
+        </div>
+
+        <form
+          onSubmit={handleFeedbackSubmit}
+          className="rounded-[2rem] border-2 border-sky-200 border-b-[6px] border-b-sky-400 bg-white p-4 sm:p-5 shadow-sm"
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="space-y-1.5">
+              <span className="text-xs font-black uppercase tracking-widest text-slate-500">Loại gửi</span>
+              <select
+                name="type"
+                value={feedbackForm.type}
+                onChange={handleFeedbackChange}
+                className="h-11 w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-700 outline-none focus:border-sky-400"
+              >
+                <option value="bug">Bug</option>
+                <option value="feedback">Feedback</option>
+              </select>
+            </label>
+
+            <label className="space-y-1.5">
+              <span className="text-xs font-black uppercase tracking-widest text-slate-500">Mức ưu tiên</span>
+              <select
+                name="priority"
+                value={feedbackForm.priority}
+                onChange={handleFeedbackChange}
+                className="h-11 w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-700 outline-none focus:border-sky-400"
+              >
+                <option value="low">Thấp</option>
+                <option value="medium">Trung bình</option>
+                <option value="high">Cao</option>
+              </select>
+            </label>
+          </div>
+
+          <label className="mt-3 block space-y-1.5">
+            <span className="text-xs font-black uppercase tracking-widest text-slate-500">Tiêu đề</span>
+            <input
+              name="title"
+              value={feedbackForm.title}
+              onChange={handleFeedbackChange}
+              placeholder="Ví dụ: Không mở được bài lab axit-bazơ"
+              className="h-11 w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-700 outline-none placeholder:text-slate-400 focus:border-sky-400"
+            />
+          </label>
+
+          <label className="mt-3 block space-y-1.5">
+            <span className="text-xs font-black uppercase tracking-widest text-slate-500">Nội dung</span>
+            <textarea
+              name="message"
+              value={feedbackForm.message}
+              onChange={handleFeedbackChange}
+              placeholder="Mô tả ngắn gọn lỗi/góp ý, trang đang dùng và thao tác đã thực hiện."
+              rows={4}
+              className="w-full resize-none rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none placeholder:text-slate-400 focus:border-sky-400"
+            />
+          </label>
+
+          <button
+            type="submit"
+            className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-2xl border-b-[5px] border-sky-700 bg-sky-500 px-5 font-black text-white shadow-md shadow-sky-300/40 transition-all duration-150 hover:bg-sky-600 active:translate-y-1 active:border-b"
+          >
+            <Send className="h-5 w-5" />
+            GỬI CHO ADMIN
+          </button>
+        </form>
+      </div>
+
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
 
         {/* ── MAIN QUEST: Continue Learning ── */}

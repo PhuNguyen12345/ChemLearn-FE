@@ -1,43 +1,45 @@
 import React from 'react';
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Microscope,
+  Bot,
   BookOpen,
-  Trophy,
+  ChevronLeft,
   FlaskConical,
   LayoutDashboard,
-  Users,
   Map,
+  MessageCircle,
+  MessageCircleOff,
+  Microscope,
+  PawPrint,
   Swords,
-  ChevronLeft,
-  Bot
+  Trophy,
+  Users,
 } from 'lucide-react';
 import { useStudentStore } from '../../../stores/useStudentStore';
 import { useSidebarStore } from '../../../stores/useSidebarStore';
+import { useBiMascot } from '../../student/mascot/BiMascot';
 
 const navItems = [
-  { name: 'Trang chủ', icon: LayoutDashboard, path: '/student/home', id: 'dashboard', emoji: '🏠' },
-  { name: 'Bản đồ tiến độ', icon: Map, path: '/student/progress-map', id: 'progressMap', emoji: '🗺️' },
-  { name: 'Khu vực học tập', icon: BookOpen, path: '/student/study-zone', id: 'studyZone', emoji: '📚' },
-  { name: 'AI Tutor', icon: Bot, path: '/student/ai-tutor', id: 'aiTutor', emoji: 'AI' },
-  { name: 'Phòng thí nghiệm ảo', icon: Microscope, path: '/student/virtual-lab', id: 'labDashboard', emoji: '🧪' },
-  // { name: 'Nhiệm vụ',    icon: Target,          path: '/student/missions', id: 'missions', emoji: '🎯' },
-  { name: 'Đấu trường PVP', icon: Swords, path: '/student/pvp', id: 'pvp', emoji: '⚔️' },
-  { name: 'Bảng xếp hạng', icon: Trophy, path: '/student/leaderboard', id: 'leaderboard', emoji: '🏆' },
-  { name: 'Lớp học', icon: Users, path: '/student/classes', id: 'classes', emoji: '👥' },
+  { name: 'Trang chủ', icon: LayoutDashboard, path: '/student/home', id: 'dashboard' },
+  { name: 'Bản đồ tiến độ', icon: Map, path: '/student/progress-map', id: 'progressMap' },
+  { name: 'Khu vực học tập', icon: BookOpen, path: '/student/study-zone', id: 'studyZone' },
+  { name: 'AI Tutor', icon: Bot, path: '/student/ai-tutor', id: 'aiTutor' },
+  { name: 'Phòng thí nghiệm ảo', icon: Microscope, path: '/student/virtual-lab', id: 'labDashboard' },
+  { name: 'Đảo thú cưng', icon: PawPrint, path: '/student/island', id: 'petIsland' },
+  { name: 'Đấu trường PVP', icon: Swords, path: '/student/pvp', id: 'pvp' },
+  { name: 'Bảng xếp hạng', icon: Trophy, path: '/student/leaderboard', id: 'leaderboard' },
+  { name: 'Lớp học', icon: Users, path: '/student/classes', id: 'classes' },
 ];
 
-/* Colour accent per nav item for its active state */
 const itemAccent = {
   dashboard: { bg: 'bg-indigo-500', border: 'border-b-indigo-700', shadow: 'shadow-indigo-300/40' },
   progressMap: { bg: 'bg-cyan-500', border: 'border-b-cyan-700', shadow: 'shadow-cyan-300/40' },
   studyZone: { bg: 'bg-sky-500', border: 'border-b-sky-700', shadow: 'shadow-sky-300/40' },
   aiTutor: { bg: 'bg-teal-600', border: 'border-b-teal-800', shadow: 'shadow-teal-300/40' },
   labDashboard: { bg: 'bg-purple-500', border: 'border-b-purple-700', shadow: 'shadow-purple-300/40' },
-  // missions: { bg: 'bg-orange-500', border: 'border-b-orange-700', shadow: 'shadow-orange-300/40' },
-  leaderboard: { bg: 'bg-amber-500', border: 'border-b-amber-700', shadow: 'shadow-amber-300/40' },
-  profile: { bg: 'bg-pink-500', border: 'border-b-pink-700', shadow: 'shadow-pink-300/40' },
+  petIsland: { bg: 'bg-emerald-500', border: 'border-b-emerald-700', shadow: 'shadow-emerald-300/40' },
   pvp: { bg: 'bg-rose-600', border: 'border-b-rose-800', shadow: 'shadow-rose-300/40' },
+  leaderboard: { bg: 'bg-amber-500', border: 'border-b-amber-700', shadow: 'shadow-amber-300/40' },
   classes: { bg: 'bg-indigo-600', border: 'border-b-indigo-800', shadow: 'shadow-indigo-300/40' },
 };
 
@@ -46,6 +48,7 @@ const Sidebar = ({ className = '', collapsible = true, onNavigate }) => {
   const location = useLocation();
   const { experience, level } = useStudentStore();
   const { isCollapsed, toggleSidebar } = useSidebarStore();
+  const { isEnabled: isBiEnabled, toggleBi } = useBiMascot();
   const collapsed = collapsible && isCollapsed;
 
   const handleLogoClick = () => {
@@ -55,8 +58,6 @@ const Sidebar = ({ className = '', collapsible = true, onNavigate }) => {
 
   return (
     <aside className={`${collapsed ? 'w-20' : 'w-64'} max-w-full bg-slate-50 flex flex-col h-full border-r border-slate-200 transition-all duration-300 relative overflow-visible ${className}`}>
-
-      {/* ── Logo ── */}
       <button
         onClick={handleLogoClick}
         className="h-16 flex items-center gap-2.5 px-5 border-b border-slate-200/70 hover:bg-white transition-colors w-full text-left group"
@@ -66,16 +67,12 @@ const Sidebar = ({ className = '', collapsible = true, onNavigate }) => {
         </div>
 
         {!collapsed && (
-          <>
-            <span className="text-xl font-black tracking-tight text-slate-800">
-              Chem<span className="text-indigo-500">Learn</span>
-            </span>
-          </>
+          <span className="text-xl font-black tracking-tight text-slate-800">
+            Chem<span className="text-indigo-500">Learn</span>
+          </span>
         )}
-
       </button>
 
-      {/* Collapse/Expand Button */}
       {collapsible && (
         <button
           onClick={toggleSidebar}
@@ -86,7 +83,6 @@ const Sidebar = ({ className = '', collapsible = true, onNavigate }) => {
         </button>
       )}
 
-      {/* ── Navigation ── */}
       <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-1.5">
         {navItems.map((item) => {
           const isClassRoute = item.id === 'classes' && (location.pathname === '/student/classes' || location.pathname.startsWith('/student/class/'));
@@ -108,21 +104,14 @@ const Sidebar = ({ className = '', collapsible = true, onNavigate }) => {
               title={collapsed ? item.name : ''}
               onClick={onNavigate}
             >
-              {/* Icon wrapper */}
-              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all
-                ${isActive ? 'bg-white/20' : 'bg-slate-100 group-hover:bg-white'}
-              `}>
+              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all ${isActive ? 'bg-white/20' : 'bg-slate-100'}`}>
                 <item.icon className="w-3.5 h-3.5 flex-shrink-0" />
               </div>
 
               {!collapsed && (
                 <>
                   <span className="flex-1">{item.name}</span>
-
-                  {/* Active indicator dot */}
-                  {isActive && (
-                    <div className="w-2 h-2 rounded-full bg-white/60 shrink-0 animate-pulse" />
-                  )}
+                  {isActive && <div className="w-2 h-2 rounded-full bg-white/60 shrink-0 animate-pulse" />}
                 </>
               )}
             </NavLink>
@@ -130,13 +119,27 @@ const Sidebar = ({ className = '', collapsible = true, onNavigate }) => {
         })}
       </nav>
 
-      {/* ── Bottom XP badge ── */}
       <div className="px-4 py-4 border-t border-slate-200/70">
+        <button
+          type="button"
+          onClick={toggleBi}
+          className={`mb-3 flex w-full items-center gap-3 rounded-xl border-b-4 px-3 py-2.5 text-sm font-black transition-all ${
+            isBiEnabled
+              ? 'border-b-cyan-700 bg-cyan-500 text-white shadow-md shadow-cyan-300/40 hover:bg-cyan-600'
+              : 'border-b-slate-300 bg-white text-slate-500 hover:bg-slate-100'
+          } ${collapsed ? 'justify-center' : ''}`}
+          title={isBiEnabled ? 'Tắt Bi' : 'Bật Bi'}
+        >
+          <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${isBiEnabled ? 'bg-white/20' : 'bg-slate-100'}`}>
+            {isBiEnabled ? <MessageCircle className="h-3.5 w-3.5" /> : <MessageCircleOff className="h-3.5 w-3.5" />}
+          </div>
+          {!collapsed && <span>{isBiEnabled ? 'Tắt Bi đồng hành' : 'Bật Bi đồng hành'}</span>}
+        </button>
+
         <div className="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl p-3 text-white shadow-md shadow-indigo-300/30">
           {!collapsed && (
             <>
-              <p className="text-[10px] font-black uppercase tracking-widest text-indigo-200 mb-1">⚡ Your Progress</p>
-              {/* XP bar */}
+              <p className="text-[10px] font-black uppercase tracking-widest text-indigo-200 mb-1">Tiến trình của bạn</p>
               <div className="h-2.5 w-full bg-white/20 rounded-full overflow-hidden mb-1.5">
                 <div className="h-full bg-yellow-300 rounded-full" style={{ width: `${(experience % 1000) / 10}%` }}>
                   <div className="h-full w-full bg-white/20 rounded-full" />
@@ -144,16 +147,13 @@ const Sidebar = ({ className = '', collapsible = true, onNavigate }) => {
               </div>
               <div className="flex justify-between text-[11px] font-black">
                 <span>{experience.toLocaleString()} XP</span>
-                <span className="text-indigo-200">Lv.{level + 1} → {level * 1000}</span>
+                <span className="text-indigo-200">Lv.{level + 1}</span>
               </div>
             </>
           )}
-          {collapsed && (
-            <div className="flex items-center justify-center text-lg">⚡</div>
-          )}
+          {collapsed && <div className="flex items-center justify-center text-lg">XP</div>}
         </div>
       </div>
-
     </aside>
   );
 };

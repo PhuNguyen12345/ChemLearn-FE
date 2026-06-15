@@ -88,6 +88,7 @@ export const BiMascotProvider = ({ children }) => {
   const [message, setMessage] = useState('');
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isOpen, setIsOpen] = useState(true);
+  const [isEnabled, setIsEnabled] = useState(() => localStorage.getItem('chemlearn_bi_enabled') !== 'false');
   const [, setTipIndex] = useState(0);
   const timeoutRef = useRef(null);
   const lastRouteRef = useRef('');
@@ -98,7 +99,7 @@ export const BiMascotProvider = ({ children }) => {
   }, []);
 
   const speak = useCallback((nextMessage, options = {}) => {
-    if (!nextMessage) return;
+    if (!nextMessage || !isEnabled) return;
 
     window.clearTimeout(timeoutRef.current);
     setMessage(nextMessage);
@@ -109,7 +110,7 @@ export const BiMascotProvider = ({ children }) => {
     timeoutRef.current = window.setTimeout(() => {
       setIsSpeaking(false);
     }, duration);
-  }, []);
+  }, [isEnabled]);
 
   const sayRouteGuide = useCallback(() => {
     speak(pickRouteMessage(location.pathname), { duration: 8200 });
@@ -125,6 +126,18 @@ export const BiMascotProvider = ({ children }) => {
   useEffect(() => () => window.clearTimeout(timeoutRef.current), []);
 
   useEffect(() => {
+    localStorage.setItem('chemlearn_bi_enabled', String(isEnabled));
+    if (!isEnabled) {
+      window.clearTimeout(timeoutRef.current);
+      setIsSpeaking(false);
+      setIsOpen(false);
+    } else {
+      setIsOpen(true);
+    }
+  }, [isEnabled]);
+
+  useEffect(() => {
+    if (!isEnabled) return undefined;
     if (lastRouteRef.current === location.pathname) return;
     lastRouteRef.current = location.pathname;
     const timer = window.setTimeout(() => {
@@ -132,9 +145,10 @@ export const BiMascotProvider = ({ children }) => {
     }, 550);
 
     return () => window.clearTimeout(timer);
-  }, [location.pathname, speak]);
+  }, [isEnabled, location.pathname, speak]);
 
   useEffect(() => {
+    if (!isEnabled) return undefined;
     const interval = window.setInterval(() => {
       setTipIndex((current) => {
         speak(quickTips[current % quickTips.length], { duration: 7600 });
@@ -143,18 +157,26 @@ export const BiMascotProvider = ({ children }) => {
     }, AUTO_SPEAK_INTERVAL);
 
     return () => window.clearInterval(interval);
-  }, [speak]);
+  }, [isEnabled, speak]);
+
+  const toggleBi = useCallback(() => {
+    setIsEnabled((current) => !current);
+  }, []);
 
   const value = useMemo(() => ({
     speak,
     stopSpeaking,
-    sayRouteGuide
-  }), [sayRouteGuide, speak, stopSpeaking]);
+    sayRouteGuide,
+    isEnabled,
+    setIsEnabled,
+    toggleBi
+  }), [isEnabled, sayRouteGuide, speak, stopSpeaking, toggleBi]);
 
   return (
     <BiMascotContext.Provider value={value}>
       {children}
 
+      {isEnabled && (
       <div className="pointer-events-none fixed bottom-4 right-3 z-[70] sm:bottom-5 sm:right-5">
         <div className="pointer-events-auto flex max-w-[calc(100vw-1.5rem)] flex-col items-end gap-2">
           <AnimatePresence>
@@ -229,6 +251,7 @@ export const BiMascotProvider = ({ children }) => {
           </div>
         </div>
       </div>
+      )}
     </BiMascotContext.Provider>
   );
 };
@@ -238,6 +261,9 @@ export const useBiMascot = () => {
   return context || {
     speak: () => {},
     stopSpeaking: () => {},
-    sayRouteGuide: () => {}
+    sayRouteGuide: () => {},
+    isEnabled: true,
+    setIsEnabled: () => {},
+    toggleBi: () => {}
   };
 };

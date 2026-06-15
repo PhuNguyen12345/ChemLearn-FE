@@ -7,6 +7,7 @@ import AdminUserManagement from "../pages/admin/AdminUserManagement";
 import AdminStudyZone from "../pages/admin/AdminStudyZone";
 import AdminStudyEditPage from "../pages/admin/AdminStudyEditPage";
 import AdminAccountRequests from "../pages/admin/AdminAccountRequests";
+import AdminPetManagement from "../pages/admin/AdminPetManagement";
 
 export default function AdminRoutes() {
   return (
@@ -18,6 +19,7 @@ export default function AdminRoutes() {
         <Route path="study/:entityType/:entityId/edit" element={<AdminStudyEditPage />} />
         <Route path="account-requests" element={<AdminAccountRequests />} />
         <Route path="users" element={<AdminUserManagement />} />
+        <Route path="pets" element={<AdminPetManagement />} />
         
         {/* Fallback 404 inside Admin Layout */}
         <Route path="*" element={<NotFoundPage />} />

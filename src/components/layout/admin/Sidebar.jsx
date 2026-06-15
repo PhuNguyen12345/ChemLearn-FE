@@ -1,12 +1,13 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Users, Settings, ShieldAlert, FlaskConical, BookOpen, UserRoundCheck } from 'lucide-react';
+import { Users, Settings, ShieldAlert, FlaskConical, BookOpen, UserRoundCheck, PawPrint } from 'lucide-react';
 
 const navItems = [
   { name: 'Dashboard', icon: ShieldAlert, path: '/admin/dashboard' },
   { name: 'Study Zone', icon: BookOpen, path: '/admin/study' },
   { name: 'Account Requests', icon: UserRoundCheck, path: '/admin/account-requests' },
   { name: 'User Management', icon: Users, path: '/admin/users' },
+  { name: 'Pet Management', icon: PawPrint, path: '/admin/pets' },
   { name: 'System Config', icon: Settings, path: '/admin/settings' },
 ];
 

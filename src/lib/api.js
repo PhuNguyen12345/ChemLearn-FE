@@ -465,6 +465,83 @@ export const deleteMiniQuizQuestion = async (questionId) => {
   return response.data;
 };
 
+export const getAdminDashboardSummary = async () => {
+  const response = await api.get('/api/admin/dashboard/summary');
+  return response.data;
+};
+
+export const createFeedbackReport = async (payload) => {
+  const response = await api.post('/api/student/feedback-reports', payload);
+  return response.data;
+};
+
+export const getAdminFeedbackReports = async () => {
+  const response = await api.get('/api/admin/feedback-reports');
+  return normalizeListResponse(response.data);
+};
+
+export const updateAdminFeedbackReport = async (reportId, payload) => {
+  const response = await api.patch(`/api/admin/feedback-reports/${reportId}`, payload);
+  return response.data;
+};
+
+export const getAdminPetSpecies = async () => {
+  const response = await api.get('/api/admin/pets/species');
+  return normalizeListResponse(response.data);
+};
+
+export const createAdminPetSpecies = async (payload) => {
+  const response = await api.post('/api/admin/pets/species', payload);
+  return response.data;
+};
+
+export const updateAdminPetSpecies = async (id, payload) => {
+  const response = await api.put(`/api/admin/pets/species/${id}`, payload);
+  return response.data;
+};
+
+export const deleteAdminPetSpecies = async (id) => {
+  await api.delete(`/api/admin/pets/species/${id}`);
+};
+
+export const getAdminEggItems = async () => {
+  const response = await api.get('/api/admin/pets/eggs');
+  return normalizeListResponse(response.data);
+};
+
+export const createAdminEggItem = async (payload) => {
+  const response = await api.post('/api/admin/pets/eggs', payload);
+  return response.data;
+};
+
+export const updateAdminEggItem = async (id, payload) => {
+  const response = await api.put(`/api/admin/pets/eggs/${id}`, payload);
+  return response.data;
+};
+
+export const deleteAdminEggItem = async (id) => {
+  await api.delete(`/api/admin/pets/eggs/${id}`);
+};
+
+export const getAdminEggDropRates = async () => {
+  const response = await api.get('/api/admin/pets/drop-rates');
+  return normalizeListResponse(response.data);
+};
+
+export const createAdminEggDropRate = async (payload) => {
+  const response = await api.post('/api/admin/pets/drop-rates', payload);
+  return response.data;
+};
+
+export const updateAdminEggDropRate = async (id, payload) => {
+  const response = await api.put(`/api/admin/pets/drop-rates/${id}`, payload);
+  return response.data;
+};
+
+export const deleteAdminEggDropRate = async (id) => {
+  await api.delete(`/api/admin/pets/drop-rates/${id}`);
+};
+
 export const getTeacherSubmissionDetail = async (attemptId) => {
   const response = await api.get(`/api/teacher/submissions/${attemptId}`);
   return response.data;
