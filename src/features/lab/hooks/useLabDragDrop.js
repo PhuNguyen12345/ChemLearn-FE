@@ -81,6 +81,12 @@ export function useLabDragDrop({ scale, inventory }) {
           let container = { ...nextItems[targetContainerIndex] };
           const currentContent = container.content;
           const isJustIndicator = currentContent === 'Litmus Paper' || currentContent === 'Phenolphthalein';
+
+          const logToHistory = (eq, cond, desc) => {
+            if (!container.history) container.history = [];
+            const time = new Date().toLocaleTimeString('vi-VN', { hour12: false });
+            container.history.push({ time, equation: eq, condition: cond, description: desc });
+          };
           
           const key = getReactionKey(currentContent, chemicalName);
           const reaction = REACTION_MAP[key];
@@ -105,7 +111,10 @@ export function useLabDragDrop({ scale, inventory }) {
             if (reaction.liquidColor) container.liquidColor = reaction.liquidColor;
             if (reaction.precipitateColor) container.precipitateColor = reaction.precipitateColor;
             if (reaction.reactionState) container.reactionState = reaction.reactionState;
-            if (reaction.reactionInfo) setReactionInfo(reaction.reactionInfo);
+            if (reaction.reactionInfo) {
+              setReactionInfo(reaction.reactionInfo);
+              logToHistory(reaction.reactionInfo.equation, reaction.reactionInfo.condition, reaction.reactionInfo.description);
+            }
 
             // Phase 4: Tính toán thời gian tan và cường độ phản ứng dựa trên lượng chất
             const baseDuration = reaction.clearStateAfter || 3000;
@@ -172,6 +181,7 @@ export function useLabDragDrop({ scale, inventory }) {
               condition: 'Mixing',
               description: `${chemicalName} đã được thêm vào dụng cụ.`,
             });
+            logToHistory(`${chemicalName} Added`, 'Mixing', `${chemicalName} đã được thêm vào dụng cụ.`);
             completeTask(`DRAG_${chemicalName.toUpperCase()}_TO_FLASK`);
           } else {
             // ── PHASE 5: NO REACTION FEEDBACK (Dành cho hạt rắn rơi xuống) ──
@@ -187,6 +197,7 @@ export function useLabDragDrop({ scale, inventory }) {
              condition: 'Bình thường',
              description: 'Hai chất này không xảy ra phản ứng hóa học.'
             });
+            logToHistory('Không có hiện tượng', 'Bình thường', `Chất ${chemicalName} lắng xuống đáy và không phản ứng.`);
           }
           
           if (container.content) {
@@ -371,6 +382,12 @@ export function useLabDragDrop({ scale, inventory }) {
                  if (!freshTarget) return nextItems;
 
                  const processReaction = (container) => {
+                   const logToHistory = (eq, cond, desc) => {
+                     if (!container.history) container.history = [];
+                     const time = new Date().toLocaleTimeString('vi-VN', { hour12: false });
+                     container.history.push({ time, equation: eq, condition: cond, description: desc });
+                   };
+
                    const droppedIsSolid = draggedContentName.includes('(Rắn)') || draggedContentName.includes('(Bột)');
                    const isIndicator = draggedObj.templateId === 'litmus_paper' || draggedObj.templateId === 'phenolphthalein';
                    
@@ -415,6 +432,7 @@ export function useLabDragDrop({ scale, inventory }) {
                          condition: 'Mixing',
                          description: `${draggedContentName} đã được thêm vào dụng cụ.`,
                        });
+                       logToHistory(`${draggedContentName} Added`, 'Mixing', `${draggedContentName} đã được thêm vào dụng cụ.`);
 
                        completeTask(`DRAG_${draggedContentName.toUpperCase()}_TO_FLASK`);
                    } else {
@@ -449,6 +467,7 @@ export function useLabDragDrop({ scale, inventory }) {
                          condition: 'Nguy hiểm',
                          description: 'Nước vào Axit gây tỏa nhiệt đột ngột làm nước sôi và bắn axit tung tóe.'
                        });
+                       logToHistory('CẢNH BÁO AN TOÀN!', 'Nguy hiểm', 'Nước vào Axit gây tỏa nhiệt đột ngột làm nước sôi và bắn axit tung tóe.');
 
                        // Tắt hiệu ứng sau 4 giây
                        const timeoutId = window.setTimeout(() => {
@@ -482,6 +501,7 @@ export function useLabDragDrop({ scale, inventory }) {
                          condition: 'Tỏa nhiệt nhẹ',
                          description: 'Pha loãng axit an toàn bằng cách đổ từ từ axit vào nước.'
                        });
+                       logToHistory('Pha loãng Axit', 'Tỏa nhiệt nhẹ', 'Pha loãng axit an toàn bằng cách đổ từ từ axit vào nước.');
                        return;
                      }
 
@@ -512,7 +532,10 @@ export function useLabDragDrop({ scale, inventory }) {
                        if (reaction.liquidColor) container.liquidColor = reaction.liquidColor;
                        if (reaction.precipitateColor) container.precipitateColor = reaction.precipitateColor;
                        if (reaction.reactionState) container.reactionState = reaction.reactionState;
-                       if (reaction.reactionInfo) setReactionInfo(reaction.reactionInfo);
+                       if (reaction.reactionInfo) {
+                           setReactionInfo(reaction.reactionInfo);
+                           logToHistory(reaction.reactionInfo.equation, reaction.reactionInfo.condition, reaction.reactionInfo.description);
+                       }
 
                        if (reaction.clearStateAfter) {
                          const timeoutId = window.setTimeout(() => {

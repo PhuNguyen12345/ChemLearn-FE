@@ -1,6 +1,6 @@
 import React from 'react';
 import { useDraggable } from '@dnd-kit/core';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Info } from 'lucide-react';
 import { CONTAINER_UI_MAP } from '../data/ContainerRendererMap';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -8,8 +8,10 @@ import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { formatChemicalText } from '../utils/textFormatting';
 import { useLabStore } from '../stores/useLabStore';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
+  const [showInspector, setShowInspector] = React.useState(false);
   const updateWorkspaceItem = useLabStore(state => state.updateWorkspaceItem);
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: item.instanceId,
@@ -319,14 +321,145 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
               className={`relative rounded-xl transition-all duration-200 ${isSelected ? 'ring-2 ring-blue-500 ring-offset-4 ring-offset-slate-50' : ''}`}
             >
               {isSelected && (
-                <button
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                  className="absolute -top-4 -right-4 p-1.5 bg-red-100 text-red-600 rounded-full shadow-md hover:bg-red-200 z-50 pointer-events-auto cursor-pointer"
-                  title="Delete Item"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <>
+                  <button
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={(e) => { e.stopPropagation(); onDelete(); }}
+                    className="absolute -top-4 -right-4 p-1.5 bg-red-100 text-red-600 rounded-full shadow-md hover:bg-red-200 z-50 pointer-events-auto cursor-pointer"
+                    title="Xóa dụng cụ"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  {item.type !== 'CHEMICAL' && (
+                     <Popover open={showInspector} onOpenChange={setShowInspector}>
+                        <PopoverTrigger asChild>
+                           <button
+                             onPointerDown={(e) => e.stopPropagation()}
+                             className="absolute -top-4 -left-4 p-1.5 bg-blue-100 text-blue-600 rounded-full shadow-md hover:bg-blue-200 z-50 pointer-events-auto cursor-pointer"
+                             title="Xem thông số"
+                           >
+                             <Info className="w-4 h-4" />
+                           </button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                           className="w-[340px] p-0 z-50 pointer-events-auto shadow-2xl border-slate-200 rounded-xl overflow-hidden bg-white" 
+                           onPointerDown={(e) => e.stopPropagation()} 
+                           onKeyDown={(e) => e.stopPropagation()}
+                           side="right"
+                           sideOffset={15}
+                        >
+                           <Tabs defaultValue="stats" className="w-full">
+                              <div className="p-3 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                                 <h4 className="font-bold text-sm text-slate-800 flex items-center gap-2">
+                                    <Info className="w-4 h-4 text-blue-500" /> Thông số Dụng cụ
+                                 </h4>
+                                 <TabsList className="h-8 bg-slate-200/50">
+                                    <TabsTrigger value="stats" className="text-xs px-3 data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">Thông số</TabsTrigger>
+                                    <TabsTrigger value="analysis" className="text-xs px-3 data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">Phân tích</TabsTrigger>
+                                 </TabsList>
+                              </div>
+
+                              <div className="p-4 max-h-[350px] overflow-y-auto">
+                                 {/* TAB THÔNG SỐ */}
+                                 <TabsContent value="stats" className="m-0 space-y-4 outline-none">
+                                    {!content.liquid && !content.solid && !content.gas ? (
+                                       <p className="text-sm text-slate-500 text-center py-4">Bình chứa đang trống</p>
+                                    ) : (
+                                       <>
+                                         {content.liquid && (
+                                            <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                                               <div>
+                                                  <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">Dung dịch</p>
+                                                  <p className="text-sm font-bold text-slate-800">{formatChemicalText(content.liquid.label)}</p>
+                                               </div>
+                                               <div className="text-right">
+                                                  <p className="text-sm font-bold text-slate-700">{item.amount ? Math.round(item.amount) : 0} mL</p>
+                                                  {item.molarity && <p className="text-xs text-slate-500">{item.molarity} M</p>}
+                                               </div>
+                                            </div>
+                                         )}
+                                         {content.solid && (
+                                            <div className="flex items-center justify-between p-3 bg-amber-50 border border-amber-100 rounded-lg">
+                                               <div>
+                                                  <p className="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-1">Chất rắn / Cặn</p>
+                                                  <p className="text-sm font-bold text-slate-800">{formatChemicalText(content.solid.label)}</p>
+                                               </div>
+                                               <div className="text-right">
+                                                  <p className="text-xs text-slate-500 font-medium">Đang hiện diện</p>
+                                               </div>
+                                            </div>
+                                         )}
+                                         {content.gas && (
+                                            <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                                               <div>
+                                                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Khí thoát ra</p>
+                                                  <p className="text-sm font-bold text-slate-800">{formatChemicalText(content.gas.label)}</p>
+                                               </div>
+                                            </div>
+                                         )}
+                                       </>
+                                    )}
+
+                                    {/* HISTORY */}
+                                    {item.history && item.history.length > 0 && (
+                                       <div className="mt-6 pt-4 border-t border-slate-100">
+                                          <h5 className="font-semibold text-xs text-slate-500 uppercase tracking-wider mb-3">Nhật ký thêm chất</h5>
+                                          <div className="space-y-3">
+                                             {item.history.map((log, idx) => (
+                                                <div key={idx} className="relative pl-4 border-l-2 border-slate-200">
+                                                   <div className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full bg-slate-300"></div>
+                                                   <p className="text-[10px] text-slate-400 mb-0.5">{log.time}</p>
+                                                   <p className="text-xs font-semibold text-slate-700">{formatChemicalText(log.equation)}</p>
+                                                </div>
+                                             ))}
+                                          </div>
+                                       </div>
+                                    )}
+                                 </TabsContent>
+
+                                 {/* TAB PHÂN TÍCH */}
+                                 <TabsContent value="analysis" className="m-0 space-y-4 outline-none">
+                                    {item.history && item.history.length > 0 ? (
+                                       (() => {
+                                          // Tìm phản ứng cuối cùng có ý nghĩa (không phải là Mixing cơ bản nếu có thể)
+                                          // Hoặc mặc định lấy cái cuối cùng
+                                          const latest = [...item.history].reverse().find(l => l.condition !== 'Mixing') || item.history[item.history.length - 1];
+                                          
+                                          return (
+                                             <div className="space-y-4 animate-in fade-in duration-200">
+                                                <div>
+                                                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Trạng thái / Phản ứng:</p>
+                                                   <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 flex items-center justify-center">
+                                                      <p className="text-sm font-semibold text-red-500 text-center">{formatChemicalText(latest.equation)}</p>
+                                                   </div>
+                                                </div>
+                                                <div>
+                                                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Điều kiện môi trường:</p>
+                                                   <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                                      <p className="text-sm text-slate-700">{latest.condition || 'Bình thường'}</p>
+                                                   </div>
+                                                </div>
+                                                <div>
+                                                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Mô tả chi tiết:</p>
+                                                   <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                                                      <p className="text-sm text-slate-700 leading-relaxed">{latest.description || 'Không có mô tả chi tiết.'}</p>
+                                                   </div>
+                                                </div>
+                                             </div>
+                                          );
+                                       })()
+                                    ) : (
+                                       <div className="text-center py-8">
+                                          <p className="text-sm text-slate-500">Chưa có phản ứng hóa học nào xảy ra.</p>
+                                       </div>
+                                    )}
+                                 </TabsContent>
+                              </div>
+                           </Tabs>
+                        </PopoverContent>
+                     </Popover>
+                  )}
+                </>
               )}
               {renderSVG()}
             </div>
