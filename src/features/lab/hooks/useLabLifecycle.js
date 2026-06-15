@@ -65,7 +65,9 @@ export function useLabLifecycle(labId) {
           ...dbItem,
           id: dbItem.itemCode,
           // Extract nested properties safely if present
-          ...(dbItem.properties ? JSON.parse(dbItem.properties) : {})
+          ...(dbItem.properties 
+              ? (typeof dbItem.properties === 'string' ? JSON.parse(dbItem.properties) : dbItem.properties) 
+              : {})
         }));
         
         useLabStore.getState().setInventoryItems(backwardCompatibleInventory);

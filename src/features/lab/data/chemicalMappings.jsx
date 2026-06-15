@@ -20,6 +20,8 @@ export const TEMPLATE_TO_CONTENT = {
   h2c2o4: 'H2C2O4',
   na2co3: 'Na2CO3',
   hcl: 'HCl',
+  hcl_dac: 'HCl (Đặc)',
+  h2so4_dac: 'H2SO4 (Đặc)',
   zn_grain: 'Zn (Rắn)',
   cao: 'CaO (Rắn)',
   naoh_sol: 'NaOH',
@@ -38,6 +40,8 @@ export const EMPTY_DROP_LIQUID_COLOR = {
   h2c2o4: 'rgba(200, 230, 255, 0.7)',
   na2co3: 'rgba(200, 230, 255, 0.7)',
   hcl: 'rgba(200, 230, 255, 0.7)',
+  hcl_dac: 'rgba(200, 230, 255, 0.7)',
+  h2so4_dac: 'rgba(200, 230, 255, 0.7)',
   naoh_sol: 'rgba(200, 230, 255, 0.7)',
 };
 

@@ -35,6 +35,11 @@ export const useLabStore = create((set, get) => ({
   // Internal UI State
   reactionInfo: { equation: '-', condition: '-', description: 'Bàn làm việc đã được dọn sạch.' },
   _originalTemplate: null, // For resetting
+  
+  // State quản lý Challenge Mode
+  activeChallenge: null, // { schema: {}, groundTruth: {}, onComplete: () => {} }
+  setActiveChallenge: (challengeData) => set({ activeChallenge: challengeData }),
+  clearActiveChallenge: () => set({ activeChallenge: null }),
 
   // ACTIONS
   initFromTemplate: (templateJson) => {

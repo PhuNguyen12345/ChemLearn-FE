@@ -454,6 +454,17 @@ button:focus-visible {
   animation: violentShake 0.3s infinite linear;
 }
 
+@keyframes surfaceJitter {
+  0% { transform: scaleY(1) translateY(0); }
+  50% { transform: scaleY(1.05) translateY(-2%); }
+  100% { transform: scaleY(0.95) translateY(2%); }
+}
+
+.surface-jitter {
+  animation: surfaceJitter 0.05s infinite alternate;
+  transform-origin: bottom center;
+}
+
 @keyframes dropIntoLiquid {
 
   /* Chặng 1: Bắt đầu thả từ trên cao xuống */
