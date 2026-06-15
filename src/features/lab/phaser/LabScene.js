@@ -93,9 +93,19 @@ export default class LabScene extends Phaser.Scene {
 
       // Tính toán tọa độ đáy nước và mặt nước
       const emitX = container.bottomWall.x;
-      const liquidSensorY = container.liquidSensor.y;
-      const emitY = liquidSensorY + 25; // Gần đáy
-      const surfaceY = liquidSensorY - 35; // Mặt nước
+      const emitY = container.bottomWall.y - 10; // Gần đáy
+      let surfaceY = emitY - 70; // Mặc định nếu không tìm thấy DOM
+
+      // Query DOM để lấy tọa độ mặt nước thực tế
+      const domEl = document.querySelector(`[data-instance-id="${containerId}"]`);
+      if (domEl) {
+         // Thẻ div chứa chất lỏng luôn có class overflow-hidden
+         const liquidLayer = domEl.querySelector('.overflow-hidden.absolute');
+         if (liquidLayer) {
+            const rect = liquidLayer.getBoundingClientRect();
+            surfaceY = rect.top; // Mặt nước tuyệt đối trên màn hình
+         }
+      }
 
       // Phase 4: Tính toán hệ số mãnh liệt (Intensity)
       const reactAmount = amount || 10;
@@ -111,15 +121,65 @@ export default class LabScene extends Phaser.Scene {
           // Hạt bay nhanh hơn nếu intensity cao
           speedY: { min: -100 * intensity, max: -200 * intensity },
           speedX: { min: -15 * intensity, max: 15 * intensity },
-          // Kích thước bong bóng to hơn 1 chút
+          // Kích thước bong bóng to (dành cho Na, Zn)
           scale: { start: 0.5 * Math.max(intensity, 1), end: 1.2 * Math.max(intensity, 1) }, 
           alpha: { start: 0.8, end: 0 },
-          // Tần suất sinh hạt (frequency nhỏ = sinh nhanh hơn)
           frequency: Math.max(50 / intensity, 15),
-          blendMode: 'NORMAL' // Dùng NORMAL thay vì ADD để bong bóng nổi bật trên nền sáng
+          blendMode: 'NORMAL',
+          deathZone: { type: 'onEnter', source: new Phaser.Geom.Rectangle(0, 0, 2000, surfaceY) }
         });
         bubbleEmitter.setDepth(10);
         container.emitters.push(bubbleEmitter);
+      }
+
+      if (type === 'boiling') {
+        // Lớp 0: Bọt khí li ti sôi từ đáy bình
+        const boilingEmitter = this.add.particles(0, 0, 'soft-bubble', {
+          x: { min: emitX - 25, max: emitX + 25 },
+          y: emitY, // Phát ra từ đáy
+          lifespan: { min: 800, max: 1200 },
+          speedY: { min: -100 * intensity, max: -200 * intensity },
+          speedX: { min: -15 * intensity, max: 15 * intensity },
+          scale: { start: 0.15 * Math.max(intensity, 1), end: 0.35 * Math.max(intensity, 1) }, 
+          alpha: { start: 0.8, end: 0 },
+          frequency: Math.max(50 / intensity, 15),
+          blendMode: 'NORMAL',
+          // Khu vực chết (deathZone) tính từ đỉnh màn hình (y=0) xuống đến mặt nước (surfaceY)
+          deathZone: { type: 'onEnter', source: new Phaser.Geom.Rectangle(0, 0, 2000, surfaceY) }
+        });
+        boilingEmitter.setDepth(10);
+        container.emitters.push(boilingEmitter);
+
+        // Lớp 1: Giọt bắn Parabol (Splattering Droplets)
+        const dropletsEmitter = this.add.particles(0, 0, 'soft-bubble', {
+          x: { min: emitX - 15, max: emitX + 15 },
+          y: surfaceY, // Phát ra từ mặt nước
+          speed: { min: 100 * intensity, max: 200 * intensity },
+          angle: { min: 240, max: 300 }, // Bắn vọt lên trên (hướng 12h)
+          gravityY: 600,                 // Kéo giọt nước rơi rớt lả tả xuống lại
+          scale: { start: 0.1 * Math.max(intensity, 1), end: 0 }, // Giọt nhỏ dần
+          alpha: { start: 1, end: 0 },
+          frequency: Math.max(40 / intensity, 10),
+          lifespan: 600,
+          blendMode: 'NORMAL' 
+        });
+        dropletsEmitter.setDepth(10);
+        container.emitters.push(dropletsEmitter);
+
+        // Lớp 2: Khói / Hơi nước bốc lên (Vapor/Steam)
+        const steamEmitter = this.add.particles(0, 0, 'soft-fire', {
+          x: { min: emitX - 10, max: emitX + 10 },
+          y: surfaceY, // Phát ra từ mặt nước
+          speedY: { min: -20 * intensity, max: -50 * intensity }, // Bay chầm chậm lên
+          speedX: { min: -10, max: 10 }, // Lắc lư nhẹ sang 2 bên
+          scale: { start: 0.5 * Math.max(intensity, 1), end: 2.0 * Math.max(intensity, 1) }, // Nở to ra
+          alpha: { start: 0.15, end: 0 }, // Giảm độ mờ đi rất nhiều để nhìn tự nhiên hơn
+          frequency: Math.max(120 / intensity, 60), // Thưa khói hơn
+          lifespan: 1500, // Khói tan nhanh hơn
+          blendMode: 'NORMAL' 
+        });
+        steamEmitter.setDepth(9);
+        container.emitters.push(steamEmitter);
       }
 
       if (type === 'violent') {

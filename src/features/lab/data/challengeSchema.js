@@ -19,7 +19,7 @@ export const CHALLENGE_SCHEMA = {
     ],
     requiredFields: [
       { id: 'h2_volume', label: 'Thể tích khí H2 sinh ra', unit: 'Lít', evalPath: { type: 'product', targetName: 'H2', property: 'volume' } },
-      { id: 'excess_mass', label: 'Khối lượng chất rắn dư', unit: 'Gam', evalPath: { type: 'excess', property: 'remainingMass' } }
+      { id: 'excess_mass', label: 'Khối lượng chất rắn dư', unit: 'Gam', evalPath: { type: 'excess', targetName: 'Zn', property: 'remainingMass' } }
     ],
     calculateGroundTruth: (inputA, inputB) => {
       const zn = inputA.name.includes('Zn') ? inputA : inputB;
@@ -44,7 +44,7 @@ export const CHALLENGE_SCHEMA = {
     ],
     requiredFields: [
       { id: 'cuoh2_mass', label: 'Khối lượng kết tủa Cu(OH)2', unit: 'Gam', evalPath: { type: 'product', targetName: 'Cu(OH)2', property: 'mass' } },
-      { id: 'excess_moles', label: 'Số mol chất dư', unit: 'Mol', evalPath: { type: 'excess', property: 'remainingMoles' } }
+      { id: 'excess_moles', label: 'Số mol chất dư', unit: 'Mol', evalPath: { type: 'excess', property: 'remainingMoles' } } // Ở đây lấy bừa chất dư nào cũng được (NaOH hoặc CuSO4)
     ],
     calculateGroundTruth: (inputA, inputB) => {
       const cuso4 = inputA.name.includes('CuSO4') ? inputA : inputB;
@@ -55,6 +55,32 @@ export const CHALLENGE_SCHEMA = {
       const products = [
         { name: 'Cu(OH)2', M: 98, ratio: 1, isPrecipitate: true },
         { name: 'Na2SO4', M: 142, ratio: 1 }
+      ];
+      return evaluateReaction(reactantA, reactantB, products);
+    }
+  },
+  'H2O_Na (Rắn)': {
+    reactionKey: "H2O_Na (Rắn)",
+    equation: "2Na + 2H2O -> 2NaOH + H2↑",
+    question: "Dựa vào thông số bạn vừa thiết lập, hãy tính thể tích khí H2 sinh ra (ở đkc 25 độ C, 1 bar) và khối lượng Natri dư (nếu có). Biết khối lượng riêng của nước là 1g/mL.",
+    hints: [
+      "Bước 1: Tính số mol của Na (n = m / 23) và H2O (n = V(mL) * 1g/mL / 18).",
+      "Bước 2: Lập tỉ lệ mol chia cho hệ số phương trình (2) để tìm chất dư, chất hết.",
+      "Bước 3: Tính số mol khí H2 theo chất hết và nhân với 24.79 để ra thể tích."
+    ],
+    requiredFields: [
+      { id: 'h2_volume', label: 'Thể tích khí H2 sinh ra', unit: 'Lít', evalPath: { type: 'product', targetName: 'H2', property: 'volume' } },
+      { id: 'excess_mass', label: 'Khối lượng chất rắn dư', unit: 'Gam', evalPath: { type: 'excess', targetName: 'Na', property: 'remainingMass' } }
+    ],
+    calculateGroundTruth: (inputA, inputB) => {
+      const na = inputA.name.includes('Na') ? inputA : inputB;
+      const h2o = inputA.name.includes('H2O') || inputA.name.includes('Nước') || inputA.name.includes('Water') ? inputA : inputB;
+      
+      const reactantA = { name: 'Na', moles: calculateMolesFromMass(na.amount, 23), M: 23, ratio: 2 };
+      const reactantB = { name: 'H2O', moles: calculateMolesFromMass(h2o.amount, 18), M: 18, ratio: 2 };
+      const products = [
+        { name: 'NaOH', M: 40, ratio: 2 },
+        { name: 'H2', M: 2, ratio: 1, isGas: true }
       ];
       return evaluateReaction(reactantA, reactantB, products);
     }

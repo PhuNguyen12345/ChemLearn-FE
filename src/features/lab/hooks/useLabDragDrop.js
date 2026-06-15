@@ -173,6 +173,20 @@ export function useLabDragDrop({ scale, inventory }) {
               description: `${chemicalName} đã được thêm vào dụng cụ.`,
             });
             completeTask(`DRAG_${chemicalName.toUpperCase()}_TO_FLASK`);
+          } else {
+            // ── PHASE 5: NO REACTION FEEDBACK (Dành cho hạt rắn rơi xuống) ──
+            toast.info(`💡 Chất ${chemicalName} và ${currentContent} không phản ứng với nhau trong điều kiện thường.`, {
+              position: 'bottom-right',
+              duration: 4000
+            });
+            // Vẫn lưu giữ chất rắn dưới đáy bình
+            container.solidContent = chemicalName;
+            
+            setReactionInfo({
+             equation: 'Không có hiện tượng',
+             condition: 'Bình thường',
+             description: 'Hai chất này không xảy ra phản ứng hóa học.'
+            });
           }
           
           if (container.content) {
@@ -331,6 +345,23 @@ export function useLabDragDrop({ scale, inventory }) {
 
             const key = getReactionKey(currentContent, draggedContentName);
             const schema = CHALLENGE_SCHEMA[key];
+            const reaction = REACTION_MAP[key];
+
+            const isIndicatorDragged = draggedObj.templateId === 'litmus_paper' || draggedObj.templateId === 'phenolphthalein';
+            const isWater = draggedContentName === 'H2O' || draggedContentName === 'Nước cất';
+            const currentIsAcid = currentContent && (currentContent.includes('HCl') || currentContent.includes('H2SO4') || currentContent.includes('HNO3'));
+            const draggedIsAcid = draggedContentName.includes('HCl') || draggedContentName.includes('H2SO4') || draggedContentName.includes('HNO3');
+            const currentIsWater = currentContent === 'H2O' || currentContent === 'Nước cất';
+            const isAcidDilution = (isWater && currentIsAcid) || (draggedIsAcid && currentIsWater);
+
+            // TỪ CHỐI THẢ NẾU CÁC CHẤT KHÔNG PHẢN ỨNG
+            if (currentContent && !isJustIndicator && !isIndicatorDragged && !reaction && !isAcidDilution) {
+                toast.info(`💡 Chất ${draggedContentName} và ${currentContent} không phản ứng với nhau trong điều kiện thường.`, {
+                  position: 'bottom-right',
+                  duration: 4000
+                });
+                return prev; // Giữ nguyên state gốc, item sẽ búng về vị trí cũ
+            }
 
             // --- HÀM THỰC THI REACTION (Được gọi ngay lập tức hoặc sau khi giải toán) ---
             const finalizeDropExecution = () => {
@@ -361,8 +392,99 @@ export function useLabDragDrop({ scale, inventory }) {
                         container.liquidContent = 'Phenolphthalein';
                         container.liquidColor = 'rgba(200, 230, 255, 0.7)';
                      }
+                   } else if (!currentContent || isJustIndicator) {
+                       // ── EMPTY CONTAINER OR ONLY INDICATOR ─────────
+                       const depositSolid = isChunkMetal || isPowder || (originalItem?.state === PHYSICAL_STATE.SOLID && !isLitmus);
+                       if (depositSolid) {
+                         container.solidContent = draggedContentName;
+                         if (!isJustIndicator) container.liquidContent = null;
+                         container.content = draggedContentName;
+                         container.amount = draggedObj.amount || 10;
+                       } else {
+                         container.liquidContent = draggedContentName;
+                         if (!isJustIndicator) container.solidContent = null;
+                         container.content = draggedContentName;
+                         const liquidColor = EMPTY_DROP_LIQUID_COLOR[draggedObj.templateId];
+                         if (liquidColor) container.liquidColor = liquidColor;
+                         container.amount = draggedObj.amount || 100;
+                         container.molarity = draggedObj.molarity || 1.0;
+                       }
+
+                       setReactionInfo({
+                         equation: `${draggedContentName} Added`,
+                         condition: 'Mixing',
+                         description: `${draggedContentName} đã được thêm vào dụng cụ.`,
+                       });
+
+                       completeTask(`DRAG_${draggedContentName.toUpperCase()}_TO_FLASK`);
                    } else {
                      const reaction = REACTION_MAP[key];
+
+                     // ── PHASE 5: PHA LOÃNG AXIT SAFETY CHECK ──────────────
+                     const isWater = draggedContentName === 'H2O' || draggedContentName === 'Nước cất';
+                     const currentIsAcid = currentContent.includes('HCl') || currentContent.includes('H2SO4') || currentContent.includes('HNO3');
+                     const draggedIsAcid = draggedContentName.includes('HCl') || draggedContentName.includes('H2SO4') || draggedContentName.includes('HNO3');
+                     const currentIsWater = currentContent === 'H2O' || currentContent === 'Nước cất';
+
+                     if (isWater && currentIsAcid) {
+                       toast.error("NGUY HIỂM! Không bao giờ được đổ Nước vào Axit! Axit sẽ sôi đột ngột và bắn ra ngoài!", {
+                         position: 'top-center',
+                         duration: 5000,
+                         icon: '⚠️'
+                       });
+                       // Sôi sùng sục, không có lửa, chỉ rung bình và bong bóng mãnh liệt
+                       window.dispatchEvent(new CustomEvent('PHASER_START_PARTICLES', {
+                         detail: { containerId: instanceToUpdate, type: 'boiling', duration: 4000, amount: 80, molarity: 5 }
+                       }));
+                       container.reactionState = 'boiling';
+                       
+                       // Cập nhật nhãn và màu sắc đồng bộ
+                       const baseAcidName = currentContent.replace('(Đặc)', '').trim();
+                       container.liquidContent = baseAcidName + ' (Loãng)';
+                       container.content = container.liquidContent;
+                       container.liquidColor = 'rgba(200, 230, 255, 0.7)'; // Không màu
+
+                       setReactionInfo({
+                         equation: 'CẢNH BÁO AN TOÀN!',
+                         condition: 'Nguy hiểm',
+                         description: 'Nước vào Axit gây tỏa nhiệt đột ngột làm nước sôi và bắn axit tung tóe.'
+                       });
+
+                       // Tắt hiệu ứng sau 4 giây
+                       const timeoutId = window.setTimeout(() => {
+                           reactionTimeoutsRef.current = reactionTimeoutsRef.current.filter((id) => id !== timeoutId);
+                           setPlacedItems(curr =>
+                             curr.map(it =>
+                               it.instanceId === instanceToUpdate ? { 
+                                 ...it, 
+                                 reactionState: null, 
+                                 gasContent: null,
+                               } : it
+                             )
+                           );
+                           window.dispatchEvent(new CustomEvent('PHASER_STOP_PARTICLES', {
+                             detail: { containerId: instanceToUpdate }
+                           }));
+                       }, 4000);
+                       reactionTimeoutsRef.current.push(timeoutId);
+
+                       return;
+                     }
+
+                     if (draggedIsAcid && currentIsWater) {
+                       toast.success("Thao tác chuẩn! Đổ từ từ Axit vào Nước giúp pha loãng an toàn.", { position: 'bottom-right' });
+                       const baseAcidName = draggedContentName.replace('(Đặc)', '').trim();
+                       container.liquidContent = baseAcidName + ' (Loãng)';
+                       container.content = container.liquidContent;
+                       container.liquidColor = 'rgba(200, 230, 255, 0.7)';
+                       setReactionInfo({
+                         equation: 'Pha loãng Axit',
+                         condition: 'Tỏa nhiệt nhẹ',
+                         description: 'Pha loãng axit an toàn bằng cách đổ từ từ axit vào nước.'
+                       });
+                       return;
+                     }
+
 
                      if (reaction && currentContent && !isJustIndicator) {
                        // ── REACTION FOUND ────────────────────────────────────────────
@@ -432,31 +554,6 @@ export function useLabDragDrop({ scale, inventory }) {
                             }
                           }));
                        }
-                     } else if (!currentContent || isJustIndicator) {
-                       // ── EMPTY CONTAINER OR ONLY INDICATOR ─────────
-                       const depositSolid = isChunkMetal || isPowder || (originalItem?.state === PHYSICAL_STATE.SOLID && !isLitmus);
-                       if (depositSolid) {
-                         container.solidContent = draggedContentName;
-                         if (!isJustIndicator) container.liquidContent = null;
-                         container.content = draggedContentName;
-                         container.amount = draggedObj.amount || 10;
-                       } else {
-                         container.liquidContent = draggedContentName;
-                         if (!isJustIndicator) container.solidContent = null;
-                         container.content = draggedContentName;
-                         const liquidColor = EMPTY_DROP_LIQUID_COLOR[draggedObj.templateId];
-                         if (liquidColor) container.liquidColor = liquidColor;
-                         container.amount = draggedObj.amount || 100;
-                         container.molarity = draggedObj.molarity || 1.0;
-                       }
-
-                       setReactionInfo({
-                         equation: `${draggedContentName} Added`,
-                         condition: 'Mixing',
-                         description: `${draggedContentName} đã được thêm vào dụng cụ.`,
-                       });
-
-                       completeTask(`DRAG_${draggedContentName.toUpperCase()}_TO_FLASK`);
                      }
                    }
                    

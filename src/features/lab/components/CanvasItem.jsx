@@ -125,11 +125,11 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
        const wrapperBgColor = (isSolidOnly && isChunk) ? 'transparent' : (isSolidOnly ? getLiquidBg(content.solid.label) : content.liquid?.color);
 
        return (
-         <div className={`relative group ${item.reactionState === 'violent' ? 'shake-animation' : ''}`}>
+         <div className={`relative group ${item.reactionState === 'violent' || item.reactionState === 'boiling' ? 'shake-animation' : ''}`}>
            {/* LỚP CHẤT LỎNG & RẮN */}
            {(content.liquid || content.solid) && (
              <div
-               className={`absolute transition-all ease-in-out overflow-hidden ${item.reactionState === 'exothermic' ? 'exothermic-glow' : ''} ${item.reactionState === 'endothermic' ? 'endothermic-glow' : ''}`}
+               className={`absolute transition-all ease-in-out overflow-hidden ${item.reactionState === 'exothermic' ? 'exothermic-glow' : ''} ${item.reactionState === 'endothermic' ? 'endothermic-glow' : ''} ${item.reactionState === 'boiling' ? 'surface-jitter' : ''}`}
                style={{
                  ...layout.liquidStyle,
                  height: `${wrapperHeight}%`,

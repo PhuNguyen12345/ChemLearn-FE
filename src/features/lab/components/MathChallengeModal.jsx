@@ -34,7 +34,20 @@ export default function MathChallengeModal() {
         if (product) gtValue = product[path.property] || 0;
       } else if (path.type === 'excess') {
         if (groundTruth.excessRemaining) {
-          gtValue = groundTruth.excessRemaining[path.property] || 0;
+          if (path.targetName) {
+            // Nếu có chỉ định cụ thể tên chất dư cần tìm (VD: 'Na', 'Zn')
+            if (groundTruth.excessRemaining.name.includes(path.targetName)) {
+              gtValue = groundTruth.excessRemaining[path.property] || 0;
+            } else {
+              // Chất yêu cầu không dư (đã phản ứng hết) -> Dư = 0
+              gtValue = 0;
+            }
+          } else {
+            // Fallback: Lấy bừa chất dư nào cũng được (Logic cũ)
+            gtValue = groundTruth.excessRemaining[path.property] || 0;
+          }
+        } else {
+          gtValue = 0; // Phản ứng vừa đủ, không có chất dư
         }
       }
 
