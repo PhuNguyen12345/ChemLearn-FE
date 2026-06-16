@@ -402,6 +402,7 @@ export function useLabDragDrop({ scale, inventory }) {
                         container.content = 'Litmus Paper';
                         container.solidContent = 'Litmus Paper';
                      }
+                     completeTask('DRAG_LITMUS PAPER_TO_FLASK');
                    } else if (draggedObj.templateId === 'phenolphthalein') {
                      container.indicator = 'PHENOLPHTHALEIN';
                      if (!container.content) {
@@ -409,6 +410,7 @@ export function useLabDragDrop({ scale, inventory }) {
                         container.liquidContent = 'Phenolphthalein';
                         container.liquidColor = 'rgba(200, 230, 255, 0.7)';
                      }
+                     completeTask('DRAG_PHENOLPHTHALEIN_TO_FLASK');
                    } else if (!currentContent || isJustIndicator) {
                        // ── EMPTY CONTAINER OR ONLY INDICATOR ─────────
                        const depositSolid = isChunkMetal || isPowder || (originalItem?.state === PHYSICAL_STATE.SOLID && !isLitmus);
@@ -416,11 +418,13 @@ export function useLabDragDrop({ scale, inventory }) {
                          container.solidContent = draggedContentName;
                          if (!isJustIndicator) container.liquidContent = null;
                          container.content = draggedContentName;
+                         container.state = PHYSICAL_STATE.SOLID;
                          container.amount = draggedObj.amount || 10;
                        } else {
                          container.liquidContent = draggedContentName;
                          if (!isJustIndicator) container.solidContent = null;
                          container.content = draggedContentName;
+                         container.state = PHYSICAL_STATE.LIQUID;
                          const liquidColor = EMPTY_DROP_LIQUID_COLOR[draggedObj.templateId];
                          if (liquidColor) container.liquidColor = liquidColor;
                          container.amount = draggedObj.amount || 100;
@@ -634,8 +638,8 @@ export function useLabDragDrop({ scale, inventory }) {
             // --- KIỂM TRA ĐIỀU KIỆN CHẶN LẠI ĐỂ HIỂN THỊ CHALLENGE ---
             if (labType === 'PREMADE' && schema && currentContent && !isJustIndicator) {
                // Thu thập thông số từ state
-               const isSolidA = currentContent.includes('(Rắn)');
-               const isSolidB = draggedContentName.includes('(Rắn)');
+               const isSolidA = currentContent.includes('(Rắn)') || targetContainer.state === PHYSICAL_STATE.SOLID;
+               const isSolidB = draggedContentName.includes('(Rắn)') || draggedObj.state === PHYSICAL_STATE.SOLID || originalItem?.state === PHYSICAL_STATE.SOLID;
                
                const inputA = { 
                  name: currentContent, 

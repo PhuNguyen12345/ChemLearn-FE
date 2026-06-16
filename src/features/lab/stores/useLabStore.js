@@ -59,7 +59,7 @@ export const useLabStore = create((set, get) => ({
 
   loadLabProgress: (apiData, taskMockList) => {
     // Phục hồi cấu hình cơ bản từ API
-    const config = apiData.config || {};
+    let config = apiData.config || {};
     
     // Parse durationMinutes từ JSON config một cách an toàn
     let duration = 0;
@@ -76,6 +76,7 @@ export const useLabStore = create((set, get) => ({
 
       if (rawConfig) {
         const parsedConfig = typeof rawConfig === 'object' ? rawConfig : JSON.parse(rawConfig);
+        config = parsedConfig || {};
         duration = parseInt(parsedConfig?.durationMinutes) || 0;
         console.log("Parsed durationMinutes:", duration, "from:", parsedConfig);
       }
@@ -97,8 +98,11 @@ export const useLabStore = create((set, get) => ({
       version: "1.0",
       metadata: { 
         title: apiData.title, 
+        description: apiData.description,
+        category: apiData.category,
+        difficulty: apiData.difficulty,
         type: apiData.type,
-        max_score: 50 // Giả định
+        max_score: apiData.maxScore ?? apiData.max_score ?? 50
       },
       config: config,
       viewport: apiData.viewport || { x: 0, y: 0, zoom_scale: 1.0 },

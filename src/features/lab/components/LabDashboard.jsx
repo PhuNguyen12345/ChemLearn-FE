@@ -8,7 +8,7 @@ import {
 import { useLabData } from '../hooks/useLabData';
 import LabCard from './LabCard';
 import { LAB_THEMES } from '../data/theme';
-import { LAB_TASKS_MOCK } from '../data/labTasksMock';
+import { getLabTasks } from '../data/labTasksMock';
 import { createSandboxLab } from '@/lib/api';
 
 /* ─────────────────────────────────────────────────────────
@@ -92,6 +92,7 @@ const LabDashboard = () => {
   };
 
   const currentBanner = bannerContent[activeTab];
+  const selectedLabTasks = selectedLabDetails ? getLabTasks(selectedLabDetails) : [];
 
   /* Close any open menu when clicking elsewhere */
   const handleWrapperClick = () => {
@@ -355,11 +356,11 @@ const LabDashboard = () => {
               </div>
 
               {/* Tasks List */}
-              {LAB_TASKS_MOCK[selectedLabDetails.category] && (
+              {selectedLabTasks.length > 0 && (
                 <div>
                   <h4 className="text-sm font-bold text-slate-800 mb-2">Nhiệm vụ cần làm:</h4>
                   <ul className="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                    {LAB_TASKS_MOCK[selectedLabDetails.category].map(task => (
+                    {selectedLabTasks.map(task => (
                       <li key={task.id} className="flex items-start gap-2 text-sm text-slate-600">
                         <span className="text-amber-500 font-bold shrink-0">⭐ {task.points}</span>
                         <span>{task.desc}</span>

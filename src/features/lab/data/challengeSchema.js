@@ -84,5 +84,83 @@ export const CHALLENGE_SCHEMA = {
       ];
       return evaluateReaction(reactantA, reactantB, products);
     }
+  },
+  AgNO3_NaCl: {
+    reactionKey: "AgNO3_NaCl",
+    equation: "AgNO3 + NaCl -> AgCl↓ + NaNO3",
+    question: "Dựa vào lượng AgNO3 và NaCl đã dùng, hãy tính khối lượng kết tủa AgCl tạo thành và số mol chất còn dư sau phản ứng. Nhập 0 nếu phản ứng vừa đủ.",
+    hints: [
+      "Bước 1: Tính n(AgNO3) = CM * V(L) và n(NaCl) = m / 58.5 nếu NaCl là chất rắn.",
+      "Bước 2: Phản ứng theo tỉ lệ 1:1, chất có số mol nhỏ hơn là chất hết.",
+      "Bước 3: n(AgCl) bằng số mol chất hết, sau đó tính m(AgCl) = n * 143.5."
+    ],
+    requiredFields: [
+      { id: 'agcl_mass', label: 'Khối lượng kết tủa AgCl', unit: 'Gam', evalPath: { type: 'product', targetName: 'AgCl', property: 'mass' } },
+      { id: 'excess_moles', label: 'Số mol chất dư', unit: 'Mol', evalPath: { type: 'excess', property: 'remainingMoles' } }
+    ],
+    calculateGroundTruth: (inputA, inputB) => {
+      const agno3 = inputA.name.includes('AgNO3') ? inputA : inputB;
+      const nacl = inputA.name.includes('NaCl') ? inputA : inputB;
+
+      const reactantA = { name: 'AgNO3', moles: calculateMolesFromSolution(agno3.molarity, agno3.amount), M: 170, ratio: 1 };
+      const reactantB = { name: 'NaCl', moles: nacl.molarity ? calculateMolesFromSolution(nacl.molarity, nacl.amount) : calculateMolesFromMass(nacl.amount, 58.5), M: 58.5, ratio: 1 };
+      const products = [
+        { name: 'AgCl', M: 143.5, ratio: 1, isPrecipitate: true },
+        { name: 'NaNO3', M: 85, ratio: 1 }
+      ];
+      return evaluateReaction(reactantA, reactantB, products);
+    }
+  },
+  AgNO3_HCl: {
+    reactionKey: "AgNO3_HCl",
+    equation: "AgNO3 + HCl -> AgCl↓ + HNO3",
+    question: "Dựa vào hai dung dịch đã trộn, hãy tính khối lượng kết tủa AgCl và số mol chất còn dư sau phản ứng. Nhập 0 nếu không có chất dư.",
+    hints: [
+      "Bước 1: Đổi thể tích mL sang L rồi tính số mol từng dung dịch bằng n = CM * V(L).",
+      "Bước 2: So sánh n(AgNO3) và n(HCl) vì phương trình có tỉ lệ 1:1.",
+      "Bước 3: n(AgCl) bằng số mol chất hết, m(AgCl) = n * 143.5."
+    ],
+    requiredFields: [
+      { id: 'agcl_mass', label: 'Khối lượng kết tủa AgCl', unit: 'Gam', evalPath: { type: 'product', targetName: 'AgCl', property: 'mass' } },
+      { id: 'excess_moles', label: 'Số mol chất dư', unit: 'Mol', evalPath: { type: 'excess', property: 'remainingMoles' } }
+    ],
+    calculateGroundTruth: (inputA, inputB) => {
+      const agno3 = inputA.name.includes('AgNO3') ? inputA : inputB;
+      const hcl = inputA.name.includes('HCl') ? inputA : inputB;
+
+      const reactantA = { name: 'AgNO3', moles: calculateMolesFromSolution(agno3.molarity, agno3.amount), M: 170, ratio: 1 };
+      const reactantB = { name: 'HCl', moles: calculateMolesFromSolution(hcl.molarity, hcl.amount), M: 36.5, ratio: 1 };
+      const products = [
+        { name: 'AgCl', M: 143.5, ratio: 1, isPrecipitate: true },
+        { name: 'HNO3', M: 63, ratio: 1 }
+      ];
+      return evaluateReaction(reactantA, reactantB, products);
+    }
+  },
+  BaCl2_Na2SO4: {
+    reactionKey: "BaCl2_Na2SO4",
+    equation: "BaCl2 + Na2SO4 -> BaSO4↓ + 2NaCl",
+    question: "Dựa vào hai dung dịch đã trộn, hãy tính khối lượng kết tủa BaSO4 và số mol chất còn dư sau phản ứng.",
+    hints: [
+      "Bước 1: Tính số mol BaCl2 và Na2SO4 bằng công thức n = CM * V(L).",
+      "Bước 2: Phản ứng theo tỉ lệ 1:1 nên so sánh trực tiếp số mol của hai chất.",
+      "Bước 3: n(BaSO4) bằng số mol chất hết, m(BaSO4) = n * 233."
+    ],
+    requiredFields: [
+      { id: 'baso4_mass', label: 'Khối lượng kết tủa BaSO4', unit: 'Gam', evalPath: { type: 'product', targetName: 'BaSO4', property: 'mass' } },
+      { id: 'excess_moles', label: 'Số mol chất dư', unit: 'Mol', evalPath: { type: 'excess', property: 'remainingMoles' } }
+    ],
+    calculateGroundTruth: (inputA, inputB) => {
+      const bacl2 = inputA.name.includes('BaCl2') ? inputA : inputB;
+      const na2so4 = inputA.name.includes('Na2SO4') ? inputA : inputB;
+
+      const reactantA = { name: 'BaCl2', moles: calculateMolesFromSolution(bacl2.molarity, bacl2.amount), M: 208, ratio: 1 };
+      const reactantB = { name: 'Na2SO4', moles: calculateMolesFromSolution(na2so4.molarity, na2so4.amount), M: 142, ratio: 1 };
+      const products = [
+        { name: 'BaSO4', M: 233, ratio: 1, isPrecipitate: true },
+        { name: 'NaCl', M: 58.5, ratio: 2 }
+      ];
+      return evaluateReaction(reactantA, reactantB, products);
+    }
   }
 };

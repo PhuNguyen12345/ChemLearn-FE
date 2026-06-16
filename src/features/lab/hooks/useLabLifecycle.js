@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import debounce from 'lodash/debounce';
 import confetti from 'canvas-confetti';
 import { useLabStore } from '../stores/useLabStore';
-import { LAB_TASKS_MOCK } from '../data/labTasksMock';
+import { getLabTasks } from '../data/labTasksMock';
 import { saveVirtualLabProgress, enterVirtualLab, resetVirtualLab, renameVirtualLab, getInventoryItems } from '@/lib/api';
 import { getGamificationProfile } from '@/api/studentApi';
 import { useStudentStore } from '@/stores/useStudentStore';
@@ -73,8 +73,7 @@ export function useLabLifecycle(labId) {
         useLabStore.getState().setInventoryItems(backwardCompatibleInventory);
         
         if (isCancelled || !isMountedRef.current) return;
-        // TODO: select task list by category from BE. Using AXIT_BAZO for now.
-        loadLabProgress(data, LAB_TASKS_MOCK.AXIT_BAZO);
+        loadLabProgress(data, getLabTasks(data));
       } catch (error) {
         if (isCancelled || !isMountedRef.current) return;
         console.error('Lỗi khi tải bài lab:', error);
@@ -175,9 +174,11 @@ export function useLabLifecycle(labId) {
   // ─── 6. Reset lab ──────────────────────────────────────────────────────────
   const handleResetLab = async () => {
     setShowResetConfirm(false);
-    // Dynamically load the correct task list based on the current lab's category
-    const currentCategory = useLabStore.getState().metadata?.category || 'AXIT_BAZO';
-    const freshTaskList = LAB_TASKS_MOCK[currentCategory] || [];
+    const currentLab = {
+      ...useLabStore.getState().metadata,
+      config: useLabStore.getState().config,
+    };
+    const freshTaskList = getLabTasks(currentLab);
 
     try {
       await resetVirtualLab(labId);

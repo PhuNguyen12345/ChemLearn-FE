@@ -82,7 +82,7 @@ export default function MathChallengeModal() {
 
   return (
     <div className="fixed inset-0 z-[9999] bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[calc(100dvh-2rem)] overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col">
         
         {/* HEADER */}
         <div className="bg-blue-600 p-6 text-white text-center relative overflow-hidden">
@@ -96,7 +96,7 @@ export default function MathChallengeModal() {
         </div>
 
         {/* BODY */}
-        <div className="p-8">
+        <div className="p-6 sm:p-8 overflow-y-auto flex-1">
           
           {/* HIỂN THỊ THÔNG SỐ ĐÃ THIẾT LẬP */}
           {(inputA && inputB) && (
@@ -149,7 +149,7 @@ export default function MathChallengeModal() {
           )}
 
           {/* ACTIONS */}
-          <div className="flex gap-4 pt-4 border-t">
+          <div className="sticky bottom-0 z-10 -mx-6 sm:-mx-8 -mb-6 sm:-mb-8 mt-2 flex flex-col sm:flex-row gap-3 sm:gap-4 border-t bg-white p-4 sm:p-6">
             <Button 
               variant="outline" 
               className="flex-1 h-12 text-base font-semibold border-2 hover:bg-slate-50"
