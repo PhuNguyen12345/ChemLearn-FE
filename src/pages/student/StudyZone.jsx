@@ -1,7 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   LoaderCircle,
   BookOpen,
+  Lock,
+  ShoppingBag,
 } from 'lucide-react';
 import {
   getStudyChapters,
@@ -11,17 +14,63 @@ import {
 import ChapterSidebar from '../../components/student/study/ChapterSidebar';
 import LessonContent from '../../components/student/study/LessonContent';
 
+const isLockedChapter = (chapter) => Boolean(chapter?.needPurchase && chapter?.hasAccess === false);
+
+const getOrderValue = (item, fallbackIndex) => {
+  const value = item?.orderIndex ?? item?.displayOrder ?? fallbackIndex;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallbackIndex;
+};
+
+const sortByAvailabilityAndOrder = (left, right) => {
+  if (left.locked !== right.locked) return left.locked ? 1 : -1;
+  if (left.order !== right.order) return left.order - right.order;
+  return left.index - right.index;
+};
+
+const sortStudyChapters = (chapters) => (chapters || [])
+  .map((chapter, chapterIndex) => {
+    const locked = isLockedChapter(chapter);
+    const lessons = (chapter.lessons || [])
+      .map((lesson, lessonIndex) => ({
+        lesson,
+        locked,
+        order: getOrderValue(lesson, lessonIndex),
+        index: lessonIndex,
+      }))
+      .sort(sortByAvailabilityAndOrder)
+      .map(({ lesson }) => lesson);
+
+    return {
+      chapter: {
+        ...chapter,
+        lessons,
+      },
+      locked,
+      order: getOrderValue(chapter, chapterIndex),
+      index: chapterIndex,
+    };
+  })
+  .sort(sortByAvailabilityAndOrder)
+  .map(({ chapter }) => chapter);
+
 const StudyZone = () => {
+  const navigate = useNavigate();
   const [chapters, setChapters] = useState([]);
   const [activeLessonId, setActiveLessonId] = useState(null);
   const [lessonDetail, setLessonDetail] = useState(null);
   const [loadingLesson, setLoadingLesson] = useState(false);
   const [error, setError] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const hasLessons = chapters.some((chapter) => (chapter.lessons || []).length > 0);
+  const sortedChapters = useMemo(() => sortStudyChapters(chapters), [chapters]);
+  const hasLessons = sortedChapters.some((chapter) => (chapter.lessons || []).length > 0);
   const orderedLessons = useMemo(
-    () => chapters.flatMap((chapter) => chapter?.lessons || []),
-    [chapters]
+    () => sortedChapters.flatMap((chapter) => isLockedChapter(chapter) ? [] : (chapter?.lessons || [])),
+    [sortedChapters]
+  );
+  const lockedChapter = useMemo(
+    () => (!activeLessonId ? sortedChapters.find((chapter) => isLockedChapter(chapter)) : null),
+    [activeLessonId, sortedChapters]
   );
   const activeLessonIndex = orderedLessons.findIndex(
     (lesson) => String(lesson.id) === String(activeLessonId)
@@ -37,10 +86,17 @@ const StudyZone = () => {
         setError('');
         const data = await getStudyChapters();
         setChapters(data || []);
+        const nextChapters = sortStudyChapters(data);
 
-        const firstLesson = data?.flatMap((chapter) => chapter?.lessons || [])?.[0];
+        const accessibleLessons = nextChapters.flatMap((chapter) =>
+          isLockedChapter(chapter) ? [] : (chapter?.lessons || [])
+        );
+        const firstLesson = accessibleLessons[0];
         if (firstLesson) {
           setActiveLessonId(firstLesson.id);
+        } else {
+          setActiveLessonId(null);
+          setLessonDetail(null);
         }
       } catch (err) {
         setError(err?.response?.data?.message || 'Failed to load study chapters.');
@@ -69,6 +125,15 @@ const StudyZone = () => {
   }, [activeLessonId]);
 
   const handleSelectLesson = (lessonId) => {
+    const ownerChapter = chapters.find((chapter) =>
+      (chapter.lessons || []).some((lesson) => String(lesson.id) === String(lessonId))
+    );
+    if (isLockedChapter(ownerChapter)) {
+      setActiveLessonId(null);
+      setLessonDetail(null);
+      return;
+    }
+
     setActiveLessonId(lessonId);
 
     if (typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches) {
@@ -88,7 +153,7 @@ const StudyZone = () => {
       )}
 
       <ChapterSidebar
-        chapters={chapters}
+        chapters={sortedChapters}
         activeLessonId={activeLessonId}
         onSelectLesson={handleSelectLesson}
         isOpen={isSidebarOpen}
@@ -108,6 +173,33 @@ const StudyZone = () => {
           </div>
         )}
 
+        {!loadingLesson && lockedChapter && (
+          <div className="flex flex-1 items-center justify-center p-6 sm:p-8">
+            <div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-slate-50 p-6 text-center shadow-sm sm:p-8">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-slate-900 text-white shadow-sm">
+                <Lock className="h-8 w-8" />
+              </div>
+              <div className="mt-5 inline-flex items-center rounded-md border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-black uppercase tracking-wide text-amber-700">
+                Package purchase needed
+              </div>
+              <h3 className="mt-4 text-2xl font-black text-slate-900">
+                {lockedChapter.title}
+              </h3>
+              <p className="mt-3 text-sm leading-6 text-slate-600">
+                Chương học này cần gói {lockedChapter.requiredPackageCode || `GRADE_${lockedChapter.gradeLevel}`} để mở khóa Study Zone lớp {lockedChapter.gradeLevel}.
+              </p>
+              <button
+                type="button"
+                onClick={() => navigate('/student/subscriptions')}
+                className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-black text-white shadow-sm transition hover:bg-slate-800"
+              >
+                <ShoppingBag className="h-4 w-4" />
+                Xem gói học
+              </button>
+            </div>
+          </div>
+        )}
+
         {!loadingLesson && lessonDetail && (
           <LessonContent
             lessonDetail={lessonDetail}
@@ -117,7 +209,7 @@ const StudyZone = () => {
           />
         )}
 
-        {!loadingLesson && !lessonDetail && (
+        {!loadingLesson && !lessonDetail && !lockedChapter && (
           <div className="flex flex-1 items-center justify-center p-8">
             <div className="max-w-xl rounded-3xl border border-slate-200 bg-slate-50 p-8 text-center shadow-sm">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-200">
