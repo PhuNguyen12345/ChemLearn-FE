@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Users, Settings, ShieldAlert, FlaskConical, BookOpen, UserRoundCheck, PawPrint } from 'lucide-react';
+import { BookOpen, FlaskConical, MailPlus, PawPrint, Settings, ShieldAlert, UserRoundCheck, Users } from 'lucide-react';
 
 const navItems = [
   { name: 'Dashboard', icon: ShieldAlert, path: '/admin/dashboard' },
@@ -8,19 +8,18 @@ const navItems = [
   { name: 'Yêu cầu tài khoản', icon: UserRoundCheck, path: '/admin/account-requests' },
   { name: 'Quản lý người dùng', icon: Users, path: '/admin/users' },
   { name: 'Quản lý pet', icon: PawPrint, path: '/admin/pets' },
+  { name: 'Mail thông báo', icon: MailPlus, path: '/admin/mail-notifications' },
   { name: 'Cấu hình hệ thống', icon: Settings, path: '/admin/settings' },
 ];
 
 const Sidebar = ({ className = '' }) => {
   return (
     <aside className={`w-64 border-r bg-background flex flex-col h-full ${className}`}>
-      {/* Logo Area */}
       <div className="h-16 flex items-center px-6 border-b border-border/50">
         <FlaskConical className="w-6 h-6 text-primary mr-2" />
         <span className="text-xl font-bold tracking-tight text-primary">ChemLearn Admin</span>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-6 space-y-1">
         {navItems.map((item) => (
           <NavLink

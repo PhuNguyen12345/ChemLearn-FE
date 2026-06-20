@@ -54,6 +54,31 @@ export const acceptInvite = async (payload) => {
   return response.data;
 };
 
+export const requestRegistrationOtp = async (payload) => {
+  const response = await api.post('/api/auth/register/otp', payload);
+  return response.data;
+};
+
+export const verifyRegistrationOtp = async (payload) => {
+  const response = await api.post('/api/auth/otp/verify', payload);
+  return response.data;
+};
+
+export const resendRegistrationOtp = async (email) => {
+  const response = await api.post('/api/auth/otp/resend', { email });
+  return response.data;
+};
+
+export const requestPasswordResetOtp = async (email) => {
+  const response = await api.post('/api/auth/forgot-password', { email });
+  return response.data;
+};
+
+export const verifyPasswordResetOtp = async (payload) => {
+  const response = await api.post('/api/auth/forgot-password/verify-otp', payload);
+  return response.data;
+};
+
 export const getAuthAccessRequests = async () => {
   const response = await api.get('/api/admin/auth/requests');
   return response.data;
@@ -482,6 +507,11 @@ export const getAdminFeedbackReports = async () => {
 
 export const updateAdminFeedbackReport = async (reportId, payload) => {
   const response = await api.patch(`/api/admin/feedback-reports/${reportId}`, payload);
+  return response.data;
+};
+
+export const sendAdminMailBroadcast = async (payload) => {
+  const response = await api.post('/api/admin/mail-notifications/broadcast', payload);
   return response.data;
 };
 

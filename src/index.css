@@ -207,7 +207,7 @@ button:focus-visible {
 
 @theme inline {
 
-  --font-sans: 'Be Vietnam Pro', sans-serif;
+  --font-sans: 'Be Vietnam Pro', 'Segoe UI', Roboto, Arial, sans-serif;
 
   --color-sidebar-ring: var(--sidebar-ring);
 

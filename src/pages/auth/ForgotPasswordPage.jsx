@@ -1,311 +1,178 @@
-import { useEffect, useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
-// eslint-disable-next-line no-unused-vars
-import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, ArrowLeft, CheckCircle2, Loader2, Atom, ShieldCheck, Clock3, Sparkles } from 'lucide-react';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, ArrowRight, Atom, CheckCircle2, KeyRound, Loader2, Mail, Send, ShieldCheck } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import MailDeliveryReminder from '@/components/shared/MailDeliveryReminder';
 import api from '../../lib/api';
-
-// Interactive Light-mode Molecular Canvas for Left Panel Graphic
-function GraphicCanvas() {
-  const canvasRef = useRef(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    let animationFrameId;
-    let width = (canvas.width = canvas.parentElement.offsetWidth);
-    let height = (canvas.height = canvas.parentElement.offsetHeight);
-
-    const handleResize = () => {
-      if (!canvas) return;
-      width = canvas.width = canvas.parentElement.offsetWidth;
-      height = canvas.height = canvas.parentElement.offsetHeight;
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    const particles = [];
-    const particleCount = 22;
-
-    for (let i = 0; i < particleCount; i++) {
-      particles.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.4,
-        vy: (Math.random() - 0.5) * 0.4,
-        radius: Math.random() * 4 + 2,
-        color: i % 2 === 0 ? 'rgba(255, 255, 255, 0.34)' : 'rgba(255, 255, 255, 0.16)'
-      });
-    }
-
-    const draw = () => {
-      ctx.clearRect(0, 0, width, height);
-
-      for (let i = 0; i < particles.length; i++) {
-        const p1 = particles[i];
-        for (let j = i + 1; j < particles.length; j++) {
-          const p2 = particles[j];
-          const dx = p1.x - p2.x;
-          const dy = p1.y - p2.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-
-          if (dist < 150) {
-            ctx.beginPath();
-            ctx.moveTo(p1.x, p1.y);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = `rgba(255, 255, 255, ${(1 - dist / 150) * 0.12})`;
-            ctx.lineWidth = 1;
-            ctx.stroke();
-          }
-        }
-      }
-
-      particles.forEach((p) => {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = p.color;
-        ctx.fill();
-
-        p.x += p.vx;
-        p.y += p.vy;
-
-        if (p.x < 0 || p.x > width) p.vx *= -1;
-        if (p.y < 0 || p.y > height) p.vy *= -1;
-      });
-
-      animationFrameId = requestAnimationFrame(draw);
-    };
-
-    draw();
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, []);
-
-  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none z-0" />;
-}
-
-function ResetLoader() {
-  return (
-    <div className="flex flex-col items-center justify-center space-y-3 py-10">
-      <div className="relative w-12 h-16">
-        <svg viewBox="0 0 64 80" className="w-full h-full text-blue-500 drop-shadow-sm" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M22 12H42V24L56 64C59 72 53 76 45 76H19C11 76 5 72 8 64L22 24V12Z" stroke="currentColor" strokeWidth="4" strokeLinejoin="round" />
-          <path d="M10.2 59C11 53 14 51 18 51C22 51 24 54 28 54C32 54 34 51 38 51C42 51 44 54 48 54C52 54 54 52 55.8 59C54 62 12 62 10.2 59Z" fill="rgba(59, 130, 246, 0.2)" />
-        </svg>
-        <span className="bubble-animation w-2 h-2 left-5 bottom-6 bg-blue-400 opacity-60" style={{ animationDelay: '0.1s' }} />
-        <span className="bubble-animation w-2 h-2 left-8 bottom-5 bg-teal-400 opacity-60" style={{ animationDelay: '0.5s' }} />
-        <span className="bubble-animation w-1.5 h-1.5 left-4 bottom-8 bg-blue-300 opacity-60" style={{ animationDelay: '0.9s' }} />
-      </div>
-      <p className="text-xs font-semibold text-slate-500 animate-pulse uppercase tracking-wider">
-        Đang gửi yêu cầu...
-      </p>
-    </div>
-  );
-}
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
-  const [status, setStatus] = useState('idle'); // idle | loading | success
+  const [otpCode, setOtpCode] = useState('');
+  const [step, setStep] = useState('email');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const requestOtp = async (event) => {
+    event?.preventDefault();
     setError('');
-    setStatus('loading');
+    setSuccess('');
+
+    if (!email.trim()) {
+      setError('Vui lòng nhập email.');
+      return;
+    }
+
+    setLoading(true);
     try {
-      await api.post('/api/auth/forgot-password', { email });
-      setStatus('success');
+      await api.post('/api/auth/forgot-password', { email: email.trim() });
+      setStep('otp');
+      setSuccess('Nếu email tồn tại trong hệ thống, mã OTP đã được gửi đến hộp thư của bạn.');
     } catch (err) {
-      setError(err?.response?.data?.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
-      setStatus('idle');
+      setError(err?.response?.data?.message || 'Không thể gửi OTP. Vui lòng thử lại.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const isSuccess = status === 'success';
+  const verifyOtp = async (event) => {
+    event.preventDefault();
+    setError('');
+    setSuccess('');
+
+    if (!/^\d{6}$/.test(otpCode)) {
+      setError('Vui lòng nhập mã OTP gồm 6 chữ số.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await api.post('/api/auth/forgot-password/verify-otp', {
+        email: email.trim(),
+        otpCode,
+      });
+      navigate(`/reset-password?token=${encodeURIComponent(response.data.resetToken)}`, { replace: true });
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Mã OTP không hợp lệ hoặc đã hết hạn.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-slate-50/50 font-sans">
-      <div className="relative w-full lg:w-1/2 bg-gradient-to-b from-indigo-950 via-purple-900 to-slate-900 flex flex-col justify-between p-8 sm:p-16 text-white overflow-hidden shrink-0 min-h-[360px] lg:min-h-screen">
-        <GraphicCanvas />
-
-        <div className="absolute top-0 right-0 w-80 h-80 bg-violet-400/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-cyan-300/5 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex items-center gap-2">
-          <div className="w-10 h-10 rounded-lg bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
-            <Atom className="w-6 h-6 text-teal-300 animate-spin" style={{ animationDuration: '10s' }} />
+    <div className="min-h-screen w-full bg-slate-50 font-sans lg:grid lg:grid-cols-2">
+      <section className="relative hidden overflow-hidden bg-slate-950 p-12 text-white lg:flex lg:flex-col lg:justify-between">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(20,184,166,0.35),transparent_32%),radial-gradient(circle_at_75%_60%,rgba(99,102,241,0.34),transparent_34%)]" />
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/15 bg-white/10">
+            <Atom className="h-6 w-6 text-cyan-200" />
           </div>
-          <span className="text-xl font-bold tracking-tight text-white uppercase">ChemLearn</span>
+          <span className="text-xl font-bold">ChemLearn</span>
         </div>
-
-        <div className="relative z-10 my-auto py-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="space-y-6 max-w-lg"
-          >
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-tight text-white tracking-tight">
-              Khôi Phục Quyền Truy Cập
-            </h1>
-            <p className="text-white/85 text-base sm:text-lg leading-relaxed">
-              Gửi link đặt lại mật khẩu nhanh chóng qua email để bạn có thể đăng nhập lại an toàn vào ChemLearn.
-            </p>
-
-            <div className="grid grid-cols-1 gap-4 pt-4">
-              <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all duration-300">
-                <div className="p-2.5 rounded-lg bg-teal-400/20 text-teal-300">
-                  <ShieldCheck className="w-6 h-6" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-white text-sm sm:text-base">Bảo Mật Hơn</h4>
-                  <p className="text-white/70 text-xs sm:text-sm">Link chỉ dùng một lần và hết hạn sau 30 phút.</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all duration-300">
-                <div className="p-2.5 rounded-lg bg-purple-400/20 text-purple-300">
-                  <Clock3 className="w-6 h-6" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-white text-sm sm:text-base">Khôi Phục Nhanh</h4>
-                  <p className="text-white/70 text-xs sm:text-sm">Mở lại tài khoản trong vài phút với quy trình đơn giản.</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all duration-300">
-                <div className="p-2.5 rounded-lg bg-cyan-400/20 text-cyan-300">
-                  <Sparkles className="w-6 h-6" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-white text-sm sm:text-base">Trải Nghiệm Đồng Bộ</h4>
-                  <p className="text-white/70 text-xs sm:text-sm">Giữ phong cách giao diện nhất quán với toàn bộ khu vực đăng nhập.</p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+        <div className="relative z-10 max-w-xl space-y-5">
+          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-cyan-200">Khôi phục tài khoản</p>
+          <h1 className="text-5xl font-black leading-tight">OTP giúp đổi mật khẩu an toàn hơn</h1>
+          <p className="text-lg leading-8 text-slate-200">
+            ChemLearn sẽ gửi mã OTP qua email. Sau khi xác thực, bạn mới được mở màn hình đặt lại mật khẩu.
+          </p>
         </div>
+        <p className="relative z-10 text-sm text-slate-400">Mã OTP có hiệu lực trong 5 phút</p>
+      </section>
 
-        <div className="relative z-10 text-white/50 text-xs mt-auto">
-          © 2026 ChemLearn Platform. Thiết kế hướng tới tương lai giáo dục.
-        </div>
-      </div>
-
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 lg:p-16 bg-white min-h-screen">
+      <main className="flex min-h-screen items-center justify-center bg-white p-6">
         <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="w-full max-w-md space-y-8"
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md space-y-7"
         >
-          <div>
-            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Quên mật khẩu</h2>
-            <p className="text-slate-500 text-sm mt-2">Nhập email để nhận link đặt lại mật khẩu.</p>
+          <div className="space-y-2">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
+              <ShieldCheck className="h-6 w-6" />
+            </div>
+            <h2 className="text-3xl font-black tracking-tight text-slate-950">
+              {step === 'otp' ? 'Nhập mã OTP' : 'Quên mật khẩu'}
+            </h2>
+            <p className="text-sm leading-6 text-slate-500">
+              {step === 'otp'
+                ? `Nhập mã OTP đã gửi đến ${email}.`
+                : 'Nhập email tài khoản để nhận mã OTP đặt lại mật khẩu.'}
+            </p>
           </div>
 
-          <AnimatePresence mode="wait">
-            {status === 'loading' ? (
-              <motion.div
-                key="loader"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <ResetLoader />
-              </motion.div>
-            ) : isSuccess ? (
-              <motion.div
-                key="success"
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                className="rounded-[2rem] border border-emerald-100 bg-emerald-50/70 p-8 shadow-sm text-center space-y-4"
-              >
-                <div className="mx-auto w-16 h-16 rounded-full bg-emerald-500/15 flex items-center justify-center border border-emerald-200">
-                  <CheckCircle2 className="w-8 h-8 text-emerald-600" />
+          {error && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+          {success && (
+            <div className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>{success}</span>
+            </div>
+          )}
+          {step === 'otp' && <MailDeliveryReminder />}
+
+          {step === 'email' ? (
+            <form onSubmit={requestOtp} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    className="pl-10"
+                    placeholder="you@example.com"
+                    required
+                  />
                 </div>
-                <h3 className="text-2xl font-black text-slate-900">Kiểm tra hộp thư</h3>
-                <p className="text-slate-600 text-sm leading-relaxed">
-                  Nếu email <span className="font-semibold text-slate-900">{email}</span> tồn tại trong hệ thống, chúng tôi đã gửi link đặt lại mật khẩu.
-                </p>
-                <p className="text-slate-500 text-sm">Link có hiệu lực trong <strong className="text-slate-900">30 phút</strong>.</p>
-                <Link
-                  to="/auth/login"
-                  className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors font-semibold"
-                >
-                  <ArrowLeft className="w-4 h-4" /> Quay lại Đăng nhập
-                </Link>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="form"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="space-y-6"
-              >
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex items-start gap-2 bg-red-50 border border-red-200 text-red-700 p-3.5 rounded-lg text-sm"
-                  >
-                    <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100 text-red-600 shrink-0 mt-0.5">!</span>
-                    <span>{error}</span>
-                  </motion.div>
-                )}
-
-                <form onSubmit={handleSubmit} className="space-y-5">
-                  <div className="space-y-1.5">
-                    <label htmlFor="email" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
-                      Địa chỉ Email
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                        <Mail className="w-4 h-4" />
-                      </div>
-                      <input
-                        id="email"
-                        type="email"
-                        required
-                        placeholder="your@email.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:ring-blue-100 pl-10 w-full h-11 rounded-md border px-3 text-sm"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={status === 'loading'}
-                    className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all shadow-md shadow-blue-500/10 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    {status === 'loading' ? (
-                      <><Loader2 className="w-5 h-5 animate-spin" /> Đang gửi...</>
-                    ) : (
-                      'Gửi Link Đặt Lại Mật Khẩu'
-                    )}
-                  </button>
-                </form>
-
-                <div className="pt-4 border-t border-slate-100 text-center">
-                  <Link
-                    to="/auth/login"
-                    className="inline-flex items-center gap-1.5 text-slate-500 hover:text-slate-700 transition-colors text-sm"
-                  >
-                    <ArrowLeft className="w-4 h-4" /> Quay lại Đăng nhập
-                  </Link>
+              </div>
+              <Button type="submit" disabled={loading} className="w-full">
+                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                Gửi mã OTP
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={verifyOtp} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="otpCode">Mã OTP</Label>
+                <div className="relative">
+                  <KeyRound className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    id="otpCode"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={otpCode}
+                    onChange={(event) => setOtpCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
+                    className="pl-10 text-center text-lg font-bold tracking-[0.35em]"
+                    placeholder="000000"
+                    required
+                  />
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              </div>
+              <Button type="submit" disabled={loading} className="w-full">
+                Xác thực và đổi mật khẩu <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+              <div className="grid grid-cols-2 gap-3">
+                <Button type="button" variant="outline" onClick={() => setStep('email')} disabled={loading}>
+                  <ArrowLeft className="mr-2 h-4 w-4" /> Sửa email
+                </Button>
+                <Button type="button" variant="outline" onClick={requestOtp} disabled={loading}>
+                  <Send className="mr-2 h-4 w-4" /> Gửi lại
+                </Button>
+              </div>
+            </form>
+          )}
+
+          <div className="border-t border-slate-100 pt-5 text-center">
+            <Link to="/auth/login" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-800">
+              <ArrowLeft className="h-4 w-4" /> Quay lại đăng nhập
+            </Link>
+          </div>
         </motion.div>
-      </div>
+      </main>
     </div>
   );
 }

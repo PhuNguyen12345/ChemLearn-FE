@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Check, Clock, Mail, RefreshCw, Search, ShieldCheck, UserRoundCheck, X } from 'lucide-react';
+import MailDeliveryReminder from '@/components/shared/MailDeliveryReminder';
 import {
   approveAccessRequest,
   getAuthAccessRequests,
@@ -102,6 +103,7 @@ export default function AdminAccountRequests() {
               <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">Phê duyệt</p>
               <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">Yêu cầu phê duyệt tài khoản</h1>
               <p className="mt-1 text-sm text-slate-500">Phê duyệt hoặc từ chối các yêu cầu tài khoản giáo viên và phụ huynh đang chờ xử lý.</p>
+              <MailDeliveryReminder className="mt-3 max-w-2xl" />
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1.5 text-sm font-bold text-amber-700">
