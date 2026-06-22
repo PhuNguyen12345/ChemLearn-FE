@@ -500,6 +500,16 @@ export const createFeedbackReport = async (payload) => {
   return response.data;
 };
 
+export const getBiCompanionMessages = async () => {
+  const response = await api.get('/api/student/bi/messages');
+  return normalizeListResponse(response.data);
+};
+
+export const sendAdminBiMessage = async (payload) => {
+  const response = await api.post('/api/admin/bi/messages', payload);
+  return response.data;
+};
+
 export const getAdminFeedbackReports = async () => {
   const response = await api.get('/api/admin/feedback-reports');
   return normalizeListResponse(response.data);

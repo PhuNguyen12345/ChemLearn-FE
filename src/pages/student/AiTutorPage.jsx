@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
   BookOpenCheck,
-  Bot,
   FilePlus2,
   LoaderCircle,
   MessageCircle,
@@ -14,9 +13,11 @@ import ExamPreview from '@/components/student/ai/ExamPreview';
 import GeneratedExamHistory from '@/components/student/ai/GeneratedExamHistory';
 
 const TABS = [
-  { id: 'chat', label: 'Chat với AI', icon: MessageCircle },
+  { id: 'chat', label: 'Chat cùng Bi', icon: MessageCircle },
   { id: 'exam', label: 'Tạo đề ôn tập', icon: FilePlus2 },
 ];
+
+const BI_AVATAR = '/bi-companion.png';
 
 const BOOK_TYPES = [
   { value: 'KNTT', label: 'KNTT' },
@@ -68,11 +69,15 @@ const AiTutorPage = () => {
       <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-teal-600 text-white shadow-sm">
-              <Bot className="h-6 w-6" />
+            <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-violet-100 bg-white shadow-sm ring-4 ring-violet-50">
+              <img
+                src={BI_AVATAR}
+                alt="Bi"
+                className="h-full w-full object-contain p-1"
+              />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-slate-900">ChemAI Tutor</h1>
+              <h1 className="text-2xl font-black text-slate-900">Học cùng Bi</h1>
               <div className="mt-1 flex items-center gap-2 text-sm font-bold text-slate-500">
                 <BookOpenCheck className="h-4 w-4 text-teal-600" />
                 KHTN/Hóa học THCS Việt Nam

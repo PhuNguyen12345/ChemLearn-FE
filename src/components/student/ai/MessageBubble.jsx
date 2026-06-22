@@ -1,5 +1,7 @@
 import React from 'react';
-import { Bot, User } from 'lucide-react';
+import { User } from 'lucide-react';
+
+const BI_AVATAR = '/bi-companion.png';
 
 const SUBSCRIPT_DIGITS = {
   '\u2080': '0',
@@ -63,16 +65,20 @@ const MessageBubble = ({ message }) => {
   return (
     <div className={`flex gap-3 ${isAssistant ? 'justify-start' : 'justify-end'}`}>
       {isAssistant && (
-        <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-teal-500 text-white">
-          <Bot className="h-4 w-4" />
+        <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-violet-100 bg-white p-0.5 shadow-sm">
+          <img
+            src={BI_AVATAR}
+            alt="Bi"
+            className="h-full w-full object-contain"
+          />
         </div>
       )}
 
       <div
-        className={`max-w-[78%] rounded-lg px-4 py-3 text-sm font-semibold leading-6 shadow-sm ${
+        className={`max-w-[78%] rounded-2xl px-4 py-3 text-sm font-semibold leading-6 shadow-sm ${
           isAssistant
-            ? 'border border-teal-100 bg-white text-slate-700'
-            : 'bg-indigo-600 text-white'
+            ? 'rounded-tl-md border border-violet-100 bg-white text-slate-700'
+            : 'rounded-tr-md bg-indigo-600 text-white'
         }`}
       >
         {isAssistant ? (

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ImageUp, LoaderCircle, MessageCircle, Plus, Send, X } from 'lucide-react';
+import { ImageUp, LoaderCircle, Plus, Send, X } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   aiChat,
@@ -11,6 +11,7 @@ import MessageBubble from './MessageBubble';
 import SuggestedLabCard from './SuggestedLabCard';
 
 const makeLocalId = () => `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+const BI_AVATAR = '/bi-companion.png';
 
 const toUiMessage = (message) => ({
   id: message.id || makeLocalId(),
@@ -132,7 +133,7 @@ const ChatBox = ({ studentId, context }) => {
     const userMessage = {
       id: makeLocalId(),
       role: 'user',
-      content: `${trimmedMessage || 'Nhờ ChemAI đọc ảnh đề bài.'}${imageToSend ? '\n[Đã gửi ảnh đề bài]' : ''}`,
+      content: `${trimmedMessage || 'Nhờ Bi đọc ảnh đề bài.'}${imageToSend ? '\n[Đã gửi ảnh đề bài]' : ''}`,
     };
     setMessages((current) => [...current, userMessage]);
     setMessage('');
@@ -167,7 +168,7 @@ const ChatBox = ({ studentId, context }) => {
         {
           id: makeLocalId(),
           role: 'assistant',
-          content: data.answer || 'ChemAI chưa có câu trả lời.',
+          content: data.answer || 'Bi chưa có câu trả lời.',
         },
       ]);
       loadSessions();
@@ -188,7 +189,7 @@ const ChatBox = ({ studentId, context }) => {
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-black text-white transition hover:bg-teal-700"
         >
           <Plus className="h-4 w-4" />
-          Phiên mới
+          Cuộc trò chuyện mới
         </button>
 
         <div className="mt-4 space-y-2">
@@ -215,7 +216,7 @@ const ChatBox = ({ studentId, context }) => {
 
           {sessions.length === 0 && (
             <div className="rounded-lg border border-dashed border-slate-200 p-4 text-center text-sm font-semibold text-slate-400">
-              Chưa có phiên chat
+              Chưa có cuộc trò chuyện
             </div>
           )}
         </div>
@@ -224,13 +225,18 @@ const ChatBox = ({ studentId, context }) => {
       <section className="flex min-h-[620px] flex-col rounded-lg border border-slate-200 bg-slate-50 shadow-sm">
         <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-100 text-teal-700">
-              <MessageCircle className="h-4 w-4" />
+            <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-violet-100 bg-white p-0.5 shadow-sm">
+              <img
+                src={BI_AVATAR}
+                alt="Bi"
+                className="h-full w-full object-contain"
+              />
+              <span className="absolute bottom-0.5 right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-400" />
             </div>
             <div>
-              <h2 className="text-sm font-black text-slate-900">Chat với ChemAI</h2>
+              <h2 className="text-sm font-black text-slate-900">Bi đang trò chuyện với bạn</h2>
               <p className="text-xs font-bold text-slate-400">
-                {selectedSession?.topic || currentTopic || 'Tự nhận diện chủ đề'}
+                {selectedSession?.topic || currentTopic || 'Cùng gỡ từng câu hỏi Hóa học'}
               </p>
             </div>
           </div>
@@ -240,8 +246,13 @@ const ChatBox = ({ studentId, context }) => {
         <div className="flex-1 space-y-4 overflow-y-auto p-4">
           {messages.length === 0 && (
             <div className="flex h-full items-center justify-center">
-              <div className="rounded-lg border border-dashed border-slate-200 bg-white px-6 py-5 text-center">
-                <p className="text-sm font-black text-slate-600">Bắt đầu bằng một câu hỏi KHTN/Hóa học.</p>
+              <div className="flex max-w-sm flex-col items-center rounded-2xl border border-dashed border-violet-100 bg-white px-6 py-5 text-center shadow-sm">
+                <img
+                  src={BI_AVATAR}
+                  alt="Bi"
+                  className="mb-3 h-20 w-20 object-contain"
+                />
+                <p className="text-sm font-black text-slate-700">Bi đang ở đây, nhắn một câu hỏi Hóa học để mình cùng gỡ nhé.</p>
               </div>
             </div>
           )}
@@ -253,7 +264,7 @@ const ChatBox = ({ studentId, context }) => {
           {loading && (
             <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
               <LoaderCircle className="h-4 w-4 animate-spin" />
-              ChemAI đang trả lời...
+              Bi đang suy nghĩ...
             </div>
           )}
         </div>
@@ -317,7 +328,7 @@ const ChatBox = ({ studentId, context }) => {
           <input
             value={message}
             onChange={(event) => setMessage(event.target.value)}
-            placeholder="Nhập câu hỏi..."
+            placeholder="Nhắn cho Bi về bài Hóa của bạn..."
             className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-teal-400 focus:bg-white focus:ring-4 focus:ring-teal-100"
           />
           <button

@@ -9,6 +9,7 @@ import {
   Heart,
   Map,
   MessageSquare,
+  Send,
   Users,
   Zap,
 } from 'lucide-react';
@@ -40,6 +41,7 @@ import {
   getAdminDashboardSummary,
   getAdminFeedbackReports,
   getUsers,
+  sendAdminBiMessage,
   updateAdminFeedbackReport,
 } from '@/lib/api';
 
@@ -70,12 +72,12 @@ const formatDateTime = (value) => {
   }).format(new Date(value));
 };
 
-const StatCard = ({ title, value, helper, icon: Icon, accent }) => (
+const StatCard = ({ title, value, helper, icon, accent }) => (
   <Card className="overflow-hidden">
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
       <CardTitle className="text-sm font-semibold text-slate-600">{title}</CardTitle>
       <div className={`rounded-lg p-2 ${accent}`}>
-        <Icon className="h-4 w-4" />
+        {React.createElement(icon, { className: 'h-4 w-4' })}
       </div>
     </CardHeader>
     <CardContent>
@@ -90,6 +92,8 @@ const AdminDashboard = () => {
   const [reports, setReports] = React.useState([]);
   const [users, setUsers] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
+  const [replyForms, setReplyForms] = React.useState({});
+  const [replySubmitting, setReplySubmitting] = React.useState({});
 
   const loadDashboard = React.useCallback(async () => {
     try {
@@ -129,6 +133,41 @@ const AdminDashboard = () => {
       toast.success('Đã cập nhật trạng thái report.');
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Không cập nhật được report.');
+    }
+  };
+
+  const setReplyField = (reportId, value) => {
+    setReplyForms((current) => ({
+      ...current,
+      [reportId]: value,
+    }));
+  };
+
+  const handleSendReply = async (report) => {
+    const message = (replyForms[report.id] || '').trim();
+    if (!message) {
+      toast.error('Vui lòng nhập nội dung trả lời học sinh.');
+      return;
+    }
+
+    if (!report.reporterId) {
+      toast.error('Report này chưa có học sinh để gửi phản hồi.');
+      return;
+    }
+
+    try {
+      setReplySubmitting((current) => ({ ...current, [report.id]: true }));
+      await sendAdminBiMessage({
+        studentId: report.reporterId,
+        title: `Admin phản hồi: ${report.title || 'Tin nhắn của bạn'}`.slice(0, 180),
+        message,
+      });
+      setReplyField(report.id, '');
+      toast.success('Đã gửi tin nhắn vào chat Bi của học sinh.');
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Không gửi được tin nhắn cho học sinh.');
+    } finally {
+      setReplySubmitting((current) => ({ ...current, [report.id]: false }));
     }
   };
 
@@ -349,6 +388,7 @@ const AdminDashboard = () => {
                 <TableHead>Ưu tiên</TableHead>
                 <TableHead>Thời gian</TableHead>
                 <TableHead>Trạng thái</TableHead>
+                <TableHead>Chat lại</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -382,6 +422,27 @@ const AdminDashboard = () => {
                       <option value="REVIEWING">{statusLabel.REVIEWING}</option>
                       <option value="RESOLVED">{statusLabel.RESOLVED}</option>
                     </select>
+                  </TableCell>
+                  <TableCell className="min-w-64">
+                    <div className="space-y-2">
+                      <textarea
+                        value={replyForms[report.id] || ''}
+                        onChange={(event) => setReplyField(report.id, event.target.value)}
+                        placeholder="Nhắn động viên, hướng dẫn hoặc phản hồi cho học sinh..."
+                        rows={2}
+                        className="w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus:border-cyan-400"
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="w-full bg-cyan-600 hover:bg-cyan-700"
+                        disabled={replySubmitting[report.id] || !(replyForms[report.id] || '').trim()}
+                        onClick={() => handleSendReply(report)}
+                      >
+                        <Send className="mr-2 h-4 w-4" />
+                        {replySubmitting[report.id] ? 'Đang gửi...' : 'Gửi qua Bi'}
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

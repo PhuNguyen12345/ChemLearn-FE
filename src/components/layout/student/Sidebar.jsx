@@ -11,9 +11,9 @@ import {
   MessageCircleOff,
   Microscope,
   PawPrint,
+  ShoppingBag,
   Swords,
   Trophy,
-  Users,
 } from 'lucide-react';
 import { useStudentStore } from '../../../stores/useStudentStore';
 import { useSidebarStore } from '../../../stores/useSidebarStore';
@@ -26,9 +26,9 @@ const navItems = [
   { name: 'AI Tutor', icon: Bot, path: '/student/ai-tutor', id: 'aiTutor' },
   { name: 'Phòng thí nghiệm ảo', icon: Microscope, path: '/student/virtual-lab', id: 'labDashboard' },
   { name: 'Đảo thú cưng', icon: PawPrint, path: '/student/island', id: 'petIsland' },
+  { name: 'Cửa hàng', icon: ShoppingBag, path: '/student/shop', id: 'shop' },
   { name: 'Đấu trường PVP', icon: Swords, path: '/student/pvp', id: 'pvp' },
   { name: 'Bảng xếp hạng', icon: Trophy, path: '/student/leaderboard', id: 'leaderboard' },
-  { name: 'Lớp học', icon: Users, path: '/student/classes', id: 'classes' },
 ];
 
 const itemAccent = {
@@ -38,9 +38,9 @@ const itemAccent = {
   aiTutor: { bg: 'bg-teal-600', border: 'border-b-teal-800', shadow: 'shadow-teal-300/40' },
   labDashboard: { bg: 'bg-purple-500', border: 'border-b-purple-700', shadow: 'shadow-purple-300/40' },
   petIsland: { bg: 'bg-emerald-500', border: 'border-b-emerald-700', shadow: 'shadow-emerald-300/40' },
+  shop: { bg: 'bg-amber-500', border: 'border-b-amber-700', shadow: 'shadow-amber-300/40' },
   pvp: { bg: 'bg-rose-600', border: 'border-b-rose-800', shadow: 'shadow-rose-300/40' },
   leaderboard: { bg: 'bg-amber-500', border: 'border-b-amber-700', shadow: 'shadow-amber-300/40' },
-  classes: { bg: 'bg-indigo-600', border: 'border-b-indigo-800', shadow: 'shadow-indigo-300/40' },
 };
 
 const Sidebar = ({ className = '', collapsible = true, onNavigate }) => {
@@ -85,8 +85,7 @@ const Sidebar = ({ className = '', collapsible = true, onNavigate }) => {
 
       <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-1.5">
         {navItems.map((item) => {
-          const isClassRoute = item.id === 'classes' && (location.pathname === '/student/classes' || location.pathname.startsWith('/student/class/'));
-          const isActive = isClassRoute || location.pathname === item.path;
+          const isActive = location.pathname === item.path;
           const accent = itemAccent[item.id] ?? itemAccent.dashboard;
 
           return (
@@ -147,7 +146,7 @@ const Sidebar = ({ className = '', collapsible = true, onNavigate }) => {
               </div>
               <div className="flex justify-between text-[11px] font-black">
                 <span>{experience.toLocaleString()} XP</span>
-                <span className="text-indigo-200">Lv.{level + 1}</span>
+                <span className="text-indigo-200">Lv.{level}</span>
               </div>
             </>
           )}
