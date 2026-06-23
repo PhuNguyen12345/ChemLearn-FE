@@ -215,7 +215,7 @@ export default function RegisterPage() {
                     onChange={(event) => setField('gradeLevel', event.target.value)}
                     className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm"
                   >
-                    {[6, 7, 8, 9, 10, 11, 12].map((grade) => (
+                    {[6, 7, 8, 9].map((grade) => (
                       <option key={grade} value={grade}>Lớp {grade}</option>
                     ))}
                   </select>
