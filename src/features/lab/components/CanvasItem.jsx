@@ -32,6 +32,7 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
   const LIQUID_COLORS = {
     'H2O': 'rgba(96, 165, 250, 0.6)',
     'KMnO4': 'rgba(147, 51, 234, 0.8)',
+    'KMnO_{4}': 'rgba(147, 51, 234, 0.8)',
     'NaOH': 'rgba(200, 230, 255, 0.6)',
     'KMnO4 (Rắn)': 'rgba(88, 28, 135, 0.9)',
     'Na (Rắn)': 'rgba(148, 163, 184, 0.9)',
@@ -39,7 +40,8 @@ export default function CanvasItem({ item, isSelected, onSelect, onDelete }) {
     'Fe (Rắn)': 'rgba(71, 85, 105, 0.9)',
     'CaO (Rắn)': 'rgba(241, 245, 249, 0.9)',
     'NaCl': 'rgba(255, 255, 255, 0.95)',
-    'Na2CO3': 'rgba(241, 245, 249, 0.95)'
+    'Na2CO3': 'rgba(241, 245, 249, 0.95)',
+    'Na_{2}CO_{3}': 'rgba(241, 245, 249, 0.95)'
   };
 
   const getLiquidBg = (fallbackContent) => {
