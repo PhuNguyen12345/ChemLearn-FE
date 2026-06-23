@@ -24,7 +24,14 @@ const ImageInsertPopover = ({ editor, onClose }) => {
   // Close on outside click
   useEffect(() => {
     const handler = (e) => {
-      if (popoverRef.current && !popoverRef.current.contains(e.target)) onClose();
+      if(!poverRef.current) return;
+      if (!popoverRef.current.contains(e.target)) {
+        return;
+      }
+      if(e.target.closest("[data-image-toggle]")) {
+        return;
+      }
+      onClose();
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -39,7 +46,7 @@ const ImageInsertPopover = ({ editor, onClose }) => {
   return (
     <div
       ref={popoverRef}
-      className="absolute left-0 top-full z-50 mt-2 w-80 rounded-xl border border-slate-200 bg-white p-4 shadow-lg"
+      className="absolute right-2 top-full z-50 mb-2 w-80 rounded-xl border border-slate-200 bg-white p-4 shadow-lg"
     >
       {/* Close button */}
       <button
