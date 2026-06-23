@@ -539,4 +539,42 @@ export const cancelMyEntitlement = async (entitlementId) => {
   return response.data;
 };
 
+// Admin subscriptions & package management
+export const getAdminPackages = async () => {
+  const response = await api.get('/api/admin/packages');
+  return normalizeListResponse(response.data);
+};
+
+export const createAdminPackage = async (payload) => {
+  const response = await api.post('/api/admin/packages', payload);
+  return response.data;
+};
+
+export const updateAdminPackage = async (packageCode, payload) => {
+  const response = await api.put(`/api/admin/packages/${packageCode}`, payload);
+  return response.data;
+};
+
+export const deleteAdminPackage = async (packageCode) => {
+  const response = await api.delete(`/api/admin/packages/${packageCode}`);
+  return response.data;
+};
+
+export const getAdminStudentEntitlements = async (studentEmail) => {
+  const response = await api.get('/api/admin/entitlements', {
+    params: { email: studentEmail },
+  });
+  return normalizeListResponse(response.data);
+};
+
+export const grantAdminPackageToStudent = async (payload) => {
+  const response = await api.post('/api/admin/entitlements/grants', payload);
+  return response.data;
+};
+
+export const revokeAdminStudentEntitlement = async (entitlementId, payload = {}) => {
+  const response = await api.patch(`/api/admin/entitlements/${entitlementId}/revoke`, payload);
+  return response.data;
+};
+
 export default api

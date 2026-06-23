@@ -7,6 +7,7 @@ import AdminUserManagement from "../pages/admin/AdminUserManagement";
 import AdminStudyZone from "../pages/admin/AdminStudyZone";
 import AdminStudyEditPage from "../pages/admin/AdminStudyEditPage";
 import AdminAccountRequests from "../pages/admin/AdminAccountRequests";
+import AdminSubscriptionManagement from "../pages/admin/AdminSubscriptionManagement";
 
 export default function AdminRoutes() {
   return (
@@ -16,6 +17,7 @@ export default function AdminRoutes() {
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="study" element={<AdminStudyZone />} />
         <Route path="study/:entityType/:entityId/edit" element={<AdminStudyEditPage />} />
+        <Route path="subscriptions" element={<AdminSubscriptionManagement />} />
         <Route path="account-requests" element={<AdminAccountRequests />} />
         <Route path="users" element={<AdminUserManagement />} />
         

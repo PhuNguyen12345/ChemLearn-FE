@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "../components/ui/button";
 import {
@@ -14,12 +14,17 @@ import {
   Atom,
   MousePointer2,
 } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../components/ui/dropdown-menu";
+import useAuthStore from "../stores/useAuthStore";
+import { useLogout } from "../stores/useLogout";
 
 const featureStyles = `
 @keyframes bubble-rise {
@@ -94,6 +99,29 @@ const featureStyles = `
 `;
 
 const LandingPage = () => {
+  const { user, isAuthenticated } = useAuthStore();
+  const logout = useLogout();
+
+  const profilePath = useMemo(() => {
+    const role = user?.role;
+    if (role === 'ROLE_TEACHER') return '/teacher/profile';
+    if (role === 'ROLE_PARENT') return '/parent/dashboard';
+    if (role === 'ROLE_ADMIN') return '/admin/dashboard';
+    return '/student/profile';
+  }, [user?.role]);
+
+  const displayName = user?.fullName || user?.username || 'Tài khoản';
+  const avatarFallback = useMemo(() => {
+    const initials = displayName
+      .split(' ')
+      .filter(Boolean)
+      .map((part) => part[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
+
+    return initials || 'CL';
+  }, [displayName]);
 
   const scatteredIcons = [
     { Icon: FlaskConical, size: 'w-48 h-48', pos: '-top-10 -left-10', rotate: 'rotate-12', delay: '0s' },
@@ -142,12 +170,53 @@ const LandingPage = () => {
 
           {/* Actions */}
           <div className="hidden md:flex items-center space-x-3">
-            <Link to="/login" variant="ghost" className="rounded-full text-slate-600 hover:text-cyan-600 hover:bg-cyan-50 font-bold px-6">
-              Đăng nhập
-            </Link>
-            <Link to="/register" className="rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600 text-white font-bold px-6 shadow-md shadow-cyan-200">
-              Đăng ký
-            </Link>
+            {isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-11 gap-2 rounded-full border border-white/15 bg-white/5 px-2 pr-4 text-white hover:bg-white/10 hover:text-white">
+                    <Avatar className="h-8 w-8 ring-2 ring-cyan-300/50">
+                      <AvatarImage src={user?.avatarUrl || '/student-avatar.png'} alt={displayName} />
+                      <AvatarFallback className="bg-cyan-100 text-cyan-900 text-xs font-black">
+                        {avatarFallback}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="max-w-32 truncate text-sm font-bold">{displayName}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-60 rounded-2xl p-2 shadow-xl border border-white/10" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal px-2 py-2">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10 ring-2 ring-cyan-200">
+                        <AvatarImage src={user?.avatarUrl || '/student-avatar.png'} alt={displayName} />
+                        <AvatarFallback className="bg-cyan-100 text-cyan-900 font-black text-xs">{avatarFallback}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col min-w-0">
+                        <p className="text-sm font-black text-slate-800 leading-none truncate">{displayName}</p>
+                        <p className="text-xs text-slate-500 font-semibold mt-0.5 truncate">{user?.email || 'Đang đăng nhập'}</p>
+                      </div>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className="my-1.5 bg-slate-100" />
+                  <DropdownMenuItem asChild className="cursor-pointer rounded-xl px-3 py-2.5 font-semibold hover:bg-cyan-50 focus:bg-cyan-50">
+                    <Link to={profilePath}>
+                      <span>Tài khoản của tôi</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={logout} className="cursor-pointer rounded-xl px-3 py-2.5 text-rose-600 hover:bg-rose-50 focus:bg-rose-50 focus:text-rose-700 font-bold">
+                    <span>Đăng xuất</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Link to="/login" variant="ghost" className="rounded-full text-slate-600 hover:text-cyan-600 hover:bg-cyan-50 font-bold px-6">
+                  Đăng nhập
+                </Link>
+                <Link to="/register" className="rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600 text-white font-bold px-6 shadow-md shadow-cyan-200">
+                  Đăng ký
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
