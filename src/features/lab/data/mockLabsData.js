@@ -30,7 +30,7 @@ export const mockLabs = [
   {
     id: '4',
     title: 'Gas Identification',
-    description: 'Thực hiện các thí nghiệm để tạo ra và nhận biết các loại khí phổ biến như H2, CO2, O2.',
+    description: 'Thực hiện các thí nghiệm để tạo ra và nhận biết các loại khí phổ biến như H_{2}, CO_{2}, O_{2}.',
     category: 'CHAT_KHI',
     difficulty: 'MEDIUM',
     lastEdited: '3 days ago',

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "../components/ui/button";
 import {
@@ -14,15 +14,20 @@ import {
   Atom,
   MousePointer2,
 } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../components/ui/dropdown-menu";
 
 import virtualLabDemo from '../assets/virtual_lab_demo.gif';
 import logoImg from '../assets/logo.png';
+import useAuthStore from "../stores/useAuthStore";
+import { useLogout } from "../stores/useLogout";
 
 const featureStyles = `
 @keyframes bubble-rise {
@@ -97,6 +102,29 @@ const featureStyles = `
 `;
 
 const LandingPage = () => {
+  const { user, isAuthenticated } = useAuthStore();
+  const logout = useLogout();
+
+  const profilePath = useMemo(() => {
+    const role = user?.role;
+    if (role === 'ROLE_TEACHER') return '/teacher/profile';
+    if (role === 'ROLE_PARENT') return '/parent/dashboard';
+    if (role === 'ROLE_ADMIN') return '/admin/dashboard';
+    return '/student/profile';
+  }, [user?.role]);
+
+  const displayName = user?.fullName || user?.username || 'Tài khoản';
+  const avatarFallback = useMemo(() => {
+    const initials = displayName
+      .split(' ')
+      .filter(Boolean)
+      .map((part) => part[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
+
+    return initials || 'CL';
+  }, [displayName]);
 
   const scatteredIcons = [
     { Icon: FlaskConical, size: 'w-48 h-48', pos: '-top-10 -left-10', rotate: 'rotate-12', delay: '0s' },
@@ -141,13 +169,54 @@ const LandingPage = () => {
           </div>
 
           {/* Actions */}
-          <div className="hidden md:flex items-center space-x-4">
-            <Link to="/login" className="text-purple-100 hover:text-white font-bold px-4 py-2 transition-colors border border-transparent hover:border-white/20 rounded-full">
-              Đăng nhập
-            </Link>
-            <Link to="/register" className="rounded-full bg-cyan-500 hover:bg-cyan-400 text-white font-extrabold px-6 py-2 transition-all shadow-[0_0_15px_rgba(34,211,238,0.4)] hover:shadow-[0_0_25px_rgba(34,211,238,0.6)] hover:-translate-y-0.5">
-              Đăng ký
-            </Link>
+          <div className="hidden md:flex items-center space-x-3">
+            {isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-11 gap-2 rounded-full border border-white/15 bg-white/5 px-2 pr-4 text-white hover:bg-white/10 hover:text-white">
+                    <Avatar className="h-8 w-8 ring-2 ring-cyan-300/50">
+                      <AvatarImage src={user?.avatarUrl || '/student-avatar.png'} alt={displayName} />
+                      <AvatarFallback className="bg-cyan-100 text-cyan-900 text-xs font-black">
+                        {avatarFallback}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="max-w-32 truncate text-sm font-bold">{displayName}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-60 rounded-2xl p-2 shadow-xl border border-white/10" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal px-2 py-2">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10 ring-2 ring-cyan-200">
+                        <AvatarImage src={user?.avatarUrl || '/student-avatar.png'} alt={displayName} />
+                        <AvatarFallback className="bg-cyan-100 text-cyan-900 font-black text-xs">{avatarFallback}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col min-w-0">
+                        <p className="text-sm font-black text-slate-800 leading-none truncate">{displayName}</p>
+                        <p className="text-xs text-slate-500 font-semibold mt-0.5 truncate">{user?.email || 'Đang đăng nhập'}</p>
+                      </div>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className="my-1.5 bg-slate-100" />
+                  <DropdownMenuItem asChild className="cursor-pointer rounded-xl px-3 py-2.5 font-semibold hover:bg-cyan-50 focus:bg-cyan-50">
+                    <Link to={profilePath}>
+                      <span>Tài khoản của tôi</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={logout} className="cursor-pointer rounded-xl px-3 py-2.5 text-rose-600 hover:bg-rose-50 focus:bg-rose-50 focus:text-rose-700 font-bold">
+                    <span>Đăng xuất</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Link to="/login" variant="ghost" className="rounded-full text-slate-600 hover:text-cyan-600 hover:bg-cyan-50 font-bold px-6">
+                  Đăng nhập
+                </Link>
+                <Link to="/register" className="rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600 text-white font-bold px-6 shadow-md shadow-cyan-200">
+                  Đăng ký
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -348,7 +417,7 @@ const LandingPage = () => {
                 <div className="absolute inset-0 flex items-center justify-center scale-[1.5]">
                   {/* Reactant H2 */}
                   <div className="absolute w-12 h-12 rounded-full bg-teal-400 shadow-[inset_-2px_-2px_6px_rgba(0,0,0,0.2)] animate-[atom-h2-move_4s_ease-in-out_infinite] z-20 flex items-center justify-center text-teal-900 font-bold text-sm">H₂</div>
-                  
+
                   {/* Reactant O2 */}
                   <div className="absolute w-16 h-16 rounded-full bg-purple-400 shadow-[inset_-2px_-2px_6px_rgba(0,0,0,0.2)] animate-[atom-o2-move_4s_ease-in-out_infinite] z-20 flex items-center justify-center text-purple-900 font-bold text-sm">O₂</div>
 
@@ -409,27 +478,27 @@ const LandingPage = () => {
                   <h3 className="text-2xl font-black mt-4 text-white">Trắc nghiệm tương tác</h3>
                   <p className="text-purple-200 mt-2 font-medium">Học tập thông qua trò chơi hóa, biến bài tập về nhà thành một cuộc phiêu lưu hoành tráng.</p>
                 </div>
-                
+
                 {/* High-Fidelity Mock UI Container (Quiz) */}
                 <div className="relative bg-[#f8fafc] border border-slate-200 rounded-2xl p-4 shadow-inner h-80 overflow-hidden mt-8 z-10 font-sans">
-                  
+
                   {/* Top Header */}
                   <div className="flex items-center justify-between bg-white rounded-xl p-2 shadow-sm border border-slate-100 mb-3">
                     <div className="flex items-center gap-2">
-                       <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-[10px]">?</div>
-                       <span className="text-slate-800 font-bold text-[11px]">Trắc nghiệm phản ứng hóa học</span>
+                      <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-[10px]">?</div>
+                      <span className="text-slate-800 font-bold text-[11px]">Trắc nghiệm phản ứng hóa học</span>
                     </div>
                     <div className="flex items-center gap-1 bg-yellow-100/60 px-2 py-0.5 rounded-md">
-                       <span className="text-yellow-500 text-[10px]">⭐</span>
-                       <span className="text-yellow-700 font-extrabold text-[10px]">850</span>
+                      <span className="text-yellow-500 text-[10px]">⭐</span>
+                      <span className="text-yellow-700 font-extrabold text-[10px]">850</span>
                     </div>
                   </div>
 
                   {/* Question Box */}
                   <div className="bg-gradient-to-br from-cyan-400 to-purple-500 rounded-xl p-4 mb-3 text-center shadow-md relative group-hover:scale-[1.02] transition-transform duration-500">
-                     <p className="text-white font-bold text-[12px] leading-snug drop-shadow-sm">
-                       Yếu tố nào sau đây là chỉ số chính cho thấy một phản ứng hóa học đã xảy ra khi hai chất lỏng trong suốt được trộn với nhau và tạo thành một chất rắn màu trắng?
-                     </p>
+                    <p className="text-white font-bold text-[12px] leading-snug drop-shadow-sm">
+                      Yếu tố nào sau đây là chỉ số chính cho thấy một phản ứng hóa học đã xảy ra khi hai chất lỏng trong suốt được trộn với nhau và tạo thành một chất rắn màu trắng?
+                    </p>
                   </div>
 
                   {/* Answers Grid */}
@@ -443,7 +512,7 @@ const LandingPage = () => {
                     <div className="bg-white border border-slate-200 rounded-xl p-2 flex items-center gap-2 shadow-sm relative animate-[quiz-success_6s_ease-in-out_infinite]">
                       <div className="w-5 h-5 shrink-0 rounded bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-[10px]">B</div>
                       <span className="text-slate-600 font-semibold text-[10px] truncate">Sự hình thành...</span>
-                      
+
                       {/* Animated Cursor */}
                       <div className="absolute top-2 right-[-10px] text-white animate-[cursor-click_6s_ease-in-out_infinite] z-30 drop-shadow-md">
                         <MousePointer2 className="w-6 h-6 fill-slate-800 text-white" strokeWidth={1.5} />
@@ -480,7 +549,7 @@ const LandingPage = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Decorative blob */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
               </div>
@@ -527,8 +596,8 @@ const LandingPage = () => {
                       ))}
                       {/* Zero line */}
                       <div className="flex items-center gap-3 -mt-[7px]">
-                          <span className="text-[11px] font-extrabold text-slate-400 w-4 text-right flex-shrink-0">0</span>
-                          <div className="border-t border-slate-300 w-full h-0" />
+                        <span className="text-[11px] font-extrabold text-slate-400 w-4 text-right flex-shrink-0">0</span>
+                        <div className="border-t border-slate-300 w-full h-0" />
                       </div>
                     </div>
 
@@ -545,13 +614,13 @@ const LandingPage = () => {
                       ].map((item, i) => (
                         <div key={i} className="flex flex-col items-center gap-2 group/bar h-full justify-end relative">
                           <div className="w-full h-[calc(100%-8px)] flex items-end justify-center rounded-t border-b border-transparent px-0.5">
-                            <div 
-                              className={`w-full bg-gradient-to-t ${item.color} rounded-t-lg shadow-sm origin-bottom animate-[bar-grow-y-loop_6s_ease-in-out_infinite] hover:brightness-110 transition-all cursor-pointer`} 
-                              style={{ 
+                            <div
+                              className={`w-full bg-gradient-to-t ${item.color} rounded-t-lg shadow-sm origin-bottom animate-[bar-grow-y-loop_6s_ease-in-out_infinite] hover:brightness-110 transition-all cursor-pointer`}
+                              style={{
                                 height: item.h,
                                 animationDelay: `${i * 0.05}s`,
                                 transform: 'scaleY(0)',
-                              }} 
+                              }}
                             />
                           </div>
                           <span className="text-[11px] font-extrabold text-slate-500 absolute -bottom-6 tracking-tight">{item.day}</span>
@@ -587,7 +656,7 @@ const LandingPage = () => {
                     <img src={virtualLabDemo} alt="Virtual Lab Demo" className="w-full h-auto object-contain rounded-2xl border border-slate-800 opacity-90 group-hover:opacity-100 transition-opacity duration-500" />
                   </div>
                 </div>
-                
+
                 {/* Decorative blob */}
                 <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2 pointer-events-none group-hover:bg-emerald-500/20 transition-colors duration-500" />
               </div>
@@ -625,18 +694,18 @@ const LandingPage = () => {
               <ul className="space-y-4 text-sm font-medium text-purple-100">
                 <li><a href="#features" className="hover:text-white transition-colors">Tính năng</a></li>
                 <li><Link to="/lab" className="hover:text-white transition-colors">Phòng thí nghiệm ảo</Link></li>
-                <li><a href="#" className="hover:text-white transition-colors">Bảng giá</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Dành cho trường học</a></li>
+                <li><Link to="/info/pricing" className="hover:text-white transition-colors">Bảng giá</Link></li>
+                <li><Link to="/info/schools" className="hover:text-white transition-colors">Dành cho trường học</Link></li>
               </ul>
             </div>
 
             <div>
               <h4 className="text-white font-extrabold mb-6 text-lg">Công ty</h4>
               <ul className="space-y-4 text-sm font-medium text-purple-100">
-                <li><a href="#" className="hover:text-white transition-colors">Về chúng tôi</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Liên hệ</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Chính sách bảo mật</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Điều khoản sử dụng</a></li>
+                <li><Link to="/info/about" className="hover:text-white transition-colors">Về chúng tôi</Link></li>
+                <li><Link to="/info/contact" className="hover:text-white transition-colors">Liên hệ</Link></li>
+                <li><Link to="/info/privacy" className="hover:text-white transition-colors">Chính sách bảo mật</Link></li>
+                <li><Link to="/info/terms" className="hover:text-white transition-colors">Điều khoản sử dụng</Link></li>
               </ul>
             </div>
           </div>
@@ -644,8 +713,8 @@ const LandingPage = () => {
           <div className="border-t border-purple-400 pt-8 flex flex-col md:flex-row items-center justify-between text-sm font-medium text-purple-100">
             <p>© 2026 ChemLearn. Bảo lưu mọi quyền.</p>
             <div className="flex space-x-8 mt-4 md:mt-0">
-              <a href="#" className="hover:text-white transition-colors">Hỗ trợ</a>
-              <a href="#" className="hover:text-white transition-colors">Câu hỏi thường gặp</a>
+              <Link to="/info/support" className="hover:text-white transition-colors">Hỗ trợ</Link>
+              <Link to="/info/faq" className="hover:text-white transition-colors">Câu hỏi thường gặp</Link>
             </div>
           </div>
         </div>

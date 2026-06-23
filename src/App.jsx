@@ -20,6 +20,7 @@ import ConfirmLinkPage from "./pages/shared/ConfirmLinkPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import NotFoundPage from "./pages/shared/NotFoundPage";
+import PublicInfoPage from "./pages/shared/PublicInfoPage";
 
 // Áp dụng Lazy Load cho các cụm Route theo Role
 const StudentRoutes = lazy(() => import("./routes/StudentRoutes"));
@@ -59,6 +60,7 @@ function App() {
         <Routes>
           {/* Public Routes (No Auth Required) */}
           <Route path="/" element={<LandingPage />} />
+          <Route path="/info/:pageSlug" element={<PublicInfoPage />} />
           <Route path="/confirm-link" element={<ConfirmLinkPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />

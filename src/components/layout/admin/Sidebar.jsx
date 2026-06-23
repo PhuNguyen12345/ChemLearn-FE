@@ -1,10 +1,11 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { BookOpen, FlaskConical, MailPlus, PawPrint, Settings, ShieldAlert, UserRoundCheck, Users } from 'lucide-react';
+import { BookOpen, FlaskConical, MailPlus, PawPrint, Settings, ShieldAlert, UserRoundCheck, Users, CreditCard } from 'lucide-react';
 
 const navItems = [
   { name: 'Dashboard', icon: ShieldAlert, path: '/admin/dashboard' },
   { name: 'Khu học tập', icon: BookOpen, path: '/admin/study' },
+  { name: 'Subscriptions', icon: CreditCard, path: '/admin/subscriptions' },
   { name: 'Yêu cầu tài khoản', icon: UserRoundCheck, path: '/admin/account-requests' },
   { name: 'Quản lý người dùng', icon: Users, path: '/admin/users' },
   { name: 'Quản lý pet', icon: PawPrint, path: '/admin/pets' },
@@ -26,10 +27,9 @@ const Sidebar = ({ className = '' }) => {
             key={item.name}
             to={item.path}
             className={({ isActive }) =>
-              `flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-colors ${
-                isActive
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              `flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-colors ${isActive
+                ? 'bg-primary/10 text-primary'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               }`
             }
           >

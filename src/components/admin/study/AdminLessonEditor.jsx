@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
-import { addMiniQuizQuestion, createAdminLesson, updateAdminLesson } from '../../../lib/api';
+import { addMiniQuizQuestion, createAdminLesson, updateAdminLesson, deleteMiniQuizQuestion } from '../../../lib/api';
 import LessonWritingBlock from '../../shared/LessonWritingBlock';
+
+const getInitialMiniQuizQuestions = (existing) => {
+  const questions = existing?.miniQuizQuestions || existing?.miniQuestions || [];
+  return Array.isArray(questions) ? questions : [];
+};
 
 const AdminLessonEditor = ({ chapterId, existing = null, onSaved }) => {
   const [title, setTitle] = useState(existing?.title || '');
@@ -8,7 +13,7 @@ const AdminLessonEditor = ({ chapterId, existing = null, onSaved }) => {
   const [durationMinutes, setDurationMinutes] = useState(existing?.durationMinutes || 15);
   const [orderIndex, setOrderIndex] = useState(existing?.orderIndex || 0);
   const [published, setPublished] = useState(existing?.published ?? true);
-  const [miniQuizDrafts, setMiniQuizDrafts] = useState(existing?.miniQuizQuestions || []);
+  const [miniQuizDrafts, setMiniQuizDrafts] = useState(() => getInitialMiniQuizQuestions(existing));
   const [quizPrompt, setQuizPrompt] = useState('');
   const [quizOptionA, setQuizOptionA] = useState('');
   const [quizOptionB, setQuizOptionB] = useState('');
@@ -60,6 +65,24 @@ const AdminLessonEditor = ({ chapterId, existing = null, onSaved }) => {
     setMiniQuizDrafts((prev) => prev.filter((_, index) => index !== indexToRemove).map((item, index) => ({ ...item, orderIndex: index })));
   };
 
+  const removeMiniQuizQuestion = async (question, indexToRemove) => {
+    if (!question?.id) {
+      removeDraftQuestion(indexToRemove);
+      return;
+    }
+
+    setSaving(true);
+    setError('');
+    try {
+      await deleteMiniQuizQuestion(question.id);
+      removeDraftQuestion(indexToRemove);
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Failed to remove mini quiz question');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const submit = async (e) => {
     e.preventDefault();
     if (!title.trim() || !content.trim()) {
@@ -87,9 +110,10 @@ const AdminLessonEditor = ({ chapterId, existing = null, onSaved }) => {
       }
 
       const unsavedMiniQuiz = miniQuizDrafts.filter((question) => !question.id);
+      const savedMiniQuiz = miniQuizDrafts.filter((question) => question.id);
       if (persistedLesson?.id && unsavedMiniQuiz.length) {
         const createdQuestions = await Promise.all(
-          unsavedMiniQuiz.map((question, index) =>
+          unsavedMiniQuiz.map((question) =>
             addMiniQuizQuestion(persistedLesson.id, {
               questionText: question.questionText,
               questionType: question.questionType || 'SINGLE_CHOICE',
@@ -98,13 +122,18 @@ const AdminLessonEditor = ({ chapterId, existing = null, onSaved }) => {
               optionC: question.optionC,
               optionD: question.optionD,
               correctOption: question.correctOption,
-              orderIndex: index
+              orderIndex: question.orderIndex ?? 0
             })
           )
         );
         persistedLesson = {
           ...persistedLesson,
-          miniQuizQuestions: createdQuestions
+          miniQuizQuestions: [...savedMiniQuiz, ...createdQuestions]
+        };
+      } else {
+        persistedLesson = {
+          ...persistedLesson,
+          miniQuizQuestions: savedMiniQuiz
         };
       }
 
@@ -209,7 +238,14 @@ const AdminLessonEditor = ({ chapterId, existing = null, onSaved }) => {
               <div key={`${question.questionText}-${index}`} className="rounded-md border border-slate-200 bg-slate-50 p-2">
                 <div className="flex items-center justify-between gap-2">
                   <div className="text-sm font-semibold text-slate-800">{index + 1}. {question.questionText || question.prompt}</div>
-                  <button type="button" className="text-xs font-semibold text-rose-600" onClick={() => removeDraftQuestion(index)}>Remove</button>
+                  <button
+                    type="button"
+                    className="text-xs font-semibold text-rose-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    onClick={() => removeMiniQuizQuestion(question, index)}
+                    disabled={saving}
+                  >
+                    Remove
+                  </button>
                 </div>
                 <div className="mt-1 text-xs text-slate-600">
                   {(question.questionType || 'SINGLE_CHOICE').replace('_', ' ').toLowerCase()} • Correct answer: {question.correctOption}
