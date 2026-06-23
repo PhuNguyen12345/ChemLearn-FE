@@ -22,10 +22,12 @@ const initialForm = {
   title: '',
   message: '',
   highlights: '',
-  ctaLabel: 'Mở ChemLearn',
-  ctaUrl: '/student/home',
   targetRoles: ['ROLE_STUDENT'],
 };
+
+const DEFAULT_CTA_LABEL = 'Mở ChemLearn';
+const DEFAULT_CTA_URL = '/student/home';
+const previewIcons = ['🔔', '🧪', '🔥', '⭐', '💬'];
 
 export default function AdminMailNotifications() {
   const [form, setForm] = React.useState(initialForm);
@@ -54,12 +56,15 @@ export default function AdminMailNotifications() {
 
     setSending(true);
     try {
+      const highlights = form.highlights
+        .split('\n')
+        .map((item) => item.trim())
+        .filter(Boolean);
       const payload = {
         ...form,
-        highlights: form.highlights
-          .split('\n')
-          .map((item) => item.trim())
-          .filter(Boolean),
+        highlights,
+        ctaLabel: DEFAULT_CTA_LABEL,
+        ctaUrl: DEFAULT_CTA_URL,
       };
       const response = await sendAdminMailBroadcast(payload);
       toast.success(`Đã đưa ${response.queuedEmails || 0} email vào hàng gửi.`);
@@ -70,6 +75,18 @@ export default function AdminMailNotifications() {
       setSending(false);
     }
   };
+
+  const previewHighlights = form.highlights
+    .split('\n')
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 5);
+  const displayHighlights = previewHighlights.length
+    ? previewHighlights
+    : [
+      'Mở ChemLearn để tiếp tục hành trình học hôm nay.',
+      'Bi sẽ nhắc bạn từng bước nhỏ để việc học nhẹ hơn.',
+    ];
 
   return (
     <div className="space-y-6">
@@ -92,7 +109,7 @@ export default function AdminMailNotifications() {
               <MailPlus className="h-5 w-5 text-cyan-700" /> Soạn mail
             </CardTitle>
             <CardDescription>
-              Nội dung ở đây sẽ được backend đưa vào template mail có mascot, CTA và danh sách điểm nổi bật.
+              Nội dung ở đây sẽ được backend đưa vào template mail có ảnh header và danh sách điểm nổi bật.
             </CardDescription>
             <MailDeliveryReminder className="mt-3" />
           </CardHeader>
@@ -132,15 +149,6 @@ export default function AdminMailNotifications() {
                 />
               </Field>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Nút CTA">
-                  <Input value={form.ctaLabel} onChange={(event) => setField('ctaLabel', event.target.value)} maxLength={60} />
-                </Field>
-                <Field label="Đường dẫn CTA">
-                  <Input value={form.ctaUrl} onChange={(event) => setField('ctaUrl', event.target.value)} maxLength={500} />
-                </Field>
-              </div>
-
               <div className="space-y-2">
                 <Label>Người nhận</Label>
                 <div className="grid gap-2 sm:grid-cols-2">
@@ -171,29 +179,66 @@ export default function AdminMailNotifications() {
         <Card>
           <CardHeader>
             <CardTitle>Xem trước nội dung</CardTitle>
-            <CardDescription>Phần template màu sắc/ảnh mascot sẽ do backend render khi gửi thật.</CardDescription>
+            <CardDescription>Preview mô phỏng layout mail thật, gồm ảnh header, nội dung, danh sách điểm nổi bật và nút mặc định.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="rounded-lg border border-cyan-100 bg-cyan-50 p-5">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-700">{form.category || 'Thông báo ChemLearn'}</p>
-              <h2 className="mt-3 text-2xl font-bold leading-snug text-slate-950">{form.title || 'Tiêu đề email'}</h2>
-              <p className="mt-3 whitespace-pre-line text-sm leading-6 text-slate-700">
-                {form.message || 'Nội dung email sẽ hiển thị tại đây.'}
-              </p>
-              <div className="mt-4 space-y-2">
-                {form.highlights
-                  .split('\n')
-                  .map((item) => item.trim())
-                  .filter(Boolean)
-                  .slice(0, 5)
-                  .map((item) => (
-                    <div key={item} className="rounded-md bg-white px-3 py-2 text-sm text-slate-700">
-                      {item}
+            <div className="overflow-hidden border border-[#e3ddf5] bg-[#f4f2fb]">
+              <div className="mx-auto max-w-[640px] bg-white">
+                <img
+                  src="/chemlearn-mail-header.png"
+                  alt="ChemLearn"
+                  className="block h-auto w-full"
+                />
+
+                <div className="px-7 py-7 text-left">
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-[#1f7a2e]">
+                    {form.category || 'Thông báo ChemLearn'}
+                  </p>
+                  <h2 className="mt-4 text-3xl font-black leading-tight text-[#2b2835]">
+                    {form.title || 'Tiêu đề email'}
+                  </h2>
+                  <p className="mt-5 text-[17px] font-extrabold leading-7 text-[#34303d]">
+                    Xin chào người nhận,
+                  </p>
+                  <p className="mt-2 whitespace-pre-line text-base leading-7 text-[#665f7c]">
+                    {form.message || 'Nội dung email sẽ hiển thị tại đây.'}
+                  </p>
+                </div>
+
+                <div className="mx-7 h-px bg-[#e6e0f4]" />
+
+                <div className="px-7 py-7 text-left">
+                  <h3 className="text-2xl font-black leading-tight text-[#2b2835]">
+                    Cùng Bi làm ngay nhé
+                  </h3>
+                  <div className="mt-6 space-y-5">
+                    {displayHighlights.map((item, index) => (
+                      <div key={`${item}-${index}`} className="flex items-start gap-4">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-[#efe7ff] text-2xl">
+                          {previewIcons[index % previewIcons.length]}
+                        </div>
+                        <div>
+                          <p className="text-base font-extrabold leading-6 text-[#1f2937]">{item}</p>
+                          <p className="mt-1 text-sm leading-6 text-[#6b6280]">Bi sẽ đồng hành cùng bạn từng bước.</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="pt-7">
+                    <div className="inline-flex rounded-[10px] border-b-4 border-[#48ad09] bg-[#78f51d] px-8 py-3 text-sm font-black uppercase tracking-wide text-[#07120d]">
+                      {DEFAULT_CTA_LABEL}
                     </div>
-                  ))}
-              </div>
-              <div className="mt-5 inline-flex rounded-full bg-cyan-700 px-4 py-2 text-sm font-bold text-white">
-                {form.ctaLabel || 'Mở ChemLearn'}
+                  </div>
+                </div>
+
+                <div className="border-t border-[#e6e0f4] bg-[#f7f5fc] px-7 py-6 text-left">
+                  <p className="text-sm leading-6 text-[#746c87]">
+                    ChemLearn gửi email này để bạn không bỏ lỡ hoạt động học tập quan trọng.
+                  </p>
+                  <p className="mt-4 text-xs leading-5 text-[#8a8399]">
+                    ChemLearn - Học hóa dễ hiểu, nhớ lâu, đạt điểm cao
+                  </p>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -211,3 +256,4 @@ function Field({ label, children }) {
     </div>
   );
 }
+
