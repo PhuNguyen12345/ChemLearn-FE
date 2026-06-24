@@ -17,6 +17,7 @@ const toUiMessage = (message) => ({
   id: message.id || makeLocalId(),
   role: message.role === 'ASSISTANT' ? 'assistant' : 'user',
   content: message.content,
+  speechText: message.speechText,
 });
 
 const ChatBox = ({ studentId, context }) => {
@@ -169,6 +170,7 @@ const ChatBox = ({ studentId, context }) => {
           id: makeLocalId(),
           role: 'assistant',
           content: data.answer || 'Bi chưa có câu trả lời.',
+          speechText: data.speechText || data.answer || '',
         },
       ]);
       loadSessions();

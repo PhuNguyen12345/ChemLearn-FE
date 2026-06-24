@@ -1,66 +1,129 @@
-import React from 'react';
-import { User } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import { LoaderCircle, User, Volume2 } from 'lucide-react';
+import { toast } from 'sonner';
+import 'katex/dist/katex.min.css';
+import { aiTextToSpeech } from '@/lib/api';
 
 const BI_AVATAR = '/bi-companion.png';
 
-const SUBSCRIPT_DIGITS = {
-  '\u2080': '0',
-  '\u2081': '1',
-  '\u2082': '2',
-  '\u2083': '3',
-  '\u2084': '4',
-  '\u2085': '5',
-  '\u2086': '6',
-  '\u2087': '7',
-  '\u2088': '8',
-  '\u2089': '9',
-};
-
-const normalizeChemText = (value = '') => value
-  .replace(/[\u2080-\u2089]/g, (digit) => SUBSCRIPT_DIGITS[digit] || digit)
-  .replace(/\u00e2\u201a\u20ac/g, '0')
-  .replace(/\u00e2\u201a\u201a/g, '2')
-  .replace(/\u00e2\u2020\u2019/g, '->')
-  .replace(/\u00e2\u20ac\u00a2/g, '-')
-  .replace(/\u2022/g, '-')
-  .replace(/\u2192/g, '->');
-
-const cleanInlineText = (value = '') => normalizeChemText(value)
-  .replace(/<sub\b[^>]*>(.*?)<\/sub>/gi, '_$1')
-  .replace(/<sup\b[^>]*>(.*?)<\/sup>/gi, '^$1')
+const normalizeAssistantContent = (value = '') => value
+  .normalize('NFC')
+  .replace(/\r\n/g, '\n')
+  .replace(/<sub\b[^>]*>(.*?)<\/sub>/gi, '_{$1}')
+  .replace(/<sup\b[^>]*>(.*?)<\/sup>/gi, '^{$1}')
   .replace(/<br\s*\/?>/gi, '\n')
   .replace(/<\/?[^>]+>/g, '')
   .replace(/&nbsp;/g, ' ')
   .replace(/&amp;/g, '&')
   .replace(/&lt;/g, '<')
   .replace(/&gt;/g, '>')
-  .replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, '($1)/($2)')
+  .replace(/\\\[/g, '$$')
+  .replace(/\\\]/g, '$$')
+  .replace(/\\\(/g, '$')
+  .replace(/\\\)/g, '$')
+  .trim();
+
+const toSpeechFriendlyText = (value = '') => normalizeAssistantContent(value)
+  .replace(/\$\$?/g, ' ')
+  .replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, '$1 trên $2')
+  .replace(/\\rightarrow|\\to|→/g, ' tạo thành ')
+  .replace(/\\times/g, ' nhân ')
+  .replace(/\\cdot/g, ' nhân ')
   .replace(/\\text\{([^{}]+)\}/g, '$1')
   .replace(/\\left|\\right/g, '')
-  .replace(/\\times/g, ' x ')
-  .replace(/\\cdot/g, ' . ')
-  .replace(/\\_/g, '_')
-  .replace(/\\([a-zA-Z]+)/g, '$1')
-  .replace(/\$/g, '')
-  .replace(/\*\*([^*]+)\*\*/g, '$1')
-  .replace(/__([^_]+)__/g, '$1')
-  .replace(/`([^`]+)`/g, '$1')
+  .replace(/[_^]\{([^{}]+)\}/g, ' $1')
+  .replace(/[_^]([A-Za-z0-9]+)/g, ' $1')
+  .replace(/[*_`>#-]/g, ' ')
   .replace(/\s+([,.!?;:])/g, '$1')
   .replace(/[ \t]{2,}/g, ' ')
   .trim();
 
-const formatAssistantText = (content = '') => normalizeChemText(content.normalize('NFC'))
-  .replace(/\r\n/g, '\n')
-  .replace(/<br\s*\/?>/gi, '\n')
-  .replace(/^\s{0,3}#{1,6}\s+/gm, '')
-  .replace(/^\s{0,3}[-*]\s+/gm, '- ')
-  .split('\n')
-  .map(cleanInlineText)
-  .filter(Boolean);
+const markdownComponents = {
+  p: ({ children }) => <p className="mb-3 last:mb-0">{children}</p>,
+  strong: ({ children }) => <strong className="font-black text-slate-900">{children}</strong>,
+  ol: ({ children }) => <ol className="mb-3 ml-5 list-decimal space-y-1.5 last:mb-0">{children}</ol>,
+  ul: ({ children }) => <ul className="mb-3 ml-5 list-disc space-y-1.5 last:mb-0">{children}</ul>,
+  li: ({ children }) => <li className="pl-1">{children}</li>,
+  h1: ({ children }) => <h3 className="mb-3 text-base font-black text-slate-950">{children}</h3>,
+  h2: ({ children }) => <h3 className="mb-3 text-base font-black text-slate-950">{children}</h3>,
+  h3: ({ children }) => <h4 className="mb-2 text-sm font-black text-slate-900">{children}</h4>,
+  code: ({ children }) => (
+    <code className="rounded bg-slate-100 px-1.5 py-0.5 text-[0.92em] font-bold text-slate-800">
+      {children}
+    </code>
+  ),
+};
 
 const MessageBubble = ({ message }) => {
   const isAssistant = message.role === 'assistant' || message.role === 'ASSISTANT';
-  const lines = isAssistant ? formatAssistantText(message.content) : [message.content];
+  const [voiceLoading, setVoiceLoading] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
+  const audioRef = useRef(null);
+  const audioUrlRef = useRef('');
+
+  const assistantContent = useMemo(
+    () => normalizeAssistantContent(message.content || ''),
+    [message.content]
+  );
+
+  const speechText = useMemo(() => {
+    if (!isAssistant) return '';
+    return toSpeechFriendlyText(message.speechText || message.content || '');
+  }, [isAssistant, message.content, message.speechText]);
+
+  useEffect(() => () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    if (audioUrlRef.current) {
+      URL.revokeObjectURL(audioUrlRef.current);
+    }
+  }, []);
+
+  const playAudioUrl = async (audioUrl) => {
+    const audio = audioRef.current || new Audio();
+    audioRef.current = audio;
+    audio.pause();
+    audio.currentTime = 0;
+    audio.src = audioUrl;
+    audio.onended = () => setSpeaking(false);
+    audio.onerror = () => {
+      setSpeaking(false);
+      toast.error('Chưa phát được giọng đọc. Thử lại giúp mình nhé.');
+    };
+
+    setSpeaking(true);
+    await audio.play();
+  };
+
+  const handleSpeak = async () => {
+    if (!speechText || voiceLoading) return;
+
+    if (speaking && audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setSpeaking(false);
+      return;
+    }
+
+    try {
+      if (!audioUrlRef.current) {
+        setVoiceLoading(true);
+        const audioBlob = await aiTextToSpeech(speechText);
+        audioUrlRef.current = URL.createObjectURL(audioBlob);
+      }
+      await playAudioUrl(audioUrlRef.current);
+    } catch (error) {
+      console.error(error);
+      setSpeaking(false);
+      toast.error(error?.response?.data?.message || 'Không tạo được giọng đọc AI.');
+    } finally {
+      setVoiceLoading(false);
+    }
+  };
 
   return (
     <div className={`flex gap-3 ${isAssistant ? 'justify-start' : 'justify-end'}`}>
@@ -75,19 +138,40 @@ const MessageBubble = ({ message }) => {
       )}
 
       <div
-        className={`max-w-[78%] rounded-2xl px-4 py-3 text-sm font-semibold leading-6 shadow-sm ${
+        className={`max-w-[82%] rounded-2xl px-5 py-4 text-sm font-semibold leading-7 shadow-sm ${
           isAssistant
             ? 'rounded-tl-md border border-violet-100 bg-white text-slate-700'
             : 'rounded-tr-md bg-indigo-600 text-white'
         }`}
       >
         {isAssistant ? (
-          <div className="space-y-2">
-            {lines.map((line, index) => (
-              <p key={`${line}-${index}`} className="whitespace-pre-wrap break-words">
-                {line}
-              </p>
-            ))}
+          <div>
+            <div className="ai-tutor-markdown">
+              <ReactMarkdown
+                remarkPlugins={[remarkMath]}
+                rehypePlugins={[[rehypeKatex, { throwOnError: false, strict: false }]]}
+                components={markdownComponents}
+              >
+                {assistantContent}
+              </ReactMarkdown>
+            </div>
+
+            {speechText && (
+              <button
+                type="button"
+                onClick={handleSpeak}
+                disabled={voiceLoading}
+                className="mt-4 inline-flex items-center gap-2 rounded-lg border border-teal-100 bg-teal-50 px-3 py-1.5 text-xs font-black text-teal-700 transition hover:border-teal-200 hover:bg-teal-100 disabled:cursor-not-allowed disabled:opacity-60"
+                title="Phát lại lời giải thích bằng giọng AI"
+              >
+                {voiceLoading ? (
+                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Volume2 className="h-4 w-4" />
+                )}
+                {voiceLoading ? 'Đang tạo giọng...' : speaking ? 'Dừng đọc' : 'Nghe giải thích'}
+              </button>
+            )}
           </div>
         ) : (
           <p className="whitespace-pre-wrap break-words">{message.content}</p>

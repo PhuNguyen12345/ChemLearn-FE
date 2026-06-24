@@ -4,6 +4,28 @@
 @import "@fontsource/be-vietnam-pro";
 @custom-variant dark (&:is(.dark *));
 
+.ai-tutor-markdown {
+  overflow-wrap: anywhere;
+}
+
+.ai-tutor-markdown .katex-display {
+  margin: 0.75rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.35rem 0.25rem;
+  text-align: center;
+}
+
+.ai-tutor-markdown .katex {
+  font-size: 1.08em;
+}
+
+.ai-tutor-markdown p + .katex-display,
+.ai-tutor-markdown ol + .katex-display,
+.ai-tutor-markdown ul + .katex-display {
+  margin-top: 0.5rem;
+}
+
 /* :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
