@@ -210,9 +210,6 @@ const ChatBox = ({ studentId, context }) => {
               }`}
             >
               <span className="block truncate">{session.topic || 'Chủ đề chung'}</span>
-              <span className="mt-0.5 block text-xs font-semibold text-slate-400">
-                Lớp {session.grade} · {session.bookType}
-              </span>
             </button>
           ))}
 

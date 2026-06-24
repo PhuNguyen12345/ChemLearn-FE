@@ -724,7 +724,7 @@ export const aiChatImage = async ({ image, ...fields }) => {
 export const aiTextToSpeech = async (text) => {
   const response = await api.post('/api/v1/ai/tts', { text }, {
     responseType: 'blob',
-    timeout: 90000,
+    timeout: 240000,
   });
   return response.data;
 };

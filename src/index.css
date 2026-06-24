@@ -5,19 +5,24 @@
 @custom-variant dark (&:is(.dark *));
 
 .ai-tutor-markdown {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .ai-tutor-markdown .katex-display {
-  margin: 0.75rem 0;
+  margin: 0.9rem 0 1rem;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 0.35rem 0.25rem;
+  padding: 0.45rem 0.25rem;
   text-align: center;
 }
 
 .ai-tutor-markdown .katex {
   font-size: 1.08em;
+}
+
+.ai-tutor-markdown li .katex-display {
+  margin-left: -1.25rem;
 }
 
 .ai-tutor-markdown p + .katex-display,
