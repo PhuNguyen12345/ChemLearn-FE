@@ -9,7 +9,6 @@ import React, {
 } from "react";
 import { AnimatePresence, motion as motionFactory } from "framer-motion";
 import {
-  Bell,
   LoaderCircle,
   MessageCircle,
   RefreshCcw,
@@ -102,28 +101,13 @@ const quickTips = [
 const SUPPORT_GREETING =
   "Chào bạn, Bi là bạn đồng hành hỗ trợ trên ChemLearn. Bạn có thể nhắn lỗi, góp ý, hoặc nhờ Bi nhắc việc cần làm trong ngày.";
 
-const REMINDERS = [
-  {
-    key: "morning",
-    label: "7:00 sáng",
-    message:
-      "7:00 sáng, Bi sẽ gửi email và tin nhắn admin để nhắc bạn xem nhiệm vụ hằng ngày, giữ streak và chọn một bài ngắn để khởi động nhé.",
-  },
-  {
-    key: "evening",
-    label: "8:00 tối",
-    message:
-      "8:00 tối, Bi sẽ gửi email và tin nhắn admin để động viên bạn ôn lại phần đã học, nhận thưởng nhiệm vụ và chuẩn bị cho ngày mai.",
-  },
-];
-
 const makeLocalId = () =>
   `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
 const toCompanionSupportMessage = (item) => ({
   id: `companion-${item.id}`,
   role: "assistant",
-  content: `${item.senderName || "Admin ChemLearn"} - ${item.title}\n${item.message}`,
+  content: item.message || item.title || "",
 });
 
 const pickRouteMessage = (pathname) => {
@@ -155,7 +139,6 @@ export const BiMascotProvider = ({ children }) => {
     () => [
       pickRouteMessage(location.pathname),
       ...quickTips,
-      ...REMINDERS.map((reminder) => reminder.message),
     ],
     [location.pathname],
   );
@@ -262,7 +245,7 @@ export const BiMascotProvider = ({ children }) => {
     } catch (error) {
       appendBiSupportMessage(
         error?.response?.data?.message ||
-          "Bi chưa gửi được tin nhắn lúc này. Bạn thử lại sau một chút nha.",
+        "Bi chưa gửi được tin nhắn lúc này. Bạn thử lại sau một chút nha.",
       );
       toast.error(
         error?.response?.data?.message || "Không gửi được tin nhắn hỗ trợ.",
@@ -374,10 +357,6 @@ export const BiMascotProvider = ({ children }) => {
                         <MessageCircle className="h-4 w-4" />
                         Chat hỗ trợ cùng Bi
                       </div>
-                      <p className="mt-1 text-xs font-semibold text-cyan-700/75">
-                        Email và tin nhắn admin lúc 7:00 sáng, 8:00 tối vẫn
-                        được gửi dù bạn không mở ChemLearn.
-                      </p>
                     </div>
                     <button
                       type="button"
@@ -390,23 +369,6 @@ export const BiMascotProvider = ({ children }) => {
                   </div>
 
                   <div className="max-h-72 space-y-3 overflow-y-auto px-4 py-3">
-                    <div className="grid grid-cols-2 gap-2">
-                      {REMINDERS.map((reminder) => (
-                        <div
-                          key={reminder.key}
-                          className="rounded-xl bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600"
-                        >
-                          <div className="flex items-center gap-1.5 text-cyan-700">
-                            <Bell className="h-3.5 w-3.5" />
-                            {reminder.label}
-                          </div>
-                          <p className="mt-1 line-clamp-2 text-slate-500">
-                            {reminder.message}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-
                     {supportMessagesLoading && (
                       <div className="flex items-center gap-2 rounded-2xl border border-cyan-100 bg-cyan-50 px-3 py-2 text-xs font-bold text-cyan-700">
                         <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
@@ -420,11 +382,10 @@ export const BiMascotProvider = ({ children }) => {
                         className={`flex ${item.role === "user" ? "justify-end" : "justify-start"}`}
                       >
                         <div
-                          className={`max-w-[82%] whitespace-pre-line rounded-2xl px-3 py-2 text-sm font-semibold leading-5 ${
-                            item.role === "user"
+                          className={`max-w-[82%] whitespace-pre-line break-words rounded-2xl px-3 py-2 text-sm font-semibold leading-5 ${item.role === "user"
                               ? "rounded-tr-md bg-indigo-600 text-white"
                               : "rounded-tl-md border border-cyan-100 bg-cyan-50 text-slate-700"
-                          }`}
+                            }`}
                         >
                           {item.content}
                         </div>
@@ -523,12 +484,12 @@ export const useBiMascot = () => {
   const context = useContext(BiMascotContext);
   return (
     context || {
-      speak: () => {},
-      stopSpeaking: () => {},
-      sayRouteGuide: () => {},
+      speak: () => { },
+      stopSpeaking: () => { },
+      sayRouteGuide: () => { },
       isEnabled: true,
-      setIsEnabled: () => {},
-      toggleBi: () => {},
+      setIsEnabled: () => { },
+      toggleBi: () => { },
     }
   );
 };

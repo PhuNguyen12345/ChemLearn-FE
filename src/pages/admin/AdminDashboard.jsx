@@ -125,9 +125,9 @@ const AdminDashboard = () => {
       setSummary((current) =>
         current
           ? {
-              ...current,
-              openReports: nextReports.filter((report) => report.status !== 'RESOLVED').length,
-            }
+            ...current,
+            openReports: nextReports.filter((report) => report.status !== 'RESOLVED').length,
+          }
           : current
       );
       toast.success('Đã cập nhật trạng thái report.');
@@ -159,7 +159,7 @@ const AdminDashboard = () => {
       setReplySubmitting((current) => ({ ...current, [report.id]: true }));
       await sendAdminBiMessage({
         studentId: report.reporterId,
-        title: `Admin phản hồi: ${report.title || 'Tin nhắn của bạn'}`.slice(0, 180),
+        title: 'Admin đã phản hồi:',
         message,
       });
       setReplyField(report.id, '');
@@ -379,35 +379,35 @@ const AdminDashboard = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
+          <Table className="min-w-[1180px] table-fixed">
             <TableHeader>
               <TableRow>
-                <TableHead>Nội dung</TableHead>
-                <TableHead>Người gửi</TableHead>
-                <TableHead>Loại</TableHead>
-                <TableHead>Ưu tiên</TableHead>
-                <TableHead>Thời gian</TableHead>
-                <TableHead>Trạng thái</TableHead>
-                <TableHead>Chat lại</TableHead>
+                <TableHead className="w-[33%]">Nội dung</TableHead>
+                <TableHead className="w-[17%]">Người gửi</TableHead>
+                <TableHead className="w-[8%]">Loại</TableHead>
+                <TableHead className="w-[8%]">Ưu tiên</TableHead>
+                <TableHead className="w-[9%]">Thời gian</TableHead>
+                <TableHead className="w-[11%]">Trạng thái</TableHead>
+                <TableHead className="w-[14%]">Chat lại</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {reports.map((report) => (
                 <TableRow key={report.id}>
-                  <TableCell className="max-w-md">
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1 rounded-lg bg-slate-100 p-2 text-slate-600">
+                  <TableCell className="max-w-md whitespace-normal">
+                    <div className="flex min-w-0 items-start gap-3">
+                      <div className="mt-1 shrink-0 rounded-lg bg-slate-100 p-2 text-slate-600">
                         {report.type === 'BUG' ? <Bug className="h-4 w-4" /> : <MessageSquare className="h-4 w-4" />}
                       </div>
-                      <div>
-                        <div className="font-semibold text-slate-900">{report.title}</div>
-                        <div className="line-clamp-2 text-sm text-muted-foreground">{report.message}</div>
+                      <div className="min-w-0">
+                        <div className="break-words font-semibold text-slate-900">{report.title}</div>
+                        <div className="line-clamp-2 break-words text-sm text-muted-foreground">{report.message}</div>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <div className="font-medium">{report.reporterName || 'Unknown'}</div>
-                    <div className="text-xs text-muted-foreground">{report.reporterEmail || '-'}</div>
+                  <TableCell className="whitespace-normal">
+                    <div className="break-words font-medium">{report.reporterName || 'Unknown'}</div>
+                    <div className="break-all text-xs text-muted-foreground">{report.reporterEmail || '-'}</div>
                   </TableCell>
                   <TableCell><Badge variant="outline">{report.type}</Badge></TableCell>
                   <TableCell><Badge className={priorityClass[report.priority] || priorityClass.MEDIUM}>{report.priority}</Badge></TableCell>
@@ -423,7 +423,7 @@ const AdminDashboard = () => {
                       <option value="RESOLVED">{statusLabel.RESOLVED}</option>
                     </select>
                   </TableCell>
-                  <TableCell className="min-w-64">
+                  <TableCell className="whitespace-normal">
                     <div className="space-y-2">
                       <textarea
                         value={replyForms[report.id] || ''}
