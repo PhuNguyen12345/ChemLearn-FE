@@ -721,6 +721,14 @@ export const aiChatImage = async ({ image, ...fields }) => {
   return response.data;
 };
 
+export const aiTextToSpeech = async (text) => {
+  const response = await api.post('/api/v1/ai/tts', { text }, {
+    responseType: 'blob',
+    timeout: 240000,
+  });
+  return response.data;
+};
+
 export const generateAiExam = async (payload) => {
   const response = await api.post('/api/v1/ai/generate-exam', payload);
   return response.data;

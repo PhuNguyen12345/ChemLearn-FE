@@ -86,33 +86,35 @@ const AiTutorPage = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:min-w-[380px]">
-            <label className="space-y-1.5">
-              <span className="text-xs font-black uppercase tracking-widest text-slate-400">Lớp</span>
-              <select
-                value={context.grade}
-                onChange={(event) => updateContext('grade', Number(event.target.value))}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-100"
-              >
-                {[6, 7, 8, 9].map((grade) => (
-                  <option key={grade} value={grade}>Lớp {grade}</option>
-                ))}
-              </select>
-            </label>
+          {activeTab === 'exam' && (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:min-w-[380px]">
+              <label className="space-y-1.5">
+                <span className="text-xs font-black uppercase tracking-widest text-slate-400">Lớp</span>
+                <select
+                  value={context.grade}
+                  onChange={(event) => updateContext('grade', Number(event.target.value))}
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-100"
+                >
+                  {[6, 7, 8, 9].map((grade) => (
+                    <option key={grade} value={grade}>Lớp {grade}</option>
+                  ))}
+                </select>
+              </label>
 
-            <label className="space-y-1.5">
-              <span className="text-xs font-black uppercase tracking-widest text-slate-400">Bộ sách</span>
-              <select
-                value={context.bookType}
-                onChange={(event) => updateContext('bookType', event.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-100"
-              >
-                {BOOK_TYPES.map((book) => (
-                  <option key={book.value} value={book.value}>{book.label}</option>
-                ))}
-              </select>
-            </label>
-          </div>
+              <label className="space-y-1.5">
+                <span className="text-xs font-black uppercase tracking-widest text-slate-400">Bộ sách</span>
+                <select
+                  value={context.bookType}
+                  onChange={(event) => updateContext('bookType', event.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-100"
+                >
+                  {BOOK_TYPES.map((book) => (
+                    <option key={book.value} value={book.value}>{book.label}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          )}
         </div>
       </section>
 
