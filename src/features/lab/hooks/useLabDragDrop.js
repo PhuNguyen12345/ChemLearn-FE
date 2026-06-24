@@ -315,6 +315,8 @@ export function useLabDragDrop({ scale, inventory }) {
       const instanceId = sourceData.instanceId;
 
       setPlacedItems(prev => {
+        const prevDraggedObj = prev.find(item => item.instanceId === instanceId);
+        
         let updatedItems = prev.map(item => {
           if (item.instanceId === instanceId) {
             return { ...item, x: Math.max(0, item.x + adjustedDeltaX), y: Math.max(0, item.y + adjustedDeltaY) };
@@ -375,7 +377,7 @@ export function useLabDragDrop({ scale, inventory }) {
             }
 
             // --- HÀM THỰC THI REACTION (Được gọi ngay lập tức hoặc sau khi giải toán) ---
-            const finalizeDropExecution = () => {
+            const finalizeDropExecution = (isSkipped = false) => {
                setPlacedItems(currentStoreItems => {
                  let nextItems = [...currentStoreItems];
                  let freshTarget = nextItems.find(i => i.instanceId === instanceToUpdate);
@@ -514,18 +516,22 @@ export function useLabDragDrop({ scale, inventory }) {
                        // ── REACTION FOUND ────────────────────────────────────────────
                        const previousActions = useLabStore.getState().progress.completed_actions;
                        if (!previousActions.includes(key)) {
-                         if (labType === 'PREMADE') {
-                           toast.success(`Phản ứng mới: ${reaction?.reactionInfo?.equation || key}`, {
-                             description: 'Bạn nhận được EXP!',
-                             position: 'bottom-right',
-                           });
-                         } else if (labType === 'SANDBOX') {
-                           toast.success(`Phản ứng mới: ${reaction?.reactionInfo?.equation || key}`, {
-                             position: 'bottom-right',
-                           });
+                         if (!isSkipped) {
+                           if (labType === 'PREMADE') {
+                             toast.success(`Phản ứng mới: ${reaction?.reactionInfo?.equation || key}`, {
+                               description: 'Bạn nhận được EXP!',
+                               position: 'bottom-right',
+                             });
+                           } else if (labType === 'SANDBOX') {
+                             toast.success(`Phản ứng mới: ${reaction?.reactionInfo?.equation || key}`, {
+                               position: 'bottom-right',
+                             });
+                           }
+                           useLabStore.getState().recordReaction(key);
+                           completeTask(key);
+                         } else {
+                           toast.info(`Phản ứng: ${reaction?.reactionInfo?.equation || key} (Xem trước - Chưa tính điểm)`);
                          }
-                         useLabStore.getState().recordReaction(key);
-                         completeTask(key);
                        }
 
                        container.liquidContent = reaction.liquidContent ?? null;
@@ -663,7 +669,20 @@ export function useLabDragDrop({ scale, inventory }) {
                   inputB,
                   onComplete: () => {
                      // Tiếp tục chạy phản ứng và đổ/spawns sau khi học sinh giải toán đúng
-                     finalizeDropExecution();
+                     finalizeDropExecution(false);
+                  },
+                  onSkip: () => {
+                     // Bỏ qua bài tập -> Cho xem phản ứng nhưng Không cộng điểm
+                     finalizeDropExecution(true);
+                  },
+                  onCancel: () => {
+                     toast.info("Đã hủy thao tác trộn hóa chất.");
+                     if (prevDraggedObj) {
+                        setPlacedItems(curr => {
+                           // Khôi phục lại chất về vị trí ban đầu trên bàn
+                           return [...curr.filter(i => i.instanceId !== instanceId), prevDraggedObj];
+                        });
+                     }
                   }
                });
                

@@ -3,6 +3,7 @@ import { useLabStore } from '../stores/useLabStore';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { X } from 'lucide-react';
 
 export default function MathChallengeModal() {
   const activeChallenge = useLabStore(state => state.activeChallenge);
@@ -14,7 +15,7 @@ export default function MathChallengeModal() {
 
   if (!activeChallenge) return null;
 
-  const { schema, groundTruth, inputA, inputB, onComplete } = activeChallenge;
+  const { schema, groundTruth, inputA, inputB, onComplete, onSkip, onCancel } = activeChallenge;
 
   const handleInputChange = (fieldId, value) => {
     setAnswers(prev => ({ ...prev, [fieldId]: value }));
@@ -71,6 +72,16 @@ export default function MathChallengeModal() {
     }
   };
 
+  const handleSkip = () => {
+    clearActiveChallenge();
+    if (onSkip) onSkip();
+  };
+
+  const handleCancel = () => {
+    clearActiveChallenge();
+    if (onCancel) onCancel();
+  };
+
   const renderInputParam = (input) => {
     if (!input) return null;
     const isSolid = input.name.includes('(Rắn)') || !input.molarity;
@@ -86,6 +97,14 @@ export default function MathChallengeModal() {
         
         {/* HEADER */}
         <div className="bg-blue-600 p-6 text-white text-center relative overflow-hidden">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="absolute top-4 right-4 text-white/70 hover:text-white hover:bg-blue-700 z-20 rounded-full"
+            onClick={handleCancel}
+          >
+            <X className="w-6 h-6" />
+          </Button>
           <div className="absolute top-0 right-0 opacity-10 transform translate-x-1/4 -translate-y-1/4">
             <svg width="150" height="150" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 22h20L12 2zm0 3.8l7.2 14.2H4.8L12 5.8z"/></svg>
           </div>
@@ -158,7 +177,14 @@ export default function MathChallengeModal() {
               {showHints ? "Đóng Gợi ý" : "Xem Gợi ý"}
             </Button>
             <Button 
-              className="flex-1 h-12 bg-blue-600 hover:bg-blue-700 text-white text-base font-bold shadow-lg shadow-blue-500/30 transition-all hover:scale-[1.02]"
+              variant="secondary"
+              className="flex-1 h-12 text-base font-semibold border bg-slate-100 hover:bg-slate-200 text-slate-700"
+              onClick={handleSkip}
+            >
+              Bỏ qua bài tập
+            </Button>
+            <Button 
+              className="flex-[1.5] h-12 bg-blue-600 hover:bg-blue-700 text-white text-base font-bold shadow-lg shadow-blue-500/30 transition-all hover:scale-[1.02]"
               onClick={handleSubmit}
             >
               Kiểm tra & Thực hiện
