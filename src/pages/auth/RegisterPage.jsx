@@ -364,7 +364,7 @@ export default function RegisterPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <Label htmlFor="gradeLevel" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
-                        Khối lớp
+                        Lớp Đang Học
                       </Label>
                       <select
                         id="gradeLevel"
@@ -373,7 +373,7 @@ export default function RegisterPage() {
                         className="w-full h-11 rounded-md border border-slate-200 bg-slate-50 px-3 text-sm text-slate-900 focus:bg-white focus:border-blue-500 focus:ring-blue-100"
                         required
                       >
-                        {[6, 7, 8, 9, 10, 11, 12].map((grade) => (
+                        {[6, 7, 8, 9].map((grade) => (
                           <option key={grade} value={String(grade)}>
                             Lớp {grade}
                           </option>
@@ -522,6 +522,7 @@ export default function RegisterPage() {
 
                   <div className="text-[10px] text-slate-450 leading-relaxed bg-slate-50 border border-slate-100 p-2.5 rounded-lg space-y-0.5">
                     <p>📌 Mật khẩu bao gồm: 8-32 ký tự, ít nhất 1 chữ hoa, 1 chữ thường, 1 chữ số và 1 ký tự đặc biệt.</p>
+                    <p>🎓 <strong>Lớp học</strong> sẽ được hệ thống tự động cập nhật lên lớp vào mỗi năm học mới.</p>
                   </div>
 
                   <Button

@@ -721,7 +721,7 @@ export default function LoginPage() {
               <form onSubmit={handleGoogleProfileSubmit} className="space-y-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="google-grade-level" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
-                    Lớp
+                    Lớp Đang Học
                   </Label>
                   <select
                     id="google-grade-level"

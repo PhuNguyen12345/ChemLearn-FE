@@ -1,12 +1,27 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import Footer from '../shared/Footer';
+import { useStudentStore } from '../../../stores/useStudentStore';
+import { getGamificationProfile } from '../../../api/studentApi';
 
 const StudentLayout = () => {
   const { pathname } = useLocation();
   const isStudentHome = pathname === '/student/home' || pathname === '/student';
+  const { setGamificationProfile } = useStudentStore();
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const profile = await getGamificationProfile();
+        setGamificationProfile(profile);
+      } catch (error) {
+        console.error('Failed to load gamification profile in layout', error);
+      }
+    };
+    fetchProfile();
+  }, [setGamificationProfile]);
 
   return (
     <div className="flex h-screen w-full bg-background text-foreground overflow-hidden">
