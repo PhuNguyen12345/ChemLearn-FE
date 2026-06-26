@@ -5,6 +5,7 @@ import {
   FlaskConical,
   ArrowRight,
   BookOpen,
+  Facebook,
   MonitorPlay,
   TrendingUp,
   ArrowRightCircle,
@@ -680,20 +681,23 @@ const LandingPage = () => {
                 Định nghĩa lại việc dạy và học Hóa học cho học sinh THCS thông qua công nghệ tương tác, trực quan và hấp dẫn.
               </p>
               <div className="flex space-x-4">
-                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition-colors cursor-pointer">
-                  <span className="font-bold text-white">in</span>
-                </div>
-                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition-colors cursor-pointer">
-                  <span className="font-bold text-white text-lg">x</span>
-                </div>
+                <a
+                  href="https://www.facebook.com/profile.php?id=61590133187859"
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Facebook ChemLearn"
+                  className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-[#1877f2] transition-colors"
+                >
+                  <Facebook className="h-5 w-5 text-white" />
+                </a>
               </div>
             </div>
 
             <div>
               <h4 className="text-white font-extrabold mb-6 text-lg">Nền tảng</h4>
               <ul className="space-y-4 text-sm font-medium text-purple-100">
-                <li><a href="#features" className="hover:text-white transition-colors">Tính năng</a></li>
-                <li><Link to="/lab" className="hover:text-white transition-colors">Phòng thí nghiệm ảo</Link></li>
+                <li><Link to="/info/features" className="hover:text-white transition-colors">Tính năng</Link></li>
+                <li><Link to="/info/virtual-lab" className="hover:text-white transition-colors">Phòng thí nghiệm ảo</Link></li>
                 <li><Link to="/info/pricing" className="hover:text-white transition-colors">Bảng giá</Link></li>
                 <li><Link to="/info/schools" className="hover:text-white transition-colors">Dành cho trường học</Link></li>
               </ul>

@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
+  Atom,
   BookOpen,
   Building2,
   CircleHelp,
@@ -9,11 +10,52 @@ import {
   Handshake,
   LifeBuoy,
   Mail,
+  MonitorPlay,
   Scale,
   ShieldCheck,
 } from 'lucide-react';
 
 const pages = {
+  features: {
+    title: 'Tính năng',
+    eyebrow: 'Platform features',
+    description: 'ChemLearn gom bài học, luyện tập, phòng thí nghiệm ảo và theo dõi tiến độ vào một nền tảng học Hóa học thống nhất cho học sinh THCS.',
+    icon: Atom,
+    sections: [
+      {
+        heading: 'Bài học trực quan',
+        body: 'Nội dung học tập được chia theo chương, có ví dụ gần gũi và cách trình bày giúp học sinh dễ nắm các khái niệm nền tảng của Hóa học.',
+      },
+      {
+        heading: 'Luyện tập có phản hồi',
+        body: 'Học sinh có thể làm câu hỏi trắc nghiệm, nhận kết quả tức thì và tiếp tục ôn lại các phần chưa vững để xây dựng thói quen tự học.',
+      },
+      {
+        heading: 'Theo dõi tiến độ',
+        body: 'Giáo viên và phụ huynh có thể quan sát quá trình học, kết quả luyện tập và mức độ hoàn thành để hỗ trợ học sinh đúng thời điểm.',
+      },
+    ],
+  },
+  'virtual-lab': {
+    title: 'Phòng thí nghiệm ảo',
+    eyebrow: 'Virtual lab',
+    description: 'Không gian mô phỏng giúp học sinh quan sát, thử nghiệm và ghi nhớ phản ứng hóa học trong môi trường an toàn, sinh động.',
+    icon: MonitorPlay,
+    sections: [
+      {
+        heading: 'Thực hành an toàn',
+        body: 'Học sinh có thể thao tác với dụng cụ, hóa chất và phản ứng mô phỏng mà không gặp rủi ro về cháy nổ, độc hại hoặc thiếu thiết bị thực tế.',
+      },
+      {
+        heading: 'Mô phỏng dễ quan sát',
+        body: 'Các hiện tượng như đổi màu, tạo kết tủa, sinh khí hoặc thay đổi nhiệt độ được trình bày trực quan để học sinh kết nối lý thuyết với hiện tượng.',
+      },
+      {
+        heading: 'Gắn với bài học',
+        body: 'Phòng thí nghiệm ảo có thể dùng như hoạt động khám phá trước bài học, minh họa trong giờ học hoặc bài thực hành củng cố sau khi học xong.',
+      },
+    ],
+  },
   about: {
     title: 'Về ChemLearn',
     eyebrow: 'About us',
@@ -47,6 +89,10 @@ const pages = {
       {
         heading: 'Hợp tác trường học',
         body: 'schools@chemlearn.edu.vn',
+      },
+      {
+        heading: 'Facebook',
+        body: 'https://www.facebook.com/profile.php?id=61590133187859',
       },
       {
         heading: 'Thời gian phản hồi',
@@ -137,16 +183,24 @@ const pages = {
   pricing: {
     title: 'Bảng giá',
     eyebrow: 'Pricing',
-    description: 'ChemLearn hỗ trợ nhiều mô hình sử dụng cho cá nhân, lớp học và nhà trường.',
+    description: 'ChemLearn hỗ trợ nhiều mô hình sử dụng cho cá nhân, lớp học và nhà trường. Các gói lớp 6-9 hiện được cấu hình 300.000 VND cho 365 ngày sử dụng.',
     icon: BookOpen,
     sections: [
       {
-        heading: 'Học cá nhân',
-        body: 'Phù hợp với học sinh muốn tự học, luyện tập và khám phá phòng thí nghiệm ảo.',
+        heading: 'Gói Lớp 6',
+        body: '300.000 VND / 365 ngày. Phù hợp với học sinh bắt đầu làm quen các kiến thức Hóa học nền tảng và hoạt động mô phỏng cơ bản.',
       },
       {
-        heading: 'Lớp học',
-        body: 'Phù hợp với giáo viên cần quản lý học sinh, giao nội dung và theo dõi tiến độ.',
+        heading: 'Gói Lớp 7',
+        body: '300.000 VND / 365 ngày. Bao gồm bài học, luyện tập và hoạt động tương tác theo cấp độ lớp 7.',
+      },
+      {
+        heading: 'Gói Lớp 8',
+        body: '300.000 VND / 365 ngày. Hỗ trợ học sinh luyện tập kiến thức trọng tâm, theo dõi tiến độ và khám phá phòng thí nghiệm ảo.',
+      },
+      {
+        heading: 'Gói Lớp 9',
+        body: '300.000 VND / 365 ngày. Phù hợp cho ôn tập, củng cố kiến thức cuối cấp và chuẩn bị nền tảng lên THPT.',
       },
       {
         heading: 'Trường học',
@@ -177,6 +231,10 @@ const pages = {
 };
 
 const quickLinks = [
+  { label: 'Tính năng', slug: 'features' },
+  { label: 'Phòng thí nghiệm ảo', slug: 'virtual-lab' },
+  { label: 'Bảng giá', slug: 'pricing' },
+  { label: 'Dành cho trường học', slug: 'schools' },
   { label: 'Về chúng tôi', slug: 'about' },
   { label: 'Liên hệ', slug: 'contact' },
   { label: 'Hỗ trợ', slug: 'support' },

@@ -60,6 +60,7 @@ function App() {
         <Routes>
           {/* Public Routes (No Auth Required) */}
           <Route path="/" element={<LandingPage />} />
+          <Route path="/lab" element={<Navigate to="/info/virtual-lab" replace />} />
           <Route path="/info/:pageSlug" element={<PublicInfoPage />} />
           <Route path="/confirm-link" element={<ConfirmLinkPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
