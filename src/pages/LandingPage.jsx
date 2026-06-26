@@ -153,20 +153,20 @@ const LandingPage = () => {
             </span>
           </Link>
 
-          {/* Desktop Links — Minimalist Anchor Links */}
+          {/* Desktop Links */}
           <div className="hidden md:flex items-center space-x-8 text-base font-bold">
-            <a href="#" className="relative text-purple-100/90 hover:text-white transition-colors py-2 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-cyan-400 hover:after:w-full after:transition-all after:duration-300">
+            <Link to="/" className="relative text-purple-100/90 hover:text-white transition-colors py-2 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-cyan-400 hover:after:w-full after:transition-all after:duration-300">
               Trang chủ
-            </a>
-            <a href="#features" className="relative text-purple-100/90 hover:text-white transition-colors py-2 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-cyan-400 hover:after:w-full after:transition-all after:duration-300">
+            </Link>
+            <Link to="/info/features" className="relative text-purple-100/90 hover:text-white transition-colors py-2 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-cyan-400 hover:after:w-full after:transition-all after:duration-300">
               Tính năng
-            </a>
-            <a href="#how-it-works" className="relative text-purple-100/90 hover:text-white transition-colors py-2 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-cyan-400 hover:after:w-full after:transition-all after:duration-300">
+            </Link>
+            <Link to="/info/simulation" className="relative text-purple-100/90 hover:text-white transition-colors py-2 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-cyan-400 hover:after:w-full after:transition-all after:duration-300">
               Mô phỏng
-            </a>
-            <a href="#showcase" className="relative text-purple-100/90 hover:text-white transition-colors py-2 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-cyan-400 hover:after:w-full after:transition-all after:duration-300">
+            </Link>
+            <Link to="/info/experiments" className="relative text-purple-100/90 hover:text-white transition-colors py-2 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-cyan-400 hover:after:w-full after:transition-all after:duration-300">
               Thí nghiệm
-            </a>
+            </Link>
           </div>
 
           {/* Actions */}

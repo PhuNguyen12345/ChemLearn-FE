@@ -3,6 +3,7 @@ import { Link, Navigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
   Atom,
+  Beaker,
   BookOpen,
   Building2,
   CircleHelp,
@@ -53,6 +54,46 @@ const pages = {
       {
         heading: 'Gắn với bài học',
         body: 'Phòng thí nghiệm ảo có thể dùng như hoạt động khám phá trước bài học, minh họa trong giờ học hoặc bài thực hành củng cố sau khi học xong.',
+      },
+    ],
+  },
+  simulation: {
+    title: 'Mô phỏng hóa học',
+    eyebrow: 'Simulation',
+    description: 'Các mô phỏng trong ChemLearn giúp học sinh quan sát quá trình hóa học từng bước, từ hiện tượng ban đầu đến kết quả sau phản ứng.',
+    icon: MonitorPlay,
+    sections: [
+      {
+        heading: 'Quan sát từng bước',
+        body: 'Mô phỏng chia nhỏ quá trình học thành các thao tác dễ theo dõi, giúp học sinh hiểu điều gì đang xảy ra thay vì chỉ ghi nhớ kết quả.',
+      },
+      {
+        heading: 'Kết nối lý thuyết và hiện tượng',
+        body: 'Học sinh có thể liên hệ công thức, chất tham gia, sản phẩm và dấu hiệu phản ứng như đổi màu, sinh khí hoặc tạo kết tủa.',
+      },
+      {
+        heading: 'Học qua tương tác',
+        body: 'Các hoạt động kéo thả, chọn dụng cụ, phối hợp chất và nhận phản hồi giúp bài học bớt khô khan và dễ ghi nhớ hơn.',
+      },
+    ],
+  },
+  experiments: {
+    title: 'Thí nghiệm tương tác',
+    eyebrow: 'Experiments',
+    description: 'Thư viện thí nghiệm giúp học sinh luyện quan sát, dự đoán và rút ra kết luận trong một môi trường an toàn.',
+    icon: Beaker,
+    sections: [
+      {
+        heading: 'Thực hành theo nhiệm vụ',
+        body: 'Mỗi thí nghiệm có mục tiêu rõ ràng để học sinh biết cần quan sát điều gì, thao tác ra sao và kết luận theo hướng nào.',
+      },
+      {
+        heading: 'Phản hồi tức thì',
+        body: 'Sau mỗi bước, học sinh nhận được tín hiệu hoặc kết quả mô phỏng để điều chỉnh cách làm và củng cố kiến thức ngay trong lúc học.',
+      },
+      {
+        heading: 'An toàn và linh hoạt',
+        body: 'Giáo viên có thể dùng thí nghiệm tương tác để minh họa trên lớp, giao hoạt động tự học hoặc giúp học sinh ôn lại trước giờ thực hành thật.',
       },
     ],
   },
@@ -232,6 +273,8 @@ const pages = {
 
 const quickLinks = [
   { label: 'Tính năng', slug: 'features' },
+  { label: 'Mô phỏng', slug: 'simulation' },
+  { label: 'Thí nghiệm', slug: 'experiments' },
   { label: 'Phòng thí nghiệm ảo', slug: 'virtual-lab' },
   { label: 'Bảng giá', slug: 'pricing' },
   { label: 'Dành cho trường học', slug: 'schools' },
