@@ -35,6 +35,11 @@ export const useLabStore = create((set, get) => ({
   // Internal UI State
   reactionInfo: { equation: '-', condition: '-', description: 'Bàn làm việc đã được dọn sạch.' },
   _originalTemplate: null, // For resetting
+  
+  // State quản lý Challenge Mode
+  activeChallenge: null, // { schema: {}, groundTruth: {}, onComplete: () => {} }
+  setActiveChallenge: (challengeData) => set({ activeChallenge: challengeData }),
+  clearActiveChallenge: () => set({ activeChallenge: null }),
 
   // ACTIONS
   initFromTemplate: (templateJson) => {
@@ -54,7 +59,7 @@ export const useLabStore = create((set, get) => ({
 
   loadLabProgress: (apiData, taskMockList) => {
     // Phục hồi cấu hình cơ bản từ API
-    const config = apiData.config || {};
+    let config = apiData.config || {};
     
     // Parse durationMinutes từ JSON config một cách an toàn
     let duration = 0;
@@ -71,6 +76,7 @@ export const useLabStore = create((set, get) => ({
 
       if (rawConfig) {
         const parsedConfig = typeof rawConfig === 'object' ? rawConfig : JSON.parse(rawConfig);
+        config = parsedConfig || {};
         duration = parseInt(parsedConfig?.durationMinutes) || 0;
         console.log("Parsed durationMinutes:", duration, "from:", parsedConfig);
       }
@@ -92,8 +98,11 @@ export const useLabStore = create((set, get) => ({
       version: "1.0",
       metadata: { 
         title: apiData.title, 
+        description: apiData.description,
+        category: apiData.category,
+        difficulty: apiData.difficulty,
         type: apiData.type,
-        max_score: 50 // Giả định
+        max_score: apiData.maxScore ?? apiData.max_score ?? 50
       },
       config: config,
       viewport: apiData.viewport || { x: 0, y: 0, zoom_scale: 1.0 },
@@ -254,5 +263,9 @@ export const useLabStore = create((set, get) => ({
     // Optional: save to local storage
     localStorage.setItem(`chemlearn_autosave_${state.lab_id}`, JSON.stringify(payload));
     return payload;
-  }
+  },
+
+  // Dynamic Inventory State
+  inventoryItems: [],
+  setInventoryItems: (items) => set({ inventoryItems: items })
 }));

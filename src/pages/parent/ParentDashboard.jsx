@@ -6,6 +6,7 @@ import { Timeline } from '../../components/ui/Timeline';
 import { Award, BookOpen, GraduationCap, ChevronDown, Activity, Users } from 'lucide-react';
 import { initiateAccountLink, getPendingAccountLinks } from '../../api/accountLinkApi';
 import { toast } from 'sonner';
+import MailDeliveryReminder from '@/components/shared/MailDeliveryReminder';
 import {
   LineChart,
   Line,
@@ -180,6 +181,7 @@ const ParentDashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Nhập email của học sinh để gửi yêu cầu liên kết.</p>
+              <MailDeliveryReminder className="mb-4" />
               <div className="flex gap-2">
                 <input 
                   type="email" 
@@ -342,6 +344,7 @@ const ParentDashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Nhập email của học sinh để gửi yêu cầu liên kết theo dõi quá trình học tập.</p>
+                <MailDeliveryReminder className="mb-4" />
                 <div className="flex gap-2">
                   <input 
                     type="email" 

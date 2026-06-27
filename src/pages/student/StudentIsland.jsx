@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStudentStore } from '../../stores/useStudentStore';
 import { Coins, ArrowLeft, Heart, Zap } from 'lucide-react';
 import { getMyPets, getMyCoins, getShopItems, buyItem, openEgg, feedPet, starUpPet, getMyInventory } from '../../api/studentApi';
@@ -28,6 +29,8 @@ const getPetImage = (url, name) => {
 
 const StudentIsland = ({ onBack }) => {
   const { coins, setCoins, spendCoins } = useStudentStore();
+  const navigate = useNavigate();
+  const isMountedRef = useRef(true);
 
   const [ownedPets, setOwnedPets] = useState([]);
   const [shopItems, setShopItems] = useState([]);
@@ -40,7 +43,7 @@ const StudentIsland = ({ onBack }) => {
   const [gachaResult, setGachaResult] = useState(null);
 
   // Fetch Data
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const [petsRes, shopRes, invRes, coinsRes] = await Promise.all([
         getMyPets(),
@@ -48,22 +51,29 @@ const StudentIsland = ({ onBack }) => {
         getMyInventory(),
         getMyCoins()
       ]);
+      if (!isMountedRef.current) return;
       setOwnedPets(petsRes);
       setShopItems(shopRes);
       setFoodItems(invRes.filter(item => item.itemType === 'FOOD'));
       setCoins(coinsRes);
     } catch (error) {
+      if (!isMountedRef.current) return;
       console.error("Failed to load pet data:", error);
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current) setIsLoading(false);
     }
-  };
+  }, [setCoins]);
 
   useEffect(() => {
+    isMountedRef.current = true;
     loadData();
-  }, []);
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, [loadData]);
 
   useEffect(() => {
+    if (ownedPets.length === 0) return;
     // Generate initial positions
     const initialPos = {};
     ownedPets.forEach((pet, i) => {
@@ -182,7 +192,7 @@ const StudentIsland = ({ onBack }) => {
     const canStarUp = selectedPet.starLevel < 5 && (selectedPet.fragments || 0) >= fragmentsNeeded;
 
     return (
-      <div className="flex w-full h-full items-center justify-center relative overflow-hidden bg-black animate-in fade-in duration-300">
+      <div className="flex w-full flex-1 min-h-[calc(100vh-8rem)] rounded-2xl shadow-xl items-center justify-center relative overflow-hidden bg-black animate-in fade-in duration-300">
         <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${detailBg})` }} />
         <button onClick={() => setSelectedPet(null)} className="absolute top-6 left-6 z-10 p-3 bg-black/50 hover:bg-black/80 text-white rounded-full backdrop-blur-sm transition-all shadow-lg border border-white/10">
           <ArrowLeft className="w-6 h-6" />
@@ -277,11 +287,11 @@ const StudentIsland = ({ onBack }) => {
   }
 
   return (
-    <div className="flex w-full h-full items-center justify-center animate-in fade-in zoom-in-95 duration-300 relative overflow-hidden bg-[#87CEEB]">
+    <div className="flex w-full flex-1 min-h-[calc(100vh-8rem)] rounded-2xl shadow-xl items-center justify-center animate-in fade-in zoom-in-95 duration-300 relative overflow-hidden bg-[#87CEEB]">
       <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${islandBg})` }} />
 
       <div className="absolute top-6 left-6 right-6 flex justify-between z-20 pointer-events-none">
-        <button onClick={onBack} className="p-3 bg-black/50 hover:bg-black/80 text-white rounded-full backdrop-blur-sm transition-all shadow-lg border border-white/10 pointer-events-auto">
+        <button onClick={() => navigate('/student/home')} className="p-3 bg-black/50 hover:bg-black/80 text-white rounded-full backdrop-blur-sm transition-all shadow-lg border border-white/10 pointer-events-auto">
           <ArrowLeft className="w-6 h-6" />
         </button>
 

@@ -7,6 +7,8 @@ import AdminUserManagement from "../pages/admin/AdminUserManagement";
 import AdminStudyZone from "../pages/admin/AdminStudyZone";
 import AdminStudyEditPage from "../pages/admin/AdminStudyEditPage";
 import AdminAccountRequests from "../pages/admin/AdminAccountRequests";
+import AdminPetManagement from "../pages/admin/AdminPetManagement";
+import AdminMailNotifications from "../pages/admin/AdminMailNotifications";
 import AdminSubscriptionManagement from "../pages/admin/AdminSubscriptionManagement";
 
 export default function AdminRoutes() {
@@ -20,7 +22,9 @@ export default function AdminRoutes() {
         <Route path="subscriptions" element={<AdminSubscriptionManagement />} />
         <Route path="account-requests" element={<AdminAccountRequests />} />
         <Route path="users" element={<AdminUserManagement />} />
-        
+        <Route path="pets" element={<AdminPetManagement />} />
+        <Route path="mail-notifications" element={<AdminMailNotifications />} />
+
         {/* Fallback 404 inside Admin Layout */}
         <Route path="*" element={<NotFoundPage />} />
       </Route>

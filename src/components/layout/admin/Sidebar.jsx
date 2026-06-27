@@ -1,36 +1,35 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Users, Settings, ShieldAlert, FlaskConical, BookOpen, UserRoundCheck, CreditCard } from 'lucide-react';
+import { BookOpen, FlaskConical, MailPlus, PawPrint, Settings, ShieldAlert, UserRoundCheck, Users, CreditCard } from 'lucide-react';
 
 const navItems = [
   { name: 'Dashboard', icon: ShieldAlert, path: '/admin/dashboard' },
-  { name: 'Study Zone', icon: BookOpen, path: '/admin/study' },
+  { name: 'Khu học tập', icon: BookOpen, path: '/admin/study' },
   { name: 'Subscriptions', icon: CreditCard, path: '/admin/subscriptions' },
-  { name: 'Account Requests', icon: UserRoundCheck, path: '/admin/account-requests' },
-  { name: 'User Management', icon: Users, path: '/admin/users' },
-  { name: 'System Config', icon: Settings, path: '/admin/settings' },
+  { name: 'Yêu cầu tài khoản', icon: UserRoundCheck, path: '/admin/account-requests' },
+  { name: 'Quản lý người dùng', icon: Users, path: '/admin/users' },
+  { name: 'Quản lý pet', icon: PawPrint, path: '/admin/pets' },
+  { name: 'Mail thông báo', icon: MailPlus, path: '/admin/mail-notifications' },
+  { name: 'Cấu hình hệ thống', icon: Settings, path: '/admin/settings' },
 ];
 
 const Sidebar = ({ className = '' }) => {
   return (
     <aside className={`w-64 border-r bg-background flex flex-col h-full ${className}`}>
-      {/* Logo Area */}
       <div className="h-16 flex items-center px-6 border-b border-border/50">
         <FlaskConical className="w-6 h-6 text-primary mr-2" />
         <span className="text-xl font-bold tracking-tight text-primary">ChemLearn Admin</span>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-6 space-y-1">
         {navItems.map((item) => (
           <NavLink
             key={item.name}
             to={item.path}
             className={({ isActive }) =>
-              `flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-colors ${
-                isActive
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              `flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-colors ${isActive
+                ? 'bg-primary/10 text-primary'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               }`
             }
           >

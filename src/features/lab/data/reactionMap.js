@@ -18,8 +18,8 @@ export const REACTION_MAP = {
   // 1. Na (solid) + H2O  →  NaOH  (violent, H₂ gas label, clears after 4 s)
   'H2O_Na (Rắn)': {
     liquidContent: 'NaOH',
-    gasContent: 'H_{2}',
-    liquidColor: '#ec4899',
+    gasContent: 'H₂',
+    liquidColor: 'rgba(200, 230, 255, 0.7)',
     reactionState: 'violent',
     clearStateAfter: 4000,
     reactionInfo: {
@@ -95,10 +95,10 @@ export const REACTION_MAP = {
 
   // 7. Fe (Rắn) + CuSO4  →  FeSO₄ (liquid) + Cu (copper precipitate deposit)
   'CuSO4_Fe (Rắn)': {
-    liquidContent: 'FeSO_{4}',
-    solidContent: 'Cu',
+    liquidContent: 'FeSO₄',
+    solidContent: 'Cu (Rắn)',
     liquidColor: 'rgba(187, 247, 208, 0.7)',
-    precipitateColor: 'rgba(180, 83, 9, 0.8)',
+    precipitateColor: '#b45309',
     reactionInfo: {
       equation: 'Fe + CuSO_{4} → FeSO_{4} + Cu↓',
       condition: 'Nhiệt độ thường',
@@ -122,7 +122,7 @@ export const REACTION_MAP = {
     liquidContent: 'NaCl + H_{2}O',
     gasContent: 'CO_{2}',
     liquidColor: 'rgba(200, 230, 255, 0.7)',
-    reactionState: 'violent',
+    reactionState: 'bubbling',
     clearStateAfter: 3000,
     reactionInfo: {
       equation: 'Na_{2}CO_{3} + 2HCl → 2NaCl + CO_{2}↑ + H_{2}O',
@@ -136,7 +136,7 @@ export const REACTION_MAP = {
     liquidContent: 'ZnCl_{2}',
     gasContent: 'H_{2}',
     liquidColor: 'rgba(200, 230, 255, 0.7)',
-    reactionState: 'violent',
+    reactionState: 'bubbling',
     clearStateAfter: 3000,
     reactionInfo: {
       equation: 'Zn + 2HCl → ZnCl_{2} + H_{2}↑',

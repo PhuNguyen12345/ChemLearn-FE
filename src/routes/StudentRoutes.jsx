@@ -18,6 +18,7 @@ import StudentIsland from "../pages/student/StudentIsland";
 import StudentProfile from "../pages/student/StudentProfile";
 import ProgressMap from "../pages/student/ProgressMap";
 import PvpLobbyPage from "../pages/student/pvp/PvpLobbyPage";
+import AiTutorPage from "../pages/student/AiTutorPage";
 
 export default function StudentRoutes() {
   return (
@@ -30,6 +31,7 @@ export default function StudentRoutes() {
         <Route path="missions" element={<Missions />} />
         <Route path="leaderboard" element={<Leaderboard />} />
         <Route path="study-zone" element={<StudyZone />} />
+        <Route path="ai-tutor" element={<AiTutorPage />} />
         <Route path="virtual-lab" element={<LabDashboard />} />
         <Route path="classes" element={<ClassesLanding />} />
         <Route path="class/:classId" element={<ClassDetail />} />

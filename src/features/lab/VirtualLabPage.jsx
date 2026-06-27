@@ -6,7 +6,7 @@ import '/Lab2.css';
 import { RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { snapCenterToCursor } from '@dnd-kit/modifiers';
-import { INITIAL_INVENTORY, ITEM_TYPE, PHYSICAL_STATE } from './data/constants';
+import { ITEM_TYPE, PHYSICAL_STATE } from './data/constants';
 import { Toaster } from 'sonner';
 import { useLabStore } from './stores/useLabStore';
 import CentralWorkspace from './components/CentralWorkspace';
@@ -25,6 +25,22 @@ export default function VirtualLabPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [isPhoneViewport, setIsPhoneViewport] = useState(false);
+  const navigateTimeoutsRef = React.useRef([]);
+
+  const scheduleNavigation = React.useCallback((to, delay = 1500) => {
+    const timeoutId = window.setTimeout(() => {
+      navigateTimeoutsRef.current = navigateTimeoutsRef.current.filter((id) => id !== timeoutId);
+      navigate(to);
+    }, delay);
+    navigateTimeoutsRef.current.push(timeoutId);
+  }, [navigate]);
+
+  React.useEffect(() => {
+    return () => {
+      navigateTimeoutsRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId));
+      navigateTimeoutsRef.current = [];
+    };
+  }, []);
 
   // ── Lifecycle: fetch, save, reset, modal ─────────────────────────────────
   const {
@@ -48,7 +64,7 @@ export default function VirtualLabPage() {
   const handleTimeUp = async () => {
     const success = await handleSubmitAssignment();
     if (success) {
-      setTimeout(() => navigate('/student/virtual-lab'), 1500);
+      scheduleNavigation('/student/virtual-lab');
     }
   };
 
@@ -58,7 +74,15 @@ export default function VirtualLabPage() {
     labType === 'ASSIGNMENT' && !isLoading
   );
 
-  const [inventory] = useState(INITIAL_INVENTORY);
+  const inventoryItems = useLabStore(state => state.inventoryItems);
+  const config = useLabStore(state => state.config);
+  
+  const inventory = React.useMemo(() => {
+    if (config?.allowed_chemicals && Array.isArray(config.allowed_chemicals)) {
+      return inventoryItems.filter(item => config.allowed_chemicals.includes(item.id));
+    }
+    return inventoryItems;
+  }, [inventoryItems, config]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarView, setSidebarView] = useState('grid');
 
@@ -194,7 +218,7 @@ export default function VirtualLabPage() {
               onSubmitClick={async () => {
                 const success = await handleSubmitAssignment();
                 if (success) {
-                  setTimeout(() => navigate('/student/virtual-lab'), 1500);
+                  scheduleNavigation('/student/virtual-lab');
                 }
               }}
               onSaveClick={() => {

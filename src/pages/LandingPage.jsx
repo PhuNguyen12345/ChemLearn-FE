@@ -5,6 +5,7 @@ import {
   FlaskConical,
   ArrowRight,
   BookOpen,
+  Facebook,
   MonitorPlay,
   TrendingUp,
   ArrowRightCircle,
@@ -23,6 +24,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../components/ui/dropdown-menu";
+
+import virtualLabDemo from '../assets/virtual_lab_demo.gif';
+import logoImg from '../assets/logo.png';
 import useAuthStore from "../stores/useAuthStore";
 import { useLogout } from "../stores/useLogout";
 
@@ -141,30 +145,27 @@ const LandingPage = () => {
         <div className="container mx-auto px-6 h-20 flex items-center justify-between max-w-7xl">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="p-2 bg-cyan-400 rounded-2xl text-white group-hover:bg-cyan-500 transition-colors shadow-md shadow-cyan-500/50">
-              <FlaskConical className="w-6 h-6" />
+            <div className="bg-white rounded-2xl group-hover:bg-cyan-50 transition-colors shadow-md shadow-cyan-500/30 flex items-center justify-center w-11 h-11 overflow-hidden">
+              <img src={logoImg} alt="ChemLearn Logo" className="w-full h-full object-contain p-1 mix-blend-multiply" />
             </div>
             <span className="text-2xl font-extrabold text-white tracking-tight">
               Chem<span className="text-cyan-400">Learn</span>
             </span>
           </Link>
 
-          {/* Desktop Links — colorful pill buttons */}
-          <div className="hidden md:flex items-center space-x-2 text-sm font-bold">
-            <Link to="/" className="rounded-full px-4 py-1.5 bg-blue-500 text-white hover:bg-blue-600 transition-colors shadow-sm shadow-blue-200">
+          {/* Desktop Links */}
+          <div className="hidden md:flex items-center space-x-8 text-base font-bold">
+            <Link to="/" className="relative text-purple-100/90 hover:text-white transition-colors py-2 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-cyan-400 hover:after:w-full after:transition-all after:duration-300">
               Trang chủ
             </Link>
-            <a href="#features" className="rounded-full px-4 py-1.5 bg-green-500 text-white hover:bg-green-600 transition-colors shadow-sm shadow-green-200">
-              Bài học
-            </a>
-            <Link to="/lab" className="rounded-full px-4 py-1.5 bg-yellow-400 text-white hover:bg-yellow-500 transition-colors shadow-sm shadow-yellow-200">
-              Phòng thí nghiệm
+            <Link to="/info/features" className="relative text-purple-100/90 hover:text-white transition-colors py-2 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-cyan-400 hover:after:w-full after:transition-all after:duration-300">
+              Tính năng
             </Link>
-            <a href="#showcase" className="rounded-full px-4 py-1.5 bg-orange-400 text-white hover:bg-orange-500 transition-colors shadow-sm shadow-orange-200">
-              Bài kiểm tra
-            </a>
-            <Link to="/teacher/dashboard" className="rounded-full px-4 py-1.5 bg-purple-500 text-white hover:bg-purple-600 transition-colors shadow-sm shadow-purple-200">
-              Giáo viên
+            <Link to="/info/simulation" className="relative text-purple-100/90 hover:text-white transition-colors py-2 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-cyan-400 hover:after:w-full after:transition-all after:duration-300">
+              Mô phỏng
+            </Link>
+            <Link to="/info/experiments" className="relative text-purple-100/90 hover:text-white transition-colors py-2 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-cyan-400 hover:after:w-full after:transition-all after:duration-300">
+              Thí nghiệm
             </Link>
           </div>
 
@@ -417,7 +418,7 @@ const LandingPage = () => {
                 <div className="absolute inset-0 flex items-center justify-center scale-[1.5]">
                   {/* Reactant H2 */}
                   <div className="absolute w-12 h-12 rounded-full bg-teal-400 shadow-[inset_-2px_-2px_6px_rgba(0,0,0,0.2)] animate-[atom-h2-move_4s_ease-in-out_infinite] z-20 flex items-center justify-center text-teal-900 font-bold text-sm">H₂</div>
-                  
+
                   {/* Reactant O2 */}
                   <div className="absolute w-16 h-16 rounded-full bg-purple-400 shadow-[inset_-2px_-2px_6px_rgba(0,0,0,0.2)] animate-[atom-o2-move_4s_ease-in-out_infinite] z-20 flex items-center justify-center text-purple-900 font-bold text-sm">O₂</div>
 
@@ -478,27 +479,27 @@ const LandingPage = () => {
                   <h3 className="text-2xl font-black mt-4 text-white">Trắc nghiệm tương tác</h3>
                   <p className="text-purple-200 mt-2 font-medium">Học tập thông qua trò chơi hóa, biến bài tập về nhà thành một cuộc phiêu lưu hoành tráng.</p>
                 </div>
-                
+
                 {/* High-Fidelity Mock UI Container (Quiz) */}
                 <div className="relative bg-[#f8fafc] border border-slate-200 rounded-2xl p-4 shadow-inner h-80 overflow-hidden mt-8 z-10 font-sans">
-                  
+
                   {/* Top Header */}
                   <div className="flex items-center justify-between bg-white rounded-xl p-2 shadow-sm border border-slate-100 mb-3">
                     <div className="flex items-center gap-2">
-                       <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-[10px]">?</div>
-                       <span className="text-slate-800 font-bold text-[11px]">Trắc nghiệm phản ứng hóa học</span>
+                      <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-[10px]">?</div>
+                      <span className="text-slate-800 font-bold text-[11px]">Trắc nghiệm phản ứng hóa học</span>
                     </div>
                     <div className="flex items-center gap-1 bg-yellow-100/60 px-2 py-0.5 rounded-md">
-                       <span className="text-yellow-500 text-[10px]">⭐</span>
-                       <span className="text-yellow-700 font-extrabold text-[10px]">850</span>
+                      <span className="text-yellow-500 text-[10px]">⭐</span>
+                      <span className="text-yellow-700 font-extrabold text-[10px]">850</span>
                     </div>
                   </div>
 
                   {/* Question Box */}
                   <div className="bg-gradient-to-br from-cyan-400 to-purple-500 rounded-xl p-4 mb-3 text-center shadow-md relative group-hover:scale-[1.02] transition-transform duration-500">
-                     <p className="text-white font-bold text-[12px] leading-snug drop-shadow-sm">
-                       Yếu tố nào sau đây là chỉ số chính cho thấy một phản ứng hóa học đã xảy ra khi hai chất lỏng trong suốt được trộn với nhau và tạo thành một chất rắn màu trắng?
-                     </p>
+                    <p className="text-white font-bold text-[12px] leading-snug drop-shadow-sm">
+                      Yếu tố nào sau đây là chỉ số chính cho thấy một phản ứng hóa học đã xảy ra khi hai chất lỏng trong suốt được trộn với nhau và tạo thành một chất rắn màu trắng?
+                    </p>
                   </div>
 
                   {/* Answers Grid */}
@@ -512,7 +513,7 @@ const LandingPage = () => {
                     <div className="bg-white border border-slate-200 rounded-xl p-2 flex items-center gap-2 shadow-sm relative animate-[quiz-success_6s_ease-in-out_infinite]">
                       <div className="w-5 h-5 shrink-0 rounded bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-[10px]">B</div>
                       <span className="text-slate-600 font-semibold text-[10px] truncate">Sự hình thành...</span>
-                      
+
                       {/* Animated Cursor */}
                       <div className="absolute top-2 right-[-10px] text-white animate-[cursor-click_6s_ease-in-out_infinite] z-30 drop-shadow-md">
                         <MousePointer2 className="w-6 h-6 fill-slate-800 text-white" strokeWidth={1.5} />
@@ -549,7 +550,7 @@ const LandingPage = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Decorative blob */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
               </div>
@@ -596,8 +597,8 @@ const LandingPage = () => {
                       ))}
                       {/* Zero line */}
                       <div className="flex items-center gap-3 -mt-[7px]">
-                          <span className="text-[11px] font-extrabold text-slate-400 w-4 text-right flex-shrink-0">0</span>
-                          <div className="border-t border-slate-300 w-full h-0" />
+                        <span className="text-[11px] font-extrabold text-slate-400 w-4 text-right flex-shrink-0">0</span>
+                        <div className="border-t border-slate-300 w-full h-0" />
                       </div>
                     </div>
 
@@ -614,13 +615,13 @@ const LandingPage = () => {
                       ].map((item, i) => (
                         <div key={i} className="flex flex-col items-center gap-2 group/bar h-full justify-end relative">
                           <div className="w-full h-[calc(100%-8px)] flex items-end justify-center rounded-t border-b border-transparent px-0.5">
-                            <div 
-                              className={`w-full bg-gradient-to-t ${item.color} rounded-t-lg shadow-sm origin-bottom animate-[bar-grow-y-loop_6s_ease-in-out_infinite] hover:brightness-110 transition-all cursor-pointer`} 
-                              style={{ 
+                            <div
+                              className={`w-full bg-gradient-to-t ${item.color} rounded-t-lg shadow-sm origin-bottom animate-[bar-grow-y-loop_6s_ease-in-out_infinite] hover:brightness-110 transition-all cursor-pointer`}
+                              style={{
                                 height: item.h,
                                 animationDelay: `${i * 0.05}s`,
                                 transform: 'scaleY(0)',
-                              }} 
+                              }}
                             />
                           </div>
                           <span className="text-[11px] font-extrabold text-slate-500 absolute -bottom-6 tracking-tight">{item.day}</span>
@@ -633,6 +634,33 @@ const LandingPage = () => {
                 {/* Decorative blob */}
                 <div className="absolute top-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2 pointer-events-none" />
               </div>
+
+              {/* Card 3: Virtual Lab Demo */}
+              <div className="group relative bg-indigo-950/40 backdrop-blur-xl border border-white/10 rounded-[3rem] p-10 overflow-hidden shadow-2xl hover:shadow-emerald-500/20 transition-all duration-500 md:col-span-2 flex flex-col md:flex-row items-center gap-10">
+                <div className="relative z-10 flex-1">
+                  <span className="inline-block px-4 py-1.5 bg-emerald-500/20 text-emerald-300 text-xs font-black rounded-full border border-emerald-400/30 uppercase tracking-widest">
+                    Thực hành
+                  </span>
+                  <h3 className="text-3xl font-black mt-4 text-white">Phòng Thí Nghiệm Ảo</h3>
+                  <p className="text-purple-200 mt-4 font-medium text-lg leading-relaxed">Trải nghiệm các phản ứng hóa học sinh động, an toàn tuyệt đối với công cụ mô phỏng trực quan. Tự do khám phá, pha chế hóa chất mà không lo ngại rủi ro cháy nổ ngoài đời thực!</p>
+                </div>
+
+                {/* High-Fidelity Mock UI Container (GIF) */}
+                <div className="relative flex-1 bg-[#0f172a] border border-slate-700 rounded-3xl shadow-[0_0_50px_rgba(16,185,129,0.15)] overflow-hidden z-10 group-hover:-translate-y-2 transition-transform duration-500 w-full">
+                  {/* MacOS style window header */}
+                  <div className="absolute top-0 left-0 right-0 h-8 bg-slate-800/80 backdrop-blur-sm flex items-center px-4 gap-2 z-20 border-b border-slate-700">
+                    <div className="w-3 h-3 rounded-full bg-red-500/80 shadow-sm"></div>
+                    <div className="w-3 h-3 rounded-full bg-yellow-500/80 shadow-sm"></div>
+                    <div className="w-3 h-3 rounded-full bg-emerald-500/80 shadow-sm"></div>
+                  </div>
+                  <div className="w-full pt-8 p-1.5 bg-slate-900 flex items-center justify-center">
+                    <img src={virtualLabDemo} alt="Virtual Lab Demo" className="w-full h-auto object-contain rounded-2xl border border-slate-800 opacity-90 group-hover:opacity-100 transition-opacity duration-500" />
+                  </div>
+                </div>
+
+                {/* Decorative blob */}
+                <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2 pointer-events-none group-hover:bg-emerald-500/20 transition-colors duration-500" />
+              </div>
             </div>
           </div>
         </section>
@@ -644,8 +672,8 @@ const LandingPage = () => {
           <div className="grid md:grid-cols-4 gap-12 mb-16">
             <div className="col-span-2">
               <Link to="/" className="flex items-center gap-2 mb-6 group inline-flex">
-                <div className="p-2 bg-white/20 rounded-xl group-hover:bg-white/30 transition-colors">
-                  <FlaskConical className="w-6 h-6 text-white" />
+                <div className="bg-white rounded-xl group-hover:bg-slate-100 transition-colors flex items-center justify-center w-10 h-10 shadow-sm overflow-hidden">
+                  <img src={logoImg} alt="ChemLearn Logo" className="w-full h-full object-contain p-1 mix-blend-multiply" />
                 </div>
                 <span className="text-2xl font-extrabold tracking-tight text-white">ChemLearn</span>
               </Link>
@@ -653,20 +681,23 @@ const LandingPage = () => {
                 Định nghĩa lại việc dạy và học Hóa học cho học sinh THCS thông qua công nghệ tương tác, trực quan và hấp dẫn.
               </p>
               <div className="flex space-x-4">
-                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition-colors cursor-pointer">
-                  <span className="font-bold text-white">in</span>
-                </div>
-                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition-colors cursor-pointer">
-                  <span className="font-bold text-white text-lg">x</span>
-                </div>
+                <a
+                  href="https://www.facebook.com/profile.php?id=61590133187859"
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Facebook ChemLearn"
+                  className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-[#1877f2] transition-colors"
+                >
+                  <Facebook className="h-5 w-5 text-white" />
+                </a>
               </div>
             </div>
 
             <div>
               <h4 className="text-white font-extrabold mb-6 text-lg">Nền tảng</h4>
               <ul className="space-y-4 text-sm font-medium text-purple-100">
-                <li><a href="#features" className="hover:text-white transition-colors">Tính năng</a></li>
-                <li><Link to="/lab" className="hover:text-white transition-colors">Phòng thí nghiệm ảo</Link></li>
+                <li><Link to="/info/features" className="hover:text-white transition-colors">Tính năng</Link></li>
+                <li><Link to="/info/virtual-lab" className="hover:text-white transition-colors">Phòng thí nghiệm ảo</Link></li>
                 <li><Link to="/info/pricing" className="hover:text-white transition-colors">Bảng giá</Link></li>
                 <li><Link to="/info/schools" className="hover:text-white transition-colors">Dành cho trường học</Link></li>
               </ul>

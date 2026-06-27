@@ -2,43 +2,34 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStudentStore } from '../../stores/useStudentStore';
 import {
-  PlayCircle,
   Award,
   Clock,
   Zap,
   Shield,
   Beaker,
-  HelpCircle,
   BookOpen,
   Star,
   Sparkles,
-  ChevronRight,
-  Flame
+  Flame,
+  Bot,
+  PawPrint,
 } from 'lucide-react';
-
 import { getGamificationProfile, logDailyActivity, getDailyQuests, claimQuest } from '../../api/studentApi';
 import { toast } from 'sonner';
 
-/* ─────────────────────────────────────────────
-   Reusable: Neon XP / HP progress bar
-───────────────────────────────────────────── */
 const XPBar = ({ fill = '50%', color = 'bg-emerald-400' }) => (
-  <div className="h-5 w-full bg-slate-900/10 rounded-full overflow-hidden shadow-inner">
+  <div className="h-4 w-full overflow-hidden rounded-full bg-slate-900/10 shadow-inner">
     <div
-      className={`h-full ${color} rounded-full relative overflow-hidden transition-all duration-700`}
+      className={`relative h-full overflow-hidden rounded-full ${color} transition-all duration-700`}
       style={{ width: fill }}
     >
-      {/* Shiny top highlight */}
-      <div className="absolute top-0 left-0 w-full h-1/2 bg-white/30 rounded-full" />
+      <div className="absolute left-0 top-0 h-1/2 w-full rounded-full bg-white/30" />
     </div>
   </div>
 );
 
-/* ─────────────────────────────────────────────
-   Reusable: Gold reward pill
-───────────────────────────────────────────── */
 const XPPill = ({ label }) => (
-  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400 text-amber-900 text-xs font-black shadow-sm shadow-amber-300/50 border border-amber-300 whitespace-nowrap">
+  <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-amber-300 bg-amber-400 px-2.5 py-0.5 text-xs font-black text-amber-900 shadow-sm shadow-amber-300/50">
     ⭐ {label}
   </span>
 );
@@ -49,354 +40,300 @@ const questColorStyles = {
     iconText: 'text-emerald-600',
     progress: 'bg-emerald-400',
     pill: 'text-emerald-600 bg-emerald-50',
+    border: 'border-emerald-100',
   },
   blue: {
     iconBg: 'bg-blue-100',
     iconText: 'text-blue-600',
     progress: 'bg-blue-400',
     pill: 'text-blue-600 bg-blue-50',
+    border: 'border-blue-100',
   },
   pink: {
     iconBg: 'bg-pink-100',
     iconText: 'text-pink-600',
     progress: 'bg-pink-400',
     pill: 'text-pink-600 bg-pink-50',
+    border: 'border-pink-100',
   },
 };
 
-/* ─────────────────────────────────────────────
-   Main Component
-───────────────────────────────────────────── */
+const getRankTitle = (level) => {
+  if (level >= 10) return 'Giả kim thuật sư Vàng';
+  if (level >= 7) return 'Giả kim thuật sư Bạc';
+  if (level >= 4) return 'Giả kim thuật sư Đồng';
+  return 'Nhà hóa học tập sự';
+};
+
+const getRankLabel = (level) => {
+  if (level >= 10) return `🥇 ${getRankTitle(level)}`;
+  if (level >= 7) return `🥈 ${getRankTitle(level)}`;
+  if (level >= 4) return `🥉 ${getRankTitle(level)}`;
+  return `🌱 ${getRankTitle(level)}`;
+};
+
+const getQuestIcon = (actionType) => {
+  if (actionType === 'DO_LAB') return Beaker;
+  if (actionType === 'LEARN_LESSON') return BookOpen;
+  if (actionType === 'LOGIN') return Clock;
+  if (actionType === 'FEED_PET') return Star;
+  return Flame;
+};
+
+const sortQuests = (quests) => {
+  const sorted = [...quests].sort((a, b) => {
+    const getWeight = (quest) => {
+      const isDone = quest.currentProgress >= quest.targetValue;
+      if (isDone && !quest.isClaimed) return 0;
+      if (!isDone) return 1;
+      return 2;
+    };
+    return getWeight(a) - getWeight(b);
+  });
+  return sorted.slice(0, 3);
+};
+
 const StudentHome = () => {
   const navigate = useNavigate();
-  const { coins, experience, level, currentStreak, setGamificationProfile } = useStudentStore();
+  const { experience, level, currentStreak, setGamificationProfile } = useStudentStore();
   const [dailyQuests, setDailyQuests] = React.useState([]);
 
-  const sortQuests = (quests) => {
-    const sorted = [...quests].sort((a, b) => {
-      const getWeight = (q) => {
-        const isDone = q.currentProgress >= q.targetValue;
-        if (isDone && !q.isClaimed) return 0; // Hoàn thành nhưng chưa nhận
-        if (!isDone) return 1;                // Đang thực hiện
-        return 2;                             // Hoàn thành và đã nhận
-      };
-      return getWeight(a) - getWeight(b);
-    });
-    return sorted.slice(0, 3);
-  };
+  const refreshQuestsAndProfile = React.useCallback(async () => {
+    const profile = await getGamificationProfile();
+    setGamificationProfile(profile);
+
+    const quests = await getDailyQuests();
+    setDailyQuests(sortQuests(Array.isArray(quests) ? quests : []));
+  }, [setGamificationProfile]);
 
   const handleClaim = async (questId) => {
     try {
       await claimQuest(questId);
-      // Tải lại hồ sơ gamification để cập nhật EXP & Vàng trên Header ngay lập tức
-      const profile = await getGamificationProfile();
-      setGamificationProfile(profile);
-
-      // Tải lại danh sách nhiệm vụ để hiển thị trạng thái mới nhất
-      const quests = await getDailyQuests();
-      setDailyQuests(sortQuests(quests));
-      toast.success("Nhận thưởng thành công! 🎉");
+      await refreshQuestsAndProfile();
+      toast.success('Nhận thưởng thành công! 🎉');
     } catch (err) {
-      console.error("Failed to claim quest:", err);
-      toast.error("Nhận thưởng thất bại. Vui lòng thử lại!");
+      console.error('Failed to claim quest:', err);
+      toast.error('Nhận thưởng thất bại. Vui lòng thử lại!');
     }
   };
 
   React.useEffect(() => {
     const initData = async () => {
       try {
-        // Log activity and fetch gamification data
         await logDailyActivity();
-        const profile = await getGamificationProfile();
-        setGamificationProfile(profile);
-
-        const quests = await getDailyQuests();
-        setDailyQuests(sortQuests(quests)); // Sắp xếp và hiển thị tất cả nhiệm vụ
+        await refreshQuestsAndProfile();
       } catch (error) {
-        console.error("Failed to fetch gamification data:", error);
+        console.error('Failed to fetch gamification data:', error);
       }
     };
     initData();
-  }, []);
+  }, [refreshQuestsAndProfile]);
+
+  const completedQuestCount = dailyQuests.filter((quest) => quest.currentProgress >= quest.targetValue).length;
 
   return (
-    <div className="space-y-6 md:space-y-8 pb-12 select-none">
+    <div className="space-y-6 pb-12 select-none md:space-y-8">
+      <div className="relative overflow-hidden rounded-3xl border-b-4 border-purple-700 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-4 text-white shadow-[0_10px_30px_rgba(168,85,247,0.4)] sm:p-6 md:rounded-[2rem] lg:p-8">
+        <div className="absolute -right-10 -top-10 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
+        <div className="absolute -bottom-8 -left-8 h-44 w-44 rounded-full bg-pink-400/20 blur-2xl" />
 
-      {/* ══════════════════════════════════════════
-          1. PLAYER CARD — Welcome Banner
-      ══════════════════════════════════════════ */}
-      <div className="relative overflow-hidden rounded-3xl md:rounded-[2rem] bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-4 sm:p-6 lg:p-8 text-white shadow-[0_10px_30px_rgba(168,85,247,0.4)] border-b-4 border-purple-700">
-        {/* Background blobs */}
-        <div className="absolute -top-10 -right-10 w-56 h-56 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-8 -left-8 w-44 h-44 bg-pink-400/20 rounded-full blur-2xl pointer-events-none" />
-
-        {/* Top right: Shop & Coins */}
-        <div className="relative z-20 mb-6 flex flex-wrap items-center justify-center gap-2 sm:justify-end sm:gap-3">
-          <div className="flex min-h-10 items-center gap-2 bg-yellow-400/20 px-3 sm:px-4 py-2 rounded-full border border-yellow-300/40 backdrop-blur-md">
-            <span className="text-xl">💰</span>
-            <span className="font-black text-yellow-300 text-sm sm:text-base">{coins} Vàng</span>
-          </div>
-          <button
-            onClick={() => navigate('/student/island')}
-            className="flex min-h-10 items-center gap-2 bg-emerald-500/80 hover:bg-emerald-500 px-3 sm:px-4 py-2 rounded-full border border-emerald-400/50 backdrop-blur-md transition-all shadow-lg shadow-emerald-500/20"
-          >
-            <span className="text-xl">🏝️</span>
-            <span className="font-bold text-white uppercase text-xs sm:text-sm tracking-wider">Đảo Thú Cưng</span>
-          </button>
-          <button
-            onClick={() => navigate('/student/shop')}
-            className="flex min-h-10 items-center gap-2 bg-white/20 hover:bg-white/30 px-3 sm:px-4 py-2 rounded-full border border-white/40 backdrop-blur-md transition-colors"
-          >
-            <span className="text-xl">🛍️</span>
-            <span className="font-bold text-white uppercase text-xs sm:text-sm tracking-wider">Cửa Hàng</span>
-          </button>
+        <div className="absolute right-28 top-24 hidden animate-bounce text-yellow-300 sm:block" style={{ animationDuration: '2.4s' }}>
+          <Star className="h-6 w-6 fill-yellow-300" />
+        </div>
+        <div className="absolute right-14 top-8 hidden animate-bounce text-pink-200 sm:block" style={{ animationDuration: '3.1s', animationDelay: '0.5s' }}>
+          <Sparkles className="h-5 w-5" />
+        </div>
+        <div className="absolute bottom-5 right-10 animate-bounce text-indigo-200" style={{ animationDuration: '2.7s', animationDelay: '1s' }}>
+          <Star className="h-4 w-4 fill-indigo-200" />
         </div>
 
-        {/* Floating decorative icons */}
-        <div className="absolute top-24 right-28 hidden sm:block text-yellow-300 animate-bounce" style={{ animationDuration: '2.4s' }}>
-          <Star className="w-6 h-6 fill-yellow-300" />
-        </div>
-        <div className="absolute top-8 right-14 hidden sm:block text-pink-200 animate-bounce" style={{ animationDuration: '3.1s', animationDelay: '0.5s' }}>
-          <Sparkles className="w-5 h-5" />
-        </div>
-        <div className="absolute bottom-5 right-10 text-indigo-200 animate-bounce" style={{ animationDuration: '2.7s', animationDelay: '1s' }}>
-          <Star className="w-4 h-4 fill-indigo-200" />
-        </div>
-
-        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-5 md:gap-6">
+        <div className="relative z-10 flex flex-col items-center justify-between gap-5 md:flex-row md:gap-6">
           <div className="space-y-2 text-center md:text-left">
-            {/* Level badge */}
-            <div className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-black tracking-widest uppercase border border-white/30 mb-1">
-              <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
-              Cấp {level} · Hóa học gia
+            <div className="mb-1 inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/20 px-3 py-1 text-xs font-black uppercase tracking-widest backdrop-blur-sm">
+              <Sparkles className="h-3.5 w-3.5 text-yellow-300" />
+              Cấp {level} · {getRankTitle(level)}
             </div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight drop-shadow-sm">
+            <h1 className="text-2xl font-black tracking-tight drop-shadow-sm sm:text-3xl md:text-4xl">
               Chào mừng trở lại! 🎉
             </h1>
-            <p className="text-purple-100 text-sm sm:text-base md:text-lg font-semibold opacity-90 max-w-xl">
+            <p className="max-w-xl text-sm font-semibold text-purple-100 opacity-90 sm:text-base md:text-lg">
               Bạn đang cực cháy! 🔥 Hãy giữ vững chuỗi ngày học để nhận thêm XP nhé.
             </p>
           </div>
 
-          {/* Bouncy Flask */}
-          <div className="hidden md:flex items-center justify-center w-24 h-24 bg-white/20 backdrop-blur-sm rounded-[1.5rem] shadow-inner border border-white/30 shrink-0">
-            <Beaker className="w-12 h-12 text-white animate-[bounce_2.5s_ease-in-out_infinite]" strokeWidth={1.5} />
+          <div className="hidden h-24 w-24 shrink-0 items-center justify-center rounded-[1.5rem] border border-white/30 bg-white/20 shadow-inner backdrop-blur-sm md:flex">
+            <Beaker className="h-12 w-12 animate-[bounce_2.5s_ease-in-out_infinite] text-white" strokeWidth={1.5} />
           </div>
         </div>
 
-        {/* XP progress toward next level */}
         <div className="relative z-10 mt-6 space-y-1.5">
-          <div className="flex justify-between text-xs font-black text-purple-100 uppercase tracking-wider">
+          <div className="flex justify-between text-xs font-black uppercase tracking-wider text-purple-100">
             <span>Tiến trình đến Cấp {level + 1}</span>
             <span>{experience} XP</span>
           </div>
-          <div className="h-4 w-full bg-white/20 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-yellow-300 to-yellow-400 rounded-full relative overflow-hidden" style={{ width: `${(experience % 1000) / 10}%` }}>
-              <div className="absolute top-0 left-0 w-full h-1/2 bg-white/30 rounded-full" />
+          <div className="h-4 w-full overflow-hidden rounded-full bg-white/20">
+            <div className="relative h-full overflow-hidden rounded-full bg-gradient-to-r from-yellow-300 to-yellow-400" style={{ width: `${(experience % 1000) / 10}%` }}>
+              <div className="absolute left-0 top-0 h-1/2 w-full rounded-full bg-white/30" />
             </div>
           </div>
         </div>
       </div>
 
-      {/* ══════════════════════════════════════════
-          2. GAME STATS ROW — Streak · EXP · Rank
-      ══════════════════════════════════════════ */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-
-        {/* Streak */}
-        <div className="flex items-center gap-4 p-4 sm:p-5 bg-white rounded-[1.5rem] border-2 border-orange-200 border-b-[5px] border-b-orange-400 shadow-sm hover:-translate-y-1.5 transition-transform duration-300 cursor-default">
-          <div className="w-14 h-14 rounded-2xl bg-orange-500 flex items-center justify-center shadow-md shadow-orange-300/50 shrink-0">
-            <Flame className="w-7 h-7 text-white fill-orange-200" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="flex cursor-default items-center gap-4 rounded-[1.5rem] border-2 border-b-[5px] border-orange-200 border-b-orange-400 bg-white p-4 shadow-sm transition-transform duration-300 hover:-translate-y-1.5 sm:p-5">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-orange-500 shadow-md shadow-orange-300/50">
+            <Flame className="h-7 w-7 fill-orange-200 text-white" />
           </div>
           <div>
-            <p className="text-xs font-black text-orange-500 uppercase tracking-widest">Chuỗi ngày học</p>
-            <h3 className="text-xl sm:text-2xl font-black text-slate-800">{currentStreak} Ngày 🔥</h3>
+            <p className="text-xs font-black uppercase tracking-widest text-orange-500">Chuỗi ngày học</p>
+            <h3 className="text-xl font-black text-slate-800 sm:text-2xl">{currentStreak} Ngày 🔥</h3>
           </div>
         </div>
 
-        {/* Total EXP */}
-        <div className="flex items-center gap-4 p-4 sm:p-5 bg-white rounded-[1.5rem] border-2 border-yellow-200 border-b-[5px] border-b-yellow-400 shadow-sm hover:-translate-y-1.5 transition-transform duration-300 cursor-default">
-          <div className="w-14 h-14 rounded-2xl bg-yellow-400 flex items-center justify-center shadow-md shadow-yellow-300/50 shrink-0">
-            <Zap className="w-7 h-7 text-white fill-yellow-100" />
+        <div className="flex cursor-default items-center gap-4 rounded-[1.5rem] border-2 border-b-[5px] border-yellow-200 border-b-yellow-400 bg-white p-4 shadow-sm transition-transform duration-300 hover:-translate-y-1.5 sm:p-5">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-yellow-400 shadow-md shadow-yellow-300/50">
+            <Zap className="h-7 w-7 fill-yellow-100 text-white" />
           </div>
           <div>
-            <p className="text-xs font-black text-yellow-600 uppercase tracking-widest">Tổng EXP</p>
-            <h3 className="text-xl sm:text-2xl font-black text-slate-800">{experience} XP ⚡</h3>
+            <p className="text-xs font-black uppercase tracking-widest text-yellow-600">Tổng EXP</p>
+            <h3 className="text-xl font-black text-slate-800 sm:text-2xl">{experience} XP ⚡</h3>
           </div>
         </div>
 
-        {/* Rank */}
-        <div className="flex items-center gap-4 p-4 sm:p-5 bg-white rounded-[1.5rem] border-2 border-indigo-200 border-b-[5px] border-b-indigo-500 shadow-sm hover:-translate-y-1.5 transition-transform duration-300 cursor-default sm:col-span-2 xl:col-span-1">
-          <div className="w-14 h-14 rounded-2xl bg-indigo-500 flex items-center justify-center shadow-md shadow-indigo-300/50 shrink-0">
-            <Shield className="w-7 h-7 text-white fill-indigo-200" />
+        <div className="flex cursor-default items-center gap-4 rounded-[1.5rem] border-2 border-b-[5px] border-indigo-200 border-b-indigo-500 bg-white p-4 shadow-sm transition-transform duration-300 hover:-translate-y-1.5 sm:col-span-2 sm:p-5 xl:col-span-1">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-indigo-500 shadow-md shadow-indigo-300/50">
+            <Shield className="h-7 w-7 fill-indigo-200 text-white" />
           </div>
           <div>
-            <p className="text-xs font-black text-indigo-500 uppercase tracking-widest">Thứ hạng</p>
-            <h3 className="text-base sm:text-lg font-black text-slate-800">
-              {level >= 10 ? '🥇 Giả kim thuật sư Vàng' : level >= 7 ? '🥈 Giả kim thuật sư Bạc' : level >= 4 ? '🥉 Giả kim thuật sư Đồng' : '🌱 Nhà hóa học tập sự'}
-            </h3>
+            <p className="text-xs font-black uppercase tracking-widest text-indigo-500">Thứ hạng</p>
+            <h3 className="text-base font-black text-slate-800 sm:text-lg">{getRankLabel(level)}</h3>
           </div>
         </div>
-
       </div>
 
-      {/* ══════════════════════════════════════════
-          3. LEVEL SELECTION — Game Portals
-      ══════════════════════════════════════════ */}
       <div>
-        <h2 className="text-xl font-black text-slate-800 mb-4 flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-purple-500" />
+        <h2 className="mb-4 flex items-center gap-2 text-xl font-black text-slate-800">
+          <Sparkles className="h-5 w-5 text-purple-500" />
           Khám phá nhanh
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-
-          {/* Portal 1 — Virtual Lab */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           <button
             onClick={() => navigate('/student/virtual-lab')}
-            className="group flex flex-col items-center justify-center gap-3 p-5 sm:p-7 rounded-[1.5rem] bg-white border-2 border-purple-200 border-b-[6px] border-b-purple-400 text-purple-700 hover:bg-purple-50 hover:border-b-purple-500 active:border-b-2 active:translate-y-1 transition-all duration-150 shadow-sm cursor-pointer"
+            className="group flex cursor-pointer flex-col items-center justify-center gap-3 rounded-[1.5rem] border-2 border-b-[6px] border-purple-200 border-b-purple-400 bg-white p-5 text-purple-700 shadow-sm transition-all duration-150 hover:border-b-purple-500 hover:bg-purple-50 active:translate-y-1 active:border-b-2 sm:p-7"
           >
-            <div className="w-16 h-16 rounded-[1rem] bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-300/50 group-hover:scale-110 transition-transform duration-200">
-              <Beaker className="w-8 h-8 text-white" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-[1rem] bg-gradient-to-br from-purple-400 to-purple-600 shadow-lg shadow-purple-300/50 transition-transform duration-200 group-hover:scale-110">
+              <Beaker className="h-8 w-8 text-white" />
             </div>
-            <span className="font-black text-base tracking-tight">🧪 Phòng thí nghiệm ảo</span>
-            <span className="text-xs font-bold text-purple-400">Pha chế & Phản ứng</span>
+            <span className="text-base font-black tracking-tight">🧪 Phòng thí nghiệm ảo</span>
+            <span className="text-xs font-bold text-purple-400">Pha chế & phản ứng</span>
           </button>
 
-          {/* Portal 2 — Quick Quiz */}
           <button
-            onClick={() => navigate('/student/classes')}
-            className="group flex flex-col items-center justify-center gap-3 p-5 sm:p-7 rounded-[1.5rem] bg-white border-2 border-emerald-200 border-b-[6px] border-b-emerald-400 text-emerald-700 hover:bg-emerald-50 hover:border-b-emerald-500 active:border-b-2 active:translate-y-1 transition-all duration-150 shadow-sm cursor-pointer"
+            onClick={() => navigate('/student/ai-tutor')}
+            className="group flex cursor-pointer flex-col items-center justify-center gap-3 rounded-[1.5rem] border-2 border-b-[6px] border-emerald-200 border-b-emerald-400 bg-white p-5 text-emerald-700 shadow-sm transition-all duration-150 hover:border-b-emerald-500 hover:bg-emerald-50 active:translate-y-1 active:border-b-2 sm:p-7"
           >
-            <div className="w-16 h-16 rounded-[1rem] bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-300/50 group-hover:scale-110 transition-transform duration-200">
-              <HelpCircle className="w-8 h-8 text-white" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-[1rem] bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-300/50 transition-transform duration-200 group-hover:scale-110">
+              <Bot className="h-8 w-8 text-white" />
             </div>
-            <span className="font-black text-base tracking-tight">❓ Lớp học của tôi</span>
-            <span className="text-xs font-bold text-emerald-400">Bài tập & bài kiểm tra được giao</span>
+            <span className="text-base font-black tracking-tight">🤖 AI Tutor</span>
+            <span className="text-xs font-bold text-emerald-400">Hỏi bài & luyện giải cùng Bi</span>
           </button>
 
-
+          <button
+            onClick={() => navigate('/student/island')}
+            className="group flex cursor-pointer flex-col items-center justify-center gap-3 rounded-[1.5rem] border-2 border-b-[6px] border-pink-200 border-b-pink-400 bg-white p-5 text-pink-700 shadow-sm transition-all duration-150 hover:border-b-pink-500 hover:bg-pink-50 active:translate-y-1 active:border-b-2 sm:p-7"
+          >
+            <div className="flex h-16 w-16 items-center justify-center rounded-[1rem] bg-gradient-to-br from-pink-400 to-fuchsia-600 shadow-lg shadow-pink-300/50 transition-transform duration-200 group-hover:scale-110">
+              <PawPrint className="h-8 w-8 text-white" />
+            </div>
+            <span className="text-base font-black tracking-tight">🐾 Đảo thú cưng</span>
+            <span className="text-xs font-bold text-pink-400">Chăm pet & mở trứng thưởng</span>
+          </button>
         </div>
       </div>
 
-      {/* ══════════════════════════════════════════
-          4. MAIN QUEST + DAILY QUESTS
-      ══════════════════════════════════════════ */}
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-
-        {/* ── MAIN QUEST: Continue Learning ── */}
-        <div className="col-span-1 md:col-span-2 xl:col-span-2 rounded-[2rem] overflow-hidden border-2 border-sky-200 border-b-[6px] border-b-sky-400 shadow-sm bg-white">
-          {/* Gradient header strip */}
-          <div className="bg-gradient-to-r from-sky-500 to-blue-600 px-6 pt-5 pb-4">
+      <section className="overflow-hidden rounded-[2rem] border-2 border-amber-200 border-b-[6px] border-b-amber-400 bg-white shadow-sm">
+        <div className="flex flex-col gap-3 bg-gradient-to-r from-amber-400 to-orange-400 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <div>
             <div className="flex items-center gap-2 text-white">
-              <PlayCircle className="w-5 h-5 fill-white text-sky-600" />
-              <h2 className="text-base font-black uppercase tracking-widest">⚔️ Nhiệm vụ chính</h2>
-            </div>
-            <p className="text-sky-100 text-sm font-semibold mt-0.5">Tiếp tục bài học đang dang dở</p>
-          </div>
-
-          {/* Quest body */}
-          <div className="p-4 sm:p-6">
-            <div className="flex flex-col lg:flex-row items-center gap-5 p-4 sm:p-5 bg-sky-50 rounded-[1.5rem] border-2 border-sky-100">
-
-              {/* Chapter thumbnail */}
-              <div className="w-full lg:w-28 h-24 rounded-2xl bg-gradient-to-br from-blue-500 to-sky-400 flex items-center justify-center shadow-lg shadow-sky-300/40 shrink-0 relative overflow-hidden">
-                <div className="absolute inset-0 bg-white/10" />
-                <BookOpen className="w-10 h-10 text-white relative z-10" strokeWidth={1.5} />
-              </div>
-
-              {/* Info */}
-              <div className="flex-grow text-center lg:text-left space-y-1 min-w-0">
-                <h3 className="text-lg font-black text-slate-800">⚗️ Chương 4: Bảng tuần hoàn</h3>
-                <p className="text-sm font-semibold text-slate-500">Tìm hiểu về các Nhóm và Chu kỳ</p>
-                <div className="flex items-center justify-center lg:justify-start gap-1.5 text-xs font-bold text-sky-600">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span>Còn 15 phút</span>
-                </div>
-                {/* Mini progress bar */}
-                <div className="pt-2">
-                  <XPBar fill="60%" color="bg-sky-400" />
-                </div>
-                <p className="text-xs font-bold text-sky-500">Hoàn thành 60%</p>
-              </div>
-
-              {/* PLAY button */}
-              <button className="group flex items-center gap-2 w-full lg:w-auto bg-gradient-to-b from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 text-white font-black rounded-2xl border-b-[5px] border-green-700 active:border-b active:translate-y-1 transition-all duration-150 px-7 h-14 text-base shadow-md shadow-green-300/40 shrink-0 justify-center">
-                <PlayCircle className="w-6 h-6 fill-white text-green-600 shrink-0" />
-                <span>TIẾP TỤC</span>
-                <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </button>
-
-            </div>
-          </div>
-        </div>
-
-        {/* ── DAILY QUESTS / MISSIONS ── */}
-        <div className="col-span-1 rounded-[2rem] overflow-hidden border-2 border-amber-200 border-b-[6px] border-b-amber-400 shadow-sm bg-white">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-amber-400 to-orange-400 px-6 pt-5 pb-4">
-            <div className="flex items-center gap-2 text-white">
-              <Award className="w-5 h-5 fill-white text-amber-600" />
+              <Award className="h-5 w-5 fill-white text-amber-600" />
               <h2 className="text-base font-black uppercase tracking-widest">🏆 Nhiệm vụ hàng ngày</h2>
             </div>
-            <p className="text-amber-100 text-sm font-semibold mt-0.5">Hoàn thành nhiệm vụ để nhận EXP</p>
+            <p className="mt-0.5 text-sm font-semibold text-amber-100">Hoàn thành nhiệm vụ để nhận EXP</p>
           </div>
-
-          {/* Quest list */}
-          <div className="p-4 sm:p-6 space-y-6">
-
-            {dailyQuests.map((quest, index) => {
-              const Icon = quest.actionType === 'DO_LAB' ? Beaker :
-                quest.actionType === 'LEARN_LESSON' ? BookOpen :
-                  quest.actionType === 'LOGIN' ? Clock :
-                    quest.actionType === 'FEED_PET' ? Star :
-                      Flame;
-              const colorClass = index % 3 === 0 ? 'emerald' : index % 3 === 1 ? 'blue' : 'pink';
-              const colorStyles = questColorStyles[colorClass];
-              const fillPct = Math.round((quest.currentProgress / quest.targetValue) * 100);
-              const isDone = quest.currentProgress >= quest.targetValue;
-              const isClaimed = quest.isClaimed;
-
-              return (
-                <div key={quest.id} className="space-y-2.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className={`w-9 h-9 rounded-xl ${colorStyles.iconBg} flex items-center justify-center shrink-0`}>
-                        <Icon className={`w-4.5 h-4.5 ${colorStyles.iconText}`} />
-                      </div>
-                      <span className="font-black text-slate-700 text-sm truncate">{quest.title}</span>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <XPPill label={`+${quest.rewardXp} XP`} />
-                      <span className={`${colorStyles.pill} font-black text-xs px-2 py-0.5 rounded-lg`}>
-                        {quest.currentProgress}/{quest.targetValue}
-                      </span>
-                    </div>
-                  </div>
-                  <XPBar fill={`${fillPct}%`} color={colorStyles.progress} />
-
-                  {/* Nút bấm Nhận thưởng / Đã nhận thưởng */}
-                  {isDone && !isClaimed && (
-                    <button
-                      onClick={() => handleClaim(quest.id)}
-                      className="mt-2 w-full py-1.5 rounded-xl bg-amber-400 hover:bg-amber-500 text-amber-950 font-black text-xs border-b-[3px] border-amber-600 active:border-b-0 active:translate-y-0.5 transition-all duration-100 flex items-center justify-center gap-1 shadow-sm"
-                    >
-                      <Zap className="w-3.5 h-3.5 fill-amber-950/20" />
-                      NHẬN THƯỞNG!
-                    </button>
-                  )}
-                  {isClaimed && (
-                    <div className="mt-2 flex items-center justify-center gap-1 text-[11px] font-black text-slate-400 bg-slate-50 border border-slate-100 py-1 rounded-xl">
-                      ✅ Đã nhận thưởng!
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-
+          <div className="inline-flex w-fit rounded-full bg-white/25 px-3 py-1 text-xs font-black text-white ring-1 ring-white/30">
+            {completedQuestCount}/{dailyQuests.length || 0} hoàn thành
           </div>
         </div>
 
-      </div>
+        <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-3">
+          {dailyQuests.length === 0 && (
+            <div className="rounded-[1.5rem] border-2 border-dashed border-amber-100 bg-amber-50/60 p-6 text-center lg:col-span-3">
+              <p className="text-sm font-black text-amber-700">Chưa có nhiệm vụ hàng ngày.</p>
+              <p className="mt-1 text-xs font-semibold text-amber-500">Hãy quay lại sau hoặc làm mới trang để cập nhật nhiệm vụ mới.</p>
+            </div>
+          )}
+
+          {dailyQuests.map((quest, index) => {
+            const Icon = getQuestIcon(quest.actionType);
+            const colorClass = index % 3 === 0 ? 'emerald' : index % 3 === 1 ? 'blue' : 'pink';
+            const colorStyles = questColorStyles[colorClass];
+            const currentProgress = Number(quest.currentProgress || 0);
+            const targetValue = Math.max(Number(quest.targetValue || 1), 1);
+            const fillPct = Math.min(100, Math.round((currentProgress / targetValue) * 100));
+            const isDone = currentProgress >= targetValue;
+            const isClaimed = quest.isClaimed;
+
+            return (
+              <article key={quest.id} className={`flex h-full flex-col rounded-[1.5rem] border-2 ${colorStyles.border} bg-white p-4 shadow-sm`}>
+                <div className="mb-4 flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${colorStyles.iconBg}`}>
+                      <Icon className={`h-5 w-5 ${colorStyles.iconText}`} />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="truncate text-sm font-black text-slate-800">{quest.title}</h3>
+                      <p className="mt-0.5 text-xs font-semibold text-slate-400">Tiến độ {currentProgress}/{targetValue}</p>
+                    </div>
+                  </div>
+                  <XPPill label={`+${quest.rewardXp} XP`} />
+                </div>
+
+                <div className="mt-auto space-y-3">
+                  <XPBar fill={`${fillPct}%`} color={colorStyles.progress} />
+                  <div className="flex items-center justify-between gap-3">
+                    <span className={`${colorStyles.pill} rounded-lg px-2 py-0.5 text-xs font-black`}>
+                      {fillPct}%
+                    </span>
+
+                    {isDone && !isClaimed && (
+                      <button
+                        onClick={() => handleClaim(quest.id)}
+                        className="inline-flex items-center justify-center gap-1 rounded-xl border-b-[3px] border-amber-600 bg-amber-400 px-3 py-1.5 text-xs font-black text-amber-950 shadow-sm transition-all duration-100 hover:bg-amber-500 active:translate-y-0.5 active:border-b-0"
+                      >
+                        <Zap className="h-3.5 w-3.5 fill-amber-950/20" />
+                        Nhận thưởng
+                      </button>
+                    )}
+
+                    {isClaimed && (
+                      <span className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-1.5 text-xs font-black text-slate-400">
+                        Đã nhận
+                      </span>
+                    )}
+
+                    {!isDone && !isClaimed && (
+                      <span className="rounded-xl bg-slate-50 px-3 py-1.5 text-xs font-black text-slate-400">
+                        Đang làm
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 };

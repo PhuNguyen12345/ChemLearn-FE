@@ -1,8 +1,9 @@
-
 import React, { useState, useRef } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { ZoomIn, ZoomOut, Maximize } from 'lucide-react';
 import CanvasItem from './CanvasItem';
+import PhaserLabCanvas from './PhaserLabCanvas';
+import MathChallengeModal from './MathChallengeModal';
 
 export default function CentralWorkspace({ placedItems, scale, setScale, selectedItemId, setSelectedItemId, onDeleteItem  }) {
   const { isOver, setNodeRef } = useDroppable({ id: 'canvas' });
@@ -127,7 +128,7 @@ export default function CentralWorkspace({ placedItems, scale, setScale, selecte
       ref={setRefs}
       data-pan-x={pan.x}
       data-pan-y={pan.y}
-      className={`relative w-full flex-1 touch-none select-none border-4 rounded-[2rem] overflow-hidden shadow-inner border-slate-200 bg-slate-50 ${isPanning ? 'cursor-grabbing' : 'cursor-grab'}`}
+      className={`relative w-full flex-1 touch-none select-none border-4 rounded-[2rem] overflow-hidden shadow-inner border-slate-700 bg-slate-800 ${isPanning ? 'cursor-grabbing' : 'cursor-grab'}`}
     >
       
       {/* Nút bấm điều khiển (Zoom Controls) */}
@@ -143,31 +144,42 @@ export default function CentralWorkspace({ placedItems, scale, setScale, selecte
         </button>
       </div>
 
-      <div className="absolute top-6 left-6 font-bold text-slate-300/80 pointer-events-none text-2xl uppercase tracking-widest select-none z-10">
+      <div className="absolute top-6 left-6 font-bold text-slate-500 pointer-events-none text-2xl uppercase tracking-widest select-none z-10">
          Không gian thực hành
       </div>
 
       {/* KHUNG INNER: Cái này sẽ bay lượn và phóng to thu nhỏ */}
       <div 
-        className={`absolute inset-0 h-full w-full ${isOver ? 'bg-blue-50/40' : ''} ${!isPanning && 'cursor-grab'}`}
+        className={`absolute inset-0 h-full w-full ${isOver ? 'bg-slate-700/50' : ''} ${!isPanning && 'cursor-grab'}`}
         style={{
-          backgroundImage: 'radial-gradient(#cbd5e1 2px, transparent 2px)',
+          backgroundImage: 'radial-gradient(#334155 2px, transparent 2px)',
           backgroundSize: '30px 30px',
           // ĐÂY LÀ CHÌA KHÓA: Dịch chuyển (Translate) + Tỷ lệ (Scale), Cố định tâm 0 0
           transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`,
           transformOrigin: '0 0',
         }}
       >
-        {placedItems.map(item => (
-          <CanvasItem 
-            key={item.instanceId} 
-            item={item} 
-            isSelected={selectedItemId === item.instanceId}
-            onSelect={() => setSelectedItemId(item.instanceId)}
-            onDelete={() => onDeleteItem(item.instanceId)}
-          />
-        ))}
+        {/* Lớp Phaser nằm dưới cùng */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <PhaserLabCanvas placedItems={placedItems} />
+        </div>
+
+        {/* Lớp React UI (Tạm thời giữ lại để so sánh) */}
+        <div className="absolute inset-0 z-10">
+          {placedItems.map(item => (
+            <CanvasItem 
+              key={item.instanceId} 
+              item={item} 
+              isSelected={selectedItemId === item.instanceId}
+              onSelect={() => setSelectedItemId(item.instanceId)}
+              onDelete={() => onDeleteItem(item.instanceId)}
+            />
+          ))}
+        </div>
       </div>
+
+      {/* MODAL GIẢI TOÁN (Hiển thị đè lên trên cùng) */}
+      <MathChallengeModal />
     </div>
   );
 }

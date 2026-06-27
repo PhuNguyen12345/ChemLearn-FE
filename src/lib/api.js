@@ -54,6 +54,31 @@ export const acceptInvite = async (payload) => {
   return response.data;
 };
 
+export const requestRegistrationOtp = async (payload) => {
+  const response = await api.post('/api/auth/register/otp', payload);
+  return response.data;
+};
+
+export const verifyRegistrationOtp = async (payload) => {
+  const response = await api.post('/api/auth/otp/verify', payload);
+  return response.data;
+};
+
+export const resendRegistrationOtp = async (email) => {
+  const response = await api.post('/api/auth/otp/resend', { email });
+  return response.data;
+};
+
+export const requestPasswordResetOtp = async (email) => {
+  const response = await api.post('/api/auth/forgot-password', { email });
+  return response.data;
+};
+
+export const verifyPasswordResetOtp = async (payload) => {
+  const response = await api.post('/api/auth/forgot-password/verify-otp', payload);
+  return response.data;
+};
+
 export const getAuthAccessRequests = async () => {
   const response = await api.get('/api/admin/auth/requests');
   return response.data;
@@ -465,6 +490,98 @@ export const deleteMiniQuizQuestion = async (questionId) => {
   return response.data;
 };
 
+export const getAdminDashboardSummary = async () => {
+  const response = await api.get('/api/admin/dashboard/summary');
+  return response.data;
+};
+
+export const createFeedbackReport = async (payload) => {
+  const response = await api.post('/api/student/feedback-reports', payload);
+  return response.data;
+};
+
+export const getBiCompanionMessages = async () => {
+  const response = await api.get('/api/student/bi/messages');
+  return normalizeListResponse(response.data);
+};
+
+export const sendAdminBiMessage = async (payload) => {
+  const response = await api.post('/api/admin/bi/messages', payload);
+  return response.data;
+};
+
+export const getAdminFeedbackReports = async () => {
+  const response = await api.get('/api/admin/feedback-reports');
+  return normalizeListResponse(response.data);
+};
+
+export const updateAdminFeedbackReport = async (reportId, payload) => {
+  const response = await api.patch(`/api/admin/feedback-reports/${reportId}`, payload);
+  return response.data;
+};
+
+export const sendAdminMailBroadcast = async (payload) => {
+  const response = await api.post('/api/admin/mail-notifications/broadcast', payload);
+  return response.data;
+};
+
+export const getAdminPetSpecies = async () => {
+  const response = await api.get('/api/admin/pets/species');
+  return normalizeListResponse(response.data);
+};
+
+export const createAdminPetSpecies = async (payload) => {
+  const response = await api.post('/api/admin/pets/species', payload);
+  return response.data;
+};
+
+export const updateAdminPetSpecies = async (id, payload) => {
+  const response = await api.put(`/api/admin/pets/species/${id}`, payload);
+  return response.data;
+};
+
+export const deleteAdminPetSpecies = async (id) => {
+  await api.delete(`/api/admin/pets/species/${id}`);
+};
+
+export const getAdminEggItems = async () => {
+  const response = await api.get('/api/admin/pets/eggs');
+  return normalizeListResponse(response.data);
+};
+
+export const createAdminEggItem = async (payload) => {
+  const response = await api.post('/api/admin/pets/eggs', payload);
+  return response.data;
+};
+
+export const updateAdminEggItem = async (id, payload) => {
+  const response = await api.put(`/api/admin/pets/eggs/${id}`, payload);
+  return response.data;
+};
+
+export const deleteAdminEggItem = async (id) => {
+  await api.delete(`/api/admin/pets/eggs/${id}`);
+};
+
+export const getAdminEggDropRates = async () => {
+  const response = await api.get('/api/admin/pets/drop-rates');
+  return normalizeListResponse(response.data);
+};
+
+export const createAdminEggDropRate = async (payload) => {
+  const response = await api.post('/api/admin/pets/drop-rates', payload);
+  return response.data;
+};
+
+export const updateAdminEggDropRate = async (id, payload) => {
+  const response = await api.put(`/api/admin/pets/drop-rates/${id}`, payload);
+  return response.data;
+};
+
+export const deleteAdminEggDropRate = async (id) => {
+  await api.delete(`/api/admin/pets/drop-rates/${id}`);
+};
+
 export const getTeacherSubmissionDetail = async (attemptId) => {
   const response = await api.get(`/api/teacher/submissions/${attemptId}`);
   return response.data;
@@ -478,6 +595,11 @@ export const gradeTeacherSubmission = async (attemptId, payload) => {
 // Virtual Lab operations
 export const getVirtualLabs = async (params) => {
   const response = await api.get('/api/v1/student/virtual-labs', { params });
+  return response.data;
+};
+
+export const getInventoryItems = async () => {
+  const response = await api.get('/api/lab/inventory');
   return response.data;
 };
 
@@ -574,6 +696,71 @@ export const grantAdminPackageToStudent = async (payload) => {
 
 export const revokeAdminStudentEntitlement = async (entitlementId, payload = {}) => {
   const response = await api.patch(`/api/admin/entitlements/${entitlementId}/revoke`, payload);
+  return response.data;
+};
+
+// AI Tutor operations
+export const aiChat = async (payload) => {
+  const response = await api.post('/api/v1/ai/chat', payload);
+  return response.data;
+};
+
+export const aiChatImage = async ({ image, ...fields }) => {
+  const formData = new FormData();
+  Object.entries(fields).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      formData.append(key, value);
+    }
+  });
+  formData.append('image', image);
+
+  const response = await api.post('/api/v1/ai/chat-image', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 90000,
+  });
+  return response.data;
+};
+
+export const aiTextToSpeech = async (text) => {
+  const response = await api.post('/api/v1/ai/tts', { text }, {
+    responseType: 'blob',
+    timeout: 240000,
+  });
+  return response.data;
+};
+
+export const generateAiExam = async (payload) => {
+  const response = await api.post('/api/v1/ai/generate-exam', payload);
+  return response.data;
+};
+
+export const submitGeneratedAiExam = async (payload) => {
+  const response = await api.post('/api/v1/ai/submit-generated-exam', payload);
+  return response.data;
+};
+
+export const getGeneratedAiExams = async (studentId) => {
+  const response = await api.get(`/api/v1/ai/generated-exams/by-student/${studentId}`);
+  return response.data;
+};
+
+export const getGeneratedAiExam = async (examId) => {
+  const response = await api.get(`/api/v1/ai/generated-exams/${examId}`);
+  return response.data;
+};
+
+export const analyzeAiResult = async (payload) => {
+  const response = await api.post('/api/v1/ai/analyze-result', payload);
+  return response.data;
+};
+
+export const getAiSessions = async (studentId) => {
+  const response = await api.get(`/api/v1/ai/sessions/${studentId}`);
+  return response.data;
+};
+
+export const getAiSessionMessages = async (sessionId) => {
+  const response = await api.get(`/api/v1/ai/sessions/${sessionId}/messages`);
   return response.data;
 };
 

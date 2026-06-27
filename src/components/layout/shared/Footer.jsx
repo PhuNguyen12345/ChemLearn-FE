@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { FlaskConical, Heart } from 'lucide-react';
 
 const Footer = () => {
@@ -22,18 +23,18 @@ const Footer = () => {
 
         {/* Links */}
         <div className="flex gap-5 text-xs font-bold text-indigo-400">
-          <a
-            href="#"
+          <Link
+            to="/info/privacy"
             className="hover:text-cyan-400 hover:scale-110 transition-all duration-200 underline-offset-4 hover:underline"
           >
             Chính sách bảo mật
-          </a>
-          <a
-            href="#"
+          </Link>
+          <Link
+            to="/info/terms"
             className="hover:text-cyan-400 hover:scale-110 transition-all duration-200 underline-offset-4 hover:underline"
           >
             Điều khoản dịch vụ
-          </a>
+          </Link>
         </div>
 
       </div>

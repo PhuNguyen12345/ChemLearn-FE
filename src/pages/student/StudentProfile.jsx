@@ -8,6 +8,7 @@ import girlChemist from '../../assets/girl_magic-chemist.png';
 import { getStudentProfileData, updateStudentProfileData, changeStudentPassword } from '../../api/studentApi';
 import { initiateAccountLink, getPendingAccountLinks } from '../../api/accountLinkApi';
 import { toast } from 'sonner';
+import MailDeliveryReminder from '@/components/shared/MailDeliveryReminder';
 
 const OUTFIT_DATA = [
   { id: 'outfit-boy-basic', name: 'Standard Uniform', gender: 'boy', price: 0, icon: '👕', image: boyBasic },
@@ -488,6 +489,7 @@ export default function StudentProfile() {
                    <p className="text-sm font-bold text-slate-500 mb-4">Gửi yêu cầu liên kết đến email của phụ huynh để họ có thể theo dõi tiến độ học tập của bạn.</p>
                    <div>
                      <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-1.5">Email Phụ huynh</label>
+                     <MailDeliveryReminder className="mb-3" />
                      <div className="flex gap-2">
                        <input 
                          type="email" 

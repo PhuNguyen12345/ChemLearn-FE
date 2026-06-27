@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { CheckCircle2, CircleAlert, HelpCircle, LoaderCircle, RefreshCcw, Send } from 'lucide-react';
 import { submitLessonMiniQuiz } from '../../../lib/api';
+import { useBiMascot } from '../mascot/BiMascot';
 import { formatChemistryText } from '../../../utils/chemistryFormatting';
 
 const OPTION_KEYS = [
@@ -17,6 +18,7 @@ const normalizeQuestionType = (question) => {
 };
 
 const MiniQuizSection = ({ lessonId, questions = [] }) => {
+  const { speak } = useBiMascot();
   const [answers, setAnswers] = useState({});
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
@@ -62,6 +64,11 @@ const MiniQuizSection = ({ lessonId, questions = [] }) => {
         }))
       });
       setResult(response);
+      speak(
+        response.passed
+          ? `Tuyệt lắm! Bạn làm đúng ${response.correctAnswers}/${response.totalQuestions} câu mini quiz. Giữ nhịp này là kiến thức sẽ chắc dần đó.`
+          : `Mình chưa qua lần này, nhưng không sao. Bạn đúng ${response.correctAnswers}/${response.totalQuestions} câu rồi. Hãy đọc lại phần liên quan và thử lại, Bi ở đây cùng bạn.`
+      );
     } catch (err) {
       setError(err?.response?.data?.message || 'Lỗi khi nộp bài. Vui lòng thử lại.');
     } finally {
@@ -129,15 +136,13 @@ const MiniQuizSection = ({ lessonId, questions = [] }) => {
                       type="button"
                       disabled={!!result || submitting}
                       onClick={() => updateAnswer(question, letter)}
-                      className={`flex min-h-12 items-center gap-3 rounded-xl border px-3 py-2 text-left transition ${
-                        isSelected
+                      className={`flex min-h-12 items-center gap-3 rounded-xl border px-3 py-2 text-left transition ${isSelected
                           ? 'border-indigo-500 bg-indigo-50 text-indigo-900 ring-2 ring-indigo-100'
                           : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
-                      } disabled:cursor-default`}
+                        } disabled:cursor-default`}
                     >
-                      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border text-xs font-black ${
-                        isSelected ? 'border-indigo-500 bg-indigo-600 text-white' : 'border-slate-200 bg-slate-50 text-slate-500'
-                      }`}>
+                      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border text-xs font-black ${isSelected ? 'border-indigo-500 bg-indigo-600 text-white' : 'border-slate-200 bg-slate-50 text-slate-500'
+                        }`}>
                         {letter}
                       </span>
                       <span
@@ -160,9 +165,8 @@ const MiniQuizSection = ({ lessonId, questions = [] }) => {
         )}
 
         {result && (
-          <div className={`rounded-xl border px-4 py-3 ${
-            result.passed ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-amber-200 bg-amber-50 text-amber-800'
-          }`}>
+          <div className={`rounded-xl border px-4 py-3 ${result.passed ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-amber-200 bg-amber-50 text-amber-800'
+            }`}>
             <div className="flex items-center gap-2 text-sm font-black">
               <CheckCircle2 className="h-4 w-4" />
               Điểm số: {result.score}% ({result.correctAnswers}/{result.totalQuestions})

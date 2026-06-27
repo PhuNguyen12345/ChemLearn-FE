@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStudentStore } from '../../stores/useStudentStore';
 import { Coins, ArrowLeft, Shield, Zap, Sparkles } from 'lucide-react';
 import shopBg from '../../assets/shop-bg.png';
@@ -18,10 +19,11 @@ const TOTAL_SLOTS = 16;
 
 const StudentShop = ({ onBack }) => {
   const { coins, inventory, buyItem } = useStudentStore();
+  const navigate = useNavigate();
   const [hoveredItem, setHoveredItem] = useState(null);
 
   return (
-    <div className="flex w-full h-full bg-[#1a1c29] items-center justify-center animate-in fade-in zoom-in-95 duration-300 relative overflow-hidden">
+    <div className="flex w-full flex-1 min-h-[calc(100vh-8rem)] rounded-2xl shadow-xl bg-[#1a1c29] items-center justify-center animate-in fade-in zoom-in-95 duration-300 relative overflow-hidden">
 
       {/* Background Container forcing aspect ratio */}
       <div className="relative w-full h-full bg-slate-900 overflow-hidden">
@@ -34,7 +36,7 @@ const StudentShop = ({ onBack }) => {
 
         {/* Back Button */}
         <button
-          onClick={onBack}
+          onClick={() => navigate('/student/home')}
           className="absolute top-4 left-4 z-10 p-3 bg-black/50 hover:bg-black/80 text-white rounded-full backdrop-blur-sm transition-all shadow-lg border border-white/10"
         >
           <ArrowLeft className="w-6 h-6" />
