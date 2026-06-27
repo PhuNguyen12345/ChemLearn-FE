@@ -102,32 +102,32 @@ const ChapterSidebar = ({ chapters = [], activeLessonId, onSelectLesson, isOpen 
           <button
             type="button"
             onClick={onClose}
-            className="fixed right-4 top-20 z-50 flex h-12 w-12 items-center justify-center rounded-full border border-sky-400 bg-sky-500 text-white shadow-lg shadow-sky-900/20 transition-colors hover:bg-sky-600 md:hidden"
+            className="fixed right-4 top-20 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/30 transition-transform hover:scale-105 active:scale-95 md:hidden"
             title="Hiển thị danh sách chương"
           >
             <BookOpen className="h-5 w-5" />
           </button>
 
-          <aside className="fixed bottom-0 right-0 top-16 z-50 hidden w-20 flex-col border-l border-slate-200 bg-slate-50 shadow-lg shadow-slate-900/5 md:flex">
+          <aside className="fixed bottom-0 right-0 top-16 z-50 hidden w-16 flex-col border-l border-indigo-500/20 bg-gradient-to-b from-sky-500 to-indigo-600 shadow-[0_0_20px_rgba(79,70,229,0.15)] md:flex">
             <button
               type="button"
               onClick={onClose}
-              className="absolute -left-3 top-[5.75rem] z-30 flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-500 shadow-sm transition-colors hover:bg-slate-100 hover:text-slate-800"
+              className="absolute -left-3.5 top-20 z-30 flex h-7 w-7 items-center justify-center rounded-lg bg-white text-indigo-600 shadow-md ring-2 ring-white/50 transition-all hover:scale-110 hover:shadow-lg"
               title="Hiển thị danh sách chương"
             >
-              <ChevronLeft className="h-5 w-5" />
+              <ChevronLeft className="h-4 w-4" />
             </button>
 
             <button
               type="button"
               onClick={onClose}
-              className="flex flex-1 flex-col items-center justify-start gap-3 px-2 py-5 text-slate-500 transition-colors hover:bg-white hover:text-sky-600"
+              className="group flex flex-1 flex-col items-center justify-start gap-5 px-2 py-6 text-white transition-all hover:bg-white/10"
               title="Hiển thị danh sách chương"
             >
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 shadow-inner backdrop-blur-md transition-all duration-300 group-hover:scale-110 group-hover:bg-white/30 group-hover:shadow-[0_0_15px_rgba(255,255,255,0.4)]">
                 <BookOpen className="h-5 w-5" />
               </span>
-              <span className="[writing-mode:vertical-rl] text-xs font-black uppercase tracking-widest">
+              <span className="[writing-mode:vertical-rl] text-sm font-black uppercase tracking-[0.2em] text-white/90 drop-shadow-sm transition-colors group-hover:text-white">
                 Chương học
               </span>
             </button>
@@ -144,7 +144,9 @@ const ChapterSidebar = ({ chapters = [], activeLessonId, onSelectLesson, isOpen 
         <button
           type="button"
           onClick={onClose}
-          className="absolute -left-3 top-5 z-30 flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:bg-slate-100 hover:text-slate-800"
+          className={`${
+            isOpen ? 'absolute -left-3 top-5 z-30' : ''
+          } flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:bg-slate-100 hover:text-slate-800`}
           title="Ẩn danh sách chương"
         >
           <ChevronLeft className="h-5 w-5 rotate-180" />

@@ -15,6 +15,14 @@ const createFormBase = {
   role: 'ROLE_STUDENT',
   enabled: true,
   avatarUrl: '',
+  phoneNumber: '',
+  gender: '',
+  gradeLevel: 6,
+  schoolName: '',
+  bio: '',
+  specialization: '',
+  degree: '',
+  workplace: '',
 };
 
 const roleLabels = {
@@ -37,6 +45,11 @@ const AdminUserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
   const [createOpen, setCreateOpen] = useState(false);
+
+  //TODO: Implement scroll to top functionality
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const loadUsers = async () => {
     try {
@@ -84,9 +97,11 @@ const AdminUserManagement = () => {
     setEditingUserId(null);
     setForm({ ...createFormBase, role });
     setCreateOpen(true);
+    scrollToTop();
   };
 
   const openEdit = (user) => {
+
     setCreateOpen(true);
     setEditingUserId(user.id);
     setForm({
@@ -97,7 +112,16 @@ const AdminUserManagement = () => {
       role: user.role || 'ROLE_STUDENT',
       enabled: user.isActive ?? true,
       avatarUrl: user.avatarUrl || '',
+      phoneNumber: user.phoneNumber || '',
+      gender: user.gender || '',
+      gradeLevel: user.gradeLevel || 6,
+      schoolName: user.schoolName || '',
+      bio: user.bio || '',
+      specialization: user.specialization || '',
+      degree: user.degree || '',
+      workplace: user.workplace || '',
     });
+
   };
 
   const handleSubmit = async (event) => {
@@ -114,7 +138,19 @@ const AdminUserManagement = () => {
         role: form.role,
         enabled: form.enabled,
         avatarUrl: form.avatarUrl.trim() || null,
+        phoneNumber: form.phoneNumber.trim() || null,
+        gender: form.gender || null,
       };
+
+      if (form.role === 'ROLE_STUDENT') {
+        payload.gradeLevel = parseInt(form.gradeLevel, 10);
+        payload.schoolName = form.schoolName.trim() || null;
+      } else if (form.role === 'ROLE_TEACHER') {
+        payload.bio = form.bio.trim() || null;
+        payload.specialization = form.specialization.trim() || null;
+        payload.degree = form.degree.trim() || null;
+        payload.workplace = form.workplace.trim() || null;
+      }
 
       if (form.password.trim()) {
         payload.password = form.password;
@@ -322,6 +358,91 @@ const AdminUserManagement = () => {
                   ))}
                 </select>
               </label>
+
+              <label className="space-y-1 text-sm font-semibold text-slate-700">
+                <span>Số điện thoại</span>
+                <input
+                  value={form.phoneNumber}
+                  onChange={(e) => setForm((prev) => ({ ...prev, phoneNumber: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none transition focus:border-indigo-400 focus:bg-white"
+                />
+              </label>
+
+              <label className="space-y-1 text-sm font-semibold text-slate-700">
+                <span>Giới tính</span>
+                <select
+                  value={form.gender}
+                  onChange={(e) => setForm((prev) => ({ ...prev, gender: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none transition focus:border-indigo-400 focus:bg-white"
+                >
+                  <option value="">Không xác định</option>
+                  <option value="MALE">Nam</option>
+                  <option value="FEMALE">Nữ</option>
+                </select>
+              </label>
+
+              {form.role === 'ROLE_STUDENT' && (
+                <>
+                  <label className="space-y-1 text-sm font-semibold text-slate-700">
+                    <span>Lớp học</span>
+                    <select
+                      value={form.gradeLevel}
+                      onChange={(e) => setForm((prev) => ({ ...prev, gradeLevel: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none transition focus:border-indigo-400 focus:bg-white"
+                    >
+                      {[6, 7, 8, 9].map((g) => (
+                        <option key={g} value={g}>Lớp {g}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="space-y-1 text-sm font-semibold text-slate-700">
+                    <span>Trường học</span>
+                    <input
+                      value={form.schoolName}
+                      onChange={(e) => setForm((prev) => ({ ...prev, schoolName: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none transition focus:border-indigo-400 focus:bg-white"
+                    />
+                  </label>
+                </>
+              )}
+
+              {form.role === 'ROLE_TEACHER' && (
+                <>
+                  <label className="space-y-1 text-sm font-semibold text-slate-700">
+                    <span>Chuyên môn</span>
+                    <input
+                      value={form.specialization}
+                      onChange={(e) => setForm((prev) => ({ ...prev, specialization: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none transition focus:border-indigo-400 focus:bg-white"
+                    />
+                  </label>
+                  <label className="space-y-1 text-sm font-semibold text-slate-700">
+                    <span>Bằng cấp</span>
+                    <input
+                      value={form.degree}
+                      onChange={(e) => setForm((prev) => ({ ...prev, degree: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none transition focus:border-indigo-400 focus:bg-white"
+                    />
+                  </label>
+                  <label className="space-y-1 text-sm font-semibold text-slate-700">
+                    <span>Nơi làm việc</span>
+                    <input
+                      value={form.workplace}
+                      onChange={(e) => setForm((prev) => ({ ...prev, workplace: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none transition focus:border-indigo-400 focus:bg-white"
+                    />
+                  </label>
+                  <label className="col-span-full space-y-1 text-sm font-semibold text-slate-700">
+                    <span>Tiểu sử</span>
+                    <textarea
+                      value={form.bio}
+                      onChange={(e) => setForm((prev) => ({ ...prev, bio: e.target.value }))}
+                      rows={3}
+                      className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none transition focus:border-indigo-400 focus:bg-white"
+                    />
+                  </label>
+                </>
+              )}
             </div>
 
             <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -379,6 +500,16 @@ const AdminUserManagement = () => {
                           <span className="rounded-md bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-600">
                             {roleLabels[user.role] || user.role}
                           </span>
+                          {user.role === 'ROLE_STUDENT' && user.gradeLevel && (
+                            <span className="rounded-md bg-blue-100 px-2.5 py-1 text-[11px] font-bold text-blue-700">
+                              Lớp {user.gradeLevel}
+                            </span>
+                          )}
+                          {user.role === 'ROLE_TEACHER' && user.specialization && (
+                            <span className="rounded-md bg-purple-100 px-2.5 py-1 text-[11px] font-bold text-purple-700">
+                              {user.specialization}
+                            </span>
+                          )}
                         </div>
 
                         <p className="mt-1 truncate text-sm text-slate-500">@{user.username} · {user.email}</p>
@@ -391,6 +522,7 @@ const AdminUserManagement = () => {
                         <button
                           type="button"
                           onClick={() => openEdit(user)}
+                          // onClick={scrollToTop}
                           className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
                         >
                           Chỉnh sửa
@@ -432,7 +564,7 @@ const AdminUserManagement = () => {
           </section>
 
           <aside className="space-y-4">
-            <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sticky top-5">
               <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">Tìm kiếm & lọc</p>
               <div className="mt-3 space-y-3">
                 <input
@@ -464,13 +596,13 @@ const AdminUserManagement = () => {
                 </button>
               </div>
             </section>
-
+{/* 
             <section className="rounded-lg border border-indigo-200 bg-indigo-50 p-4 text-sm text-indigo-900">
               <p className="font-black">Admin mặc định khi deploy</p>
               <p className="mt-2">
                 Backend sẽ tự tạo `duckhisuu` nếu database server chưa có tài khoản này.
               </p>
-            </section>
+            </section> */}
           </aside>
         </div>
       </div>

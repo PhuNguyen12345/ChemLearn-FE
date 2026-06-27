@@ -25,6 +25,8 @@ const AdminStudyEditPage = () => {
     description: '',
     orderIndex: 0,
     published: true,
+    gradeLevel: 6,
+    needPurchase: false,
   });
 
   useEffect(() => {
@@ -47,6 +49,8 @@ const AdminStudyEditPage = () => {
             description: entity?.description || '',
             orderIndex: entity?.orderIndex ?? entity?.displayOrder ?? 0,
             published: entity?.published ?? true,
+            gradeLevel: entity?.gradeLevel ?? 6,
+            needPurchase: entity?.needPurchase ?? false,
           });
         } else {
           setLesson(entity || null);
@@ -78,6 +82,8 @@ const AdminStudyEditPage = () => {
         description: chapterForm.description.trim(),
         orderIndex: Number.isFinite(Number(chapterForm.orderIndex)) ? Number(chapterForm.orderIndex) : 0,
         published: chapterForm.published,
+        gradeLevel: chapterForm.gradeLevel,
+        needPurchase: chapterForm.needPurchase,
       };
 
       await updateAdminChapter(entityId, payload);
@@ -98,13 +104,19 @@ const AdminStudyEditPage = () => {
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <button
-        onClick={() => navigate('/admin/study')}
-        className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
-      >
-        <ArrowLeft className="h-4 w-4" /> Quay lại
-      </button>
+    <div className="space-y-6 p-6 max-w-7xl mx-auto">
+      <div className="flex items-center gap-4 mb-4">
+        <button
+          onClick={() => navigate('/admin/study')}
+          className="group flex h-10 w-10 items-center justify-center rounded-2xl border-2 border-slate-200 bg-white text-slate-500 transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 active:scale-95"
+        >
+          <ArrowLeft className="h-5 w-5 transition-transform group-hover:-translate-x-1" />
+        </button>
+        <div>
+          <h2 className="text-xl font-black tracking-tight text-slate-900">Quay lại Study Zone</h2>
+          <p className="text-xs font-semibold text-slate-500">Trình biên tập nội dung Admin</p>
+        </div>
+      </div>
 
       {error && (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
@@ -112,37 +124,54 @@ const AdminStudyEditPage = () => {
         </div>
       )}
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-        <aside className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]">
+        <aside className="space-y-6 rounded-[2.5rem] border border-slate-200/60 bg-white/60 backdrop-blur-xl p-8 shadow-sm">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.28em] text-indigo-500">Admin editor</p>
-            <h1 className="mt-1 text-2xl font-black tracking-tight text-slate-900">
-              {isChapter ? 'Chỉnh sửa chương' : 'Chỉnh sửa bài học'}
+            <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 mb-4 border border-indigo-100/50">
+              <div className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600">Admin Editor</span>
+            </div>
+            <h1 className="text-3xl font-black tracking-tight text-slate-900">
+              {isChapter ? 'Cập nhật Chương' : 'Cập nhật Bài học'}
             </h1>
-            <p className="mt-2 text-sm text-slate-500">
-              {selectedChapter?.title ? `Chỉnh sửa ${selectedChapter.title}` : 'Chọn nội dung bạn muốn cập nhật.'}
+            <p className="mt-2 text-sm font-medium text-slate-500">
+              {selectedChapter?.title ? `Đang chỉnh sửa: ${selectedChapter.title}` : 'Chọn nội dung ở danh sách bên dưới để bắt đầu.'}
             </p>
           </div>
 
-          <div className="space-y-2">
-            <p className="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Các chương có sẵn</p>
-            <div className="max-h-[28rem] space-y-2 overflow-y-auto pr-1">
+          <div className="space-y-4 pt-4 border-t border-slate-100">
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+              Các chương hiện tại
+            </h3>
+            <div className="max-h-[32rem] space-y-3 overflow-y-auto pr-2 custom-scrollbar">
               {chapters.map((item) => (
-                <div key={item.id} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
-                  <div className="font-bold text-slate-900">{item.title}</div>
-                  <div className="mt-1 text-xs text-slate-500">{item.description || 'No description yet.'}</div>
-                </div>
+                <button
+                  key={item.id}
+                  onClick={() => navigate(`/admin/study/chapter/${item.id}/edit`)}
+                  className={`w-full text-left rounded-2xl border-2 p-4 transition-all duration-300 ${
+                    item.id === selectedChapter?.id
+                      ? 'border-indigo-500 bg-indigo-50/50 shadow-md shadow-indigo-100/50'
+                      : 'border-slate-100 bg-white hover:border-indigo-200 hover:shadow-sm'
+                  }`}
+                >
+                  <div className={`font-black text-base transition-colors ${item.id === selectedChapter?.id ? 'text-indigo-900' : 'text-slate-800'}`}>
+                    {item.title}
+                  </div>
+                  <div className="mt-1.5 text-xs font-medium text-slate-500 line-clamp-2 leading-relaxed">
+                    {item.description || 'Chưa có mô tả cho chương này.'}
+                  </div>
+                </button>
               ))}
               {!chapters.length && (
-                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
-                  Không có sẵn chương.
+                <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-8 text-center text-sm font-medium text-slate-500">
+                  Chưa có dữ liệu chương học.
                 </div>
               )}
             </div>
           </div>
         </aside>
 
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="rounded-[2.5rem] border-2 border-slate-100 bg-white p-8 shadow-xl shadow-slate-200/20">
           {isChapter ? (
             <form onSubmit={handleChapterSave} className="space-y-4">
               <div>
@@ -164,7 +193,20 @@ const AdminStudyEditPage = () => {
                   placeholder="Mô tả ngắn cho giáo viên và học sinh"
                 />
               </div>
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">Lớp</label>
+                  <select
+                    value={chapterForm.gradeLevel}
+                    onChange={(e) => setChapterForm({ ...chapterForm, gradeLevel: Number(e.target.value) })}
+                    className="w-full rounded-2xl border border-slate-200 px-4 py-3 bg-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                  >
+                    <option value={6}>Lớp 6</option>
+                    <option value={7}>Lớp 7</option>
+                    <option value={8}>Lớp 8</option>
+                    <option value={9}>Lớp 9</option>
+                  </select>
+                </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-slate-700">Thứ tự hiển thị</label>
                   <input
@@ -175,29 +217,39 @@ const AdminStudyEditPage = () => {
                     className="w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
                   />
                 </div>
-                <label className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700">
+                <label className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={chapterForm.published}
                     onChange={(e) => setChapterForm({ ...chapterForm, published: e.target.checked })}
+                    className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                   />
                   Đã xuất bản
                 </label>
+                <label className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={chapterForm.needPurchase}
+                    onChange={(e) => setChapterForm({ ...chapterForm, needPurchase: e.target.checked })}
+                    className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  Yêu cầu trả phí (Premium) 💎
+                </label>
               </div>
-              <div className="flex items-center justify-end gap-3 pt-2">
+              <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100 mt-6">
                 <button
                   type="button"
                   onClick={() => navigate('/admin/study')}
-                  className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+                  className="rounded-2xl border-2 border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-50 active:scale-95"
                 >
-                  Hủy
+                  Hủy bỏ
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="rounded-full bg-slate-900 px-5 py-2 text-sm font-black text-white transition hover:bg-slate-800 disabled:opacity-50"
+                  className="rounded-2xl bg-indigo-600 px-8 py-3 text-sm font-black text-white shadow-lg shadow-indigo-200 transition-all hover:bg-indigo-700 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
                 >
-                  {saving ? 'Đang lưu...' : 'Lưu chương'}
+                  {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
                 </button>
               </div>
             </form>

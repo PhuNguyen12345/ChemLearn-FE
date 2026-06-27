@@ -208,7 +208,7 @@ export default function RegisterPage() {
             <form onSubmit={handleRegister} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label htmlFor="gradeLevel">Khối lớp</Label>
+                  <Label htmlFor="gradeLevel">Lớp Đang Học</Label>
                   <select
                     id="gradeLevel"
                     value={formData.gradeLevel}
@@ -255,9 +255,10 @@ export default function RegisterPage() {
                 onChange={(value) => setField('confirmPassword', value)}
               />
 
-              <p className="rounded-lg border border-slate-100 bg-slate-50 p-3 text-xs leading-5 text-slate-500">
-                Mật khẩu cần 8-32 ký tự, có chữ hoa, chữ thường, số và ký tự đặc biệt.
-              </p>
+              <div className="rounded-lg border border-slate-100 bg-slate-50 p-3 text-xs leading-5 text-slate-500 space-y-1">
+                <p>📌 Mật khẩu cần 8-32 ký tự, có chữ hoa, chữ thường, số và ký tự đặc biệt.</p>
+                <p>🎓 <strong>Lớp học</strong> sẽ tự động được cập nhật lên lớp vào mỗi năm học mới.</p>
+              </div>
               <Button type="submit" disabled={loading} className="w-full">
                 Gửi OTP đăng ký <ArrowRight className="ml-2 h-4 w-4" />
               </Button>

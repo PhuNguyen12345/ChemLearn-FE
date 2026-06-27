@@ -30,7 +30,7 @@
     "json-server": "^1.0.0-beta.15",
     "katex": "^0.17.0",
     "lucide-react": "^0.577.0",
-    "phaser": "^4.1.0",
+    "phaser": "^4.2.0",
     "radix-ui": "^1.4.3",
     "react": "^19.2.0",
     "react-bootstrap": "^2.10.10",

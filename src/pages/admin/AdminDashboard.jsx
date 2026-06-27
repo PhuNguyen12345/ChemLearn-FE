@@ -5,6 +5,7 @@ import {
   BookOpen,
   Bug,
   Download,
+  RefreshCw,
   Flag,
   Heart,
   Map,
@@ -239,7 +240,7 @@ const AdminDashboard = () => {
           </p>
         </div>
         <Button className="w-full sm:w-auto" onClick={loadDashboard} disabled={loading}>
-          <Download className="mr-2 h-4 w-4" />
+          <RefreshCw className="mr-2 h-4 w-4" />
           Tải lại dữ liệu
         </Button>
       </div>
