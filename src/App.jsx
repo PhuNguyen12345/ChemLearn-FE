@@ -7,8 +7,9 @@ import LandingPage from "./pages/LandingPage";
 import AuthLayout from "./components/layout/auth/AuthLayout";
 import Login from "./pages/auth/LoginPage";
 import Register from "./pages/auth/RegisterPage";
-import RequestAccessPage from "./pages/auth/RequestAccessPage";
-import InviteAcceptPage from "./pages/auth/InviteAcceptPage";
+import RequestAccessPage from './pages/auth/RequestAccessPage';
+import InviteAcceptPage from './pages/auth/InviteAcceptPage';
+import GoogleSignupPage from './pages/auth/GoogleSignupPage';
 import VirtualLabPage from "./features/lab/VirtualLabPage";
 
 import FireQuizGame from "./components/FireQuizGame";
@@ -72,6 +73,7 @@ function App() {
             <Route path="/register" element={<Navigate to="/auth/register" replace />} />
             <Route path="/auth/login" element={<Login />} />
             <Route path="/auth/register" element={<Register />} />
+            <Route path="/auth/google-signup" element={<GoogleSignupPage />} />
             <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/request-access" element={<RequestAccessPage />} />
             <Route path="/invite" element={<InviteAcceptPage />} />

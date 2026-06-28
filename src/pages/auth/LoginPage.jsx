@@ -136,16 +136,13 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSetupModal, setShowSetupModal] = useState(false);
-  const [showGoogleProfileModal, setShowGoogleProfileModal] = useState(false);
-  const [pendingGoogleIdToken, setPendingGoogleIdToken] = useState('');
-  const [googleProfileForm, setGoogleProfileForm] = useState({ gradeLevel: '6', gender: 'boy' });
   const [copiedText, setCopiedText] = useState('');
 
   const navigate = useNavigate();
   const location = useLocation();
   const login = useAuthStore((state) => state.login);
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-  const GOOGLE_PROFILE_SETUP_MESSAGE = 'Google signup requires grade level and gender';
+  const GOOGLE_PROFILE_SETUP_MESSAGE = 'GOOGLE_PROFILE_SETUP_REQUIRED';
 
   const demoAccounts = [
     { label: 'Học Sinh', user: 'student1', pass: 'Password123!', role: 'STUDENT' },
@@ -188,10 +185,7 @@ export default function LoginPage() {
         err?.response?.data ||
         'Đăng nhập Google thất bại.';
       if (String(backendMessage).includes(GOOGLE_PROFILE_SETUP_MESSAGE)) {
-        setPendingGoogleIdToken(credentialResponse.credential);
-        setGoogleProfileForm({ gradeLevel: '6', gender: 'boy' });
-        setShowGoogleProfileModal(true);
-        setError('');
+        navigate('/auth/google-signup', { state: { pendingGoogleIdToken: credentialResponse.credential } });
         return;
       }
       setError(String(backendMessage));
@@ -200,55 +194,7 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleProfileSubmit = async (event) => {
-    event.preventDefault();
 
-    if (!pendingGoogleIdToken) {
-      setShowGoogleProfileModal(false);
-      setError('Không thể tiếp tục đăng nhập Google.');
-      return;
-    }
-
-    setError('');
-    setIsLoading(true);
-
-    try {
-      const authData = await loginWithGoogle({
-        idToken: pendingGoogleIdToken,
-        gradeLevel: Number(googleProfileForm.gradeLevel),
-        gender: googleProfileForm.gender,
-      });
-
-      login(authData);
-      setShowGoogleProfileModal(false);
-      setPendingGoogleIdToken('');
-
-      switch (authData.role) {
-        case 'ROLE_STUDENT':
-          navigate('/student/home');
-          break;
-        case 'ROLE_TEACHER':
-          navigate('/teacher/dashboard');
-          break;
-        case 'ROLE_PARENT':
-          navigate('/parent/dashboard');
-          break;
-        case 'ROLE_ADMIN':
-          navigate('/admin/dashboard');
-          break;
-        default:
-          navigate('/');
-      }
-    } catch (err) {
-      const backendMessage =
-        err?.response?.data?.message ||
-        err?.response?.data ||
-        'Đăng nhập Google thất bại.';
-      setError(String(backendMessage));
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   useEffect(() => {
     if (!googleClientId) return;
@@ -678,101 +624,7 @@ export default function LoginPage() {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {showGoogleProfileModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => {
-                setShowGoogleProfileModal(false);
-                setPendingGoogleIdToken('');
-              }}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs"
-            />
 
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.96 }}
-              className="relative z-10 w-full max-w-md bg-white border border-slate-200 rounded-xl p-6 shadow-xl"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center gap-2 text-blue-600">
-                  <Sparkles className="w-5 h-5 shrink-0" />
-                  <h3 className="font-bold text-lg text-slate-800">Hoàn tất đăng ký Google</h3>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowGoogleProfileModal(false);
-                    setPendingGoogleIdToken('');
-                  }}
-                  className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <p className="text-sm text-slate-600 mb-4">
-                Vui lòng cung cấp thêm một số thông tin để hoàn tất quá trình đăng ký bằng tài khoản Google của bạn. Thông tin này sẽ giúp chúng tôi cá nhân hóa trải nghiệm học tập của bạn trên ChemLearn.
-              </p>
-
-              <form onSubmit={handleGoogleProfileSubmit} className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="google-grade-level" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
-                    Lớp Đang Học
-                  </Label>
-                  <select
-                    id="google-grade-level"
-                    value={googleProfileForm.gradeLevel}
-                    onChange={(e) => setGoogleProfileForm((current) => ({ ...current, gradeLevel: e.target.value }))}
-                    className="w-full h-11 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500"
-                  >
-                    {[6, 7, 8, 9].map((grade) => (
-                      <option key={grade} value={String(grade)}>
-                        Lớp {grade}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="google-gender" className="text-slate-700 text-xs font-bold uppercase tracking-wider">
-                    Giới tính
-                  </Label>
-                  <select
-                    id="google-gender"
-                    value={googleProfileForm.gender}
-                    onChange={(e) => setGoogleProfileForm((current) => ({ ...current, gender: e.target.value }))}
-                    className="w-full h-11 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500"
-                  >
-                    <option value="boy">Nam</option>
-                    <option value="girl">Nữ</option>
-                  </select>
-                </div>
-
-                <div className="flex gap-3 pt-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setShowGoogleProfileModal(false);
-                      setPendingGoogleIdToken('');
-                    }}
-                    className="flex-1"
-                  >
-                    Hủy
-                  </Button>
-                  <Button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
-                    Tiếp tục
-                  </Button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
