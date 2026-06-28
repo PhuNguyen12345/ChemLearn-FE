@@ -4,12 +4,15 @@ import {
   Beaker,
   BookOpen,
   Bug,
-  Download,
+  CreditCard,
   RefreshCw,
   Flag,
+  GraduationCap,
   Heart,
   Map,
   MessageSquare,
+  PackageCheck,
+  Search,
   Send,
   Users,
   Zap,
@@ -41,6 +44,7 @@ import {
 import {
   getAdminDashboardSummary,
   getAdminFeedbackReports,
+  getAdminPaidStudentSubscriptions,
   getUsers,
   sendAdminBiMessage,
   updateAdminFeedbackReport,
@@ -61,7 +65,33 @@ const priorityClass = {
   HIGH: 'bg-rose-100 text-rose-700',
 };
 
+const entitlementStatusClass = {
+  ACTIVE: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100',
+  PENDING: 'bg-slate-100 text-slate-700 hover:bg-slate-100',
+  EXPIRED: 'bg-amber-100 text-amber-700 hover:bg-amber-100',
+  CANCELLED: 'bg-rose-100 text-rose-700 hover:bg-rose-100',
+};
+
+const paymentStatusClass = {
+  PAID: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100',
+  PENDING: 'bg-slate-100 text-slate-700 hover:bg-slate-100',
+  CANCELLED: 'bg-rose-100 text-rose-700 hover:bg-rose-100',
+  EXPIRED: 'bg-amber-100 text-amber-700 hover:bg-amber-100',
+  FAILED: 'bg-rose-100 text-rose-700 hover:bg-rose-100',
+};
+
 const formatNumber = (value) => Number(value || 0).toLocaleString('vi-VN');
+
+const formatCurrency = (value) => {
+  if (value === null || value === undefined || value === '') return '-';
+  const amount = Number(value);
+  if (Number.isNaN(amount)) return String(value);
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
 
 const formatDateTime = (value) => {
   if (!value) return '-';
@@ -71,6 +101,19 @@ const formatDateTime = (value) => {
     hour: '2-digit',
     minute: '2-digit',
   }).format(new Date(value));
+};
+
+const formatFullDateTime = (value) => {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '-';
+  return new Intl.DateTimeFormat('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
 };
 
 const StatCard = ({ title, value, helper, icon, accent }) => (
@@ -92,6 +135,8 @@ const AdminDashboard = () => {
   const [summary, setSummary] = React.useState(null);
   const [reports, setReports] = React.useState([]);
   const [users, setUsers] = React.useState([]);
+  const [paidSubscriptions, setPaidSubscriptions] = React.useState([]);
+  const [paidSubscriptionSearch, setPaidSubscriptionSearch] = React.useState('');
   const [loading, setLoading] = React.useState(true);
   const [replyForms, setReplyForms] = React.useState({});
   const [replySubmitting, setReplySubmitting] = React.useState({});
@@ -99,14 +144,16 @@ const AdminDashboard = () => {
   const loadDashboard = React.useCallback(async () => {
     try {
       setLoading(true);
-      const [summaryData, reportData, userData] = await Promise.all([
+      const [summaryData, reportData, userData, paidSubscriptionData] = await Promise.all([
         getAdminDashboardSummary(),
         getAdminFeedbackReports(),
         getUsers(),
+        getAdminPaidStudentSubscriptions(),
       ]);
       setSummary(summaryData);
       setReports(reportData);
       setUsers(Array.isArray(userData) ? userData : []);
+      setPaidSubscriptions(Array.isArray(paidSubscriptionData) ? paidSubscriptionData : []);
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Không tải được dashboard admin.');
     } finally {
@@ -226,6 +273,44 @@ const AdminDashboard = () => {
     { name: 'Đang học', value: summary?.inProgressLessonProgress || 0, fill: '#0ea5e9' },
     { name: 'Hoàn thành', value: summary?.completedLessonProgress || 0, fill: '#22c55e' },
   ];
+
+  const filteredPaidSubscriptions = React.useMemo(() => {
+    const term = paidSubscriptionSearch.trim().toLowerCase();
+    if (!term) return paidSubscriptions;
+
+    return paidSubscriptions.filter((item) =>
+      [
+        item.fullName,
+        item.username,
+        item.email,
+        item.phoneNumber,
+        item.schoolName,
+        item.packageCode,
+        item.packageName,
+        item.entitlementStatus,
+        item.paymentStatus,
+        item.orderCode,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+        .includes(term)
+    );
+  }, [paidSubscriptions, paidSubscriptionSearch]);
+
+  const paidStudentCount = React.useMemo(
+    () => new Set(paidSubscriptions.map((item) => item.studentId).filter(Boolean)).size,
+    [paidSubscriptions]
+  );
+
+  const activePaidSubscriptionCount = paidSubscriptions.filter(
+    (item) => item.entitlementStatus === 'ACTIVE'
+  ).length;
+
+  const totalPaidRevenue = paidSubscriptions.reduce(
+    (total, item) => total + Number(item.amount || 0),
+    0
+  );
 
   const recentUsers = users.slice(0, 5);
   const openReports = reports.filter((report) => report.status !== 'RESOLVED').length;
@@ -368,6 +453,189 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+            <div>
+              <CardTitle>Học sinh đăng ký gói học trả tiền</CardTitle>
+              <CardDescription>
+                Danh sách học sinh có giao dịch thanh toán thành công, kèm thông tin tài khoản, hồ sơ, gói học và quyền truy cập.
+              </CardDescription>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-3">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                  <Users className="h-3.5 w-3.5" />
+                  Học sinh
+                </div>
+                <div className="mt-1 text-lg font-bold text-slate-900">{formatNumber(paidStudentCount)}</div>
+              </div>
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
+                <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700">
+                  <PackageCheck className="h-3.5 w-3.5" />
+                  Gói active
+                </div>
+                <div className="mt-1 text-lg font-bold text-emerald-900">{formatNumber(activePaidSubscriptionCount)}</div>
+              </div>
+              <div className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2">
+                <div className="flex items-center gap-2 text-xs font-semibold text-sky-700">
+                  <CreditCard className="h-3.5 w-3.5" />
+                  Doanh thu
+                </div>
+                <div className="mt-1 text-lg font-bold text-sky-900">{formatCurrency(totalPaidRevenue)}</div>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <label className="relative block max-w-xl">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              value={paidSubscriptionSearch}
+              onChange={(event) => setPaidSubscriptionSearch(event.target.value)}
+              placeholder="Tìm theo tên, email, SĐT, trường, mã gói, trạng thái..."
+              className="h-10 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm outline-none transition focus:border-cyan-400"
+            />
+          </label>
+
+          <div className="overflow-x-auto">
+            <Table className="min-w-[1560px] table-fixed">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[22%]">Học sinh</TableHead>
+                  <TableHead className="w-[18%]">Hồ sơ học tập</TableHead>
+                  <TableHead className="w-[22%]">Gói học</TableHead>
+                  <TableHead className="w-[18%]">Thanh toán</TableHead>
+                  <TableHead className="w-[20%]">Quyền truy cập</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredPaidSubscriptions.length ? (
+                  filteredPaidSubscriptions.map((subscription) => {
+                    const entitlementStatus = subscription.entitlementStatus || 'UNKNOWN';
+                    const paymentStatus = subscription.paymentStatus || 'UNKNOWN';
+
+                    return (
+                      <TableRow key={subscription.entitlementId || `${subscription.studentId}-${subscription.packageCode}-${subscription.orderCode}`}>
+                        <TableCell className="whitespace-normal align-top">
+                          <div className="space-y-1.5">
+                            <div className="font-semibold text-slate-900">
+                              {subscription.fullName || subscription.username || 'Chưa có tên'}
+                            </div>
+                            <div className="break-all text-sm text-muted-foreground">{subscription.email || '-'}</div>
+                            <div className="text-xs text-slate-500">
+                              Username: {subscription.username || '-'}
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              SĐT: {subscription.phoneNumber || '-'} / Giới tính: {subscription.gender || '-'}
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              Tạo TK: {formatFullDateTime(subscription.accountCreatedAt)}
+                            </div>
+                            <div className="break-all text-xs text-slate-400">ID: {subscription.studentId || '-'}</div>
+                            <Badge variant={subscription.accountActive ? 'secondary' : 'outline'}>
+                              {subscription.accountActive ? 'Active' : 'Disabled'}
+                            </Badge>
+                          </div>
+                        </TableCell>
+
+                        <TableCell className="whitespace-normal align-top">
+                          <div className="space-y-1.5 text-sm">
+                            <div className="flex items-center gap-2 font-semibold text-slate-900">
+                              <GraduationCap className="h-4 w-4 text-slate-500" />
+                              Lớp {subscription.currentGrade ?? subscription.gradeLevel ?? '-'}
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              Lớp lưu: {subscription.gradeLevel ?? '-'} / Năm TN: {subscription.targetGraduationYear ?? '-'}
+                            </div>
+                            <div className="break-words text-xs text-slate-500">
+                              Trường: {subscription.schoolName || '-'}
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              Điểm: {formatNumber(subscription.totalPoints)} / XP: {formatNumber(subscription.experience)}
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              Coin: {formatNumber(subscription.coins)} / Streak: {formatNumber(subscription.currentStreak)} / PvP: {formatNumber(subscription.pvpWins)}
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              Active gần nhất: {subscription.lastActiveDate || '-'}
+                            </div>
+                          </div>
+                        </TableCell>
+
+                        <TableCell className="whitespace-normal align-top">
+                          <div className="space-y-1.5">
+                            <div className="font-semibold text-slate-900">{subscription.packageName || subscription.packageCode || '-'}</div>
+                            <Badge variant="outline">{subscription.packageCode || '-'}</Badge>
+                            <div className="text-xs text-slate-500">
+                              Lớp gói: {subscription.packageGradeLevel ?? '-'} / Thời hạn: {subscription.packageDurationDays ?? '-'} ngày
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              Giá niêm yết: {formatCurrency(subscription.packageBasePrice)}
+                            </div>
+                            <div className="break-words text-xs text-slate-500">
+                              Mô tả: {subscription.packageDescription || '-'}
+                            </div>
+                            {subscription.packageBenefitsJson && (
+                              <div className="break-all text-xs text-slate-400">
+                                Benefits: {subscription.packageBenefitsJson}
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+
+                        <TableCell className="whitespace-normal align-top">
+                          <div className="space-y-1.5">
+                            <div className="text-lg font-bold text-slate-900">{formatCurrency(subscription.amount)}</div>
+                            <Badge className={paymentStatusClass[paymentStatus] || 'bg-slate-100 text-slate-700 hover:bg-slate-100'}>
+                              {paymentStatus}
+                            </Badge>
+                            <div className="text-xs text-slate-500">Order: {subscription.orderCode || '-'}</div>
+                            <div className="break-all text-xs text-slate-500">
+                              Buyer: {subscription.buyerName || '-'} / {subscription.buyerEmail || '-'}
+                            </div>
+                            <div className="text-xs text-slate-500">Đã trả: {formatFullDateTime(subscription.paidAt)}</div>
+                            <div className="text-xs text-slate-500">Tạo GD: {formatFullDateTime(subscription.transactionCreatedAt)}</div>
+                            <div className="break-all text-xs text-slate-400">Payment ID: {subscription.paymentTransactionId || '-'}</div>
+                          </div>
+                        </TableCell>
+
+                        <TableCell className="whitespace-normal align-top">
+                          <div className="space-y-1.5">
+                            <Badge className={entitlementStatusClass[entitlementStatus] || 'bg-slate-100 text-slate-700 hover:bg-slate-100'}>
+                              {entitlementStatus}
+                            </Badge>
+                            <div className="text-xs text-slate-500">Bắt đầu: {formatFullDateTime(subscription.startAt)}</div>
+                            <div className="text-xs text-slate-500">Kết thúc: {formatFullDateTime(subscription.endAt)}</div>
+                            <div className="text-xs text-slate-500">Cập nhật: {formatFullDateTime(subscription.entitlementUpdatedAt)}</div>
+                            <div className="text-xs text-slate-500">Hủy lúc: {formatFullDateTime(subscription.cancelledAt)}</div>
+                            <div className="break-words text-xs text-slate-500">
+                              Lý do hủy: {subscription.cancellationReason || '-'}
+                            </div>
+                            {subscription.metadataJson && (
+                              <div className="break-all text-xs text-slate-400">
+                                Metadata: {subscription.metadataJson}
+                              </div>
+                            )}
+                            <div className="break-all text-xs text-slate-400">Entitlement ID: {subscription.entitlementId || '-'}</div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center text-sm text-muted-foreground">
+                      {loading ? 'Đang tải danh sách đăng ký trả tiền...' : 'Chưa có học sinh nào đăng ký gói học trả tiền.'}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

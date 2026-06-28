@@ -689,6 +689,11 @@ export const getAdminStudentEntitlements = async (studentEmail) => {
   return normalizeListResponse(response.data);
 };
 
+export const getAdminPaidStudentSubscriptions = async () => {
+  const response = await api.get('/api/admin/paid-student-subscriptions');
+  return normalizeListResponse(response.data);
+};
+
 export const grantAdminPackageToStudent = async (payload) => {
   const response = await api.post('/api/admin/entitlements/grants', payload);
   return response.data;
