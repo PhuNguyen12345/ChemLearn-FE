@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Atom, CheckCircle2, KeyRound, Loader2, Mail, Send, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import MailDeliveryReminder from '@/components/shared/MailDeliveryReminder';
 import api from '../../lib/api';
+import CaptchaWidget from '@/components/shared/CaptchaWidget';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -16,6 +17,8 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
+  const [captchaToken, setCaptchaToken] = useState(null);
+  const captchaRef = useRef(null);
 
   const requestOtp = async (event) => {
     event?.preventDefault();
@@ -29,11 +32,12 @@ export default function ForgotPasswordPage() {
 
     setLoading(true);
     try {
-      await api.post('/api/auth/forgot-password', { email: email.trim() });
+      await api.post('/api/auth/forgot-password', { email: email.trim(), captchaToken: captchaToken || undefined });
       setStep('otp');
       setSuccess('Nếu email tồn tại trong hệ thống, mã OTP đã được gửi đến hộp thư của bạn.');
     } catch (err) {
       setError(err?.response?.data?.message || 'Không thể gửi OTP. Vui lòng thử lại.');
+      captchaRef.current?.reset();
     } finally {
       setLoading(false);
     }
@@ -129,6 +133,7 @@ export default function ForgotPasswordPage() {
                   />
                 </div>
               </div>
+              <CaptchaWidget ref={captchaRef} onVerify={setCaptchaToken} className="flex justify-center" />
               <Button type="submit" disabled={loading} className="w-full">
                 {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                 Gửi mã OTP

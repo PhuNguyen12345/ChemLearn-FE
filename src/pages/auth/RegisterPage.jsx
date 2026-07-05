@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Atom, ArrowLeft, ArrowRight, CheckCircle2, Eye, EyeOff, KeyRound, Lock, Mail, Send, User, UserCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import MailDeliveryReminder from '@/components/shared/MailDeliveryReminder';
 import api from '@/lib/api';
 import useAuthStore from '../../stores/useAuthStore';
+import CaptchaWidget from '@/components/shared/CaptchaWidget';
 
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_.]).{8,32}$/;
 const USERNAME_REGEX = /^\S+$/;
@@ -32,6 +33,8 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
   const logout = useAuthStore((state) => state.logout);
+  const [captchaToken, setCaptchaToken] = useState(null);
+  const captchaRef = useRef(null);
 
   const setField = (field, value) => {
     setFormData((current) => ({ ...current, [field]: value }));
@@ -74,11 +77,13 @@ export default function RegisterPage() {
         gradeLevel: Number(formData.gradeLevel),
         gender: formData.gender,
         role: 'ROLE_STUDENT',
+        captchaToken: captchaToken || undefined,
       });
       setStep('otp');
       setSuccess('Mã OTP đã được gửi đến email của bạn. Vui lòng nhập mã để hoàn tất đăng ký.');
     } catch (err) {
       setError(err?.response?.data?.message || 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.');
+      captchaRef.current?.reset();
     } finally {
       setLoading(false);
     }
@@ -259,6 +264,7 @@ export default function RegisterPage() {
                 <p>📌 Mật khẩu cần 8-32 ký tự, có chữ hoa, chữ thường, số và ký tự đặc biệt.</p>
                 <p>🎓 <strong>Lớp học</strong> sẽ tự động được cập nhật lên lớp vào mỗi năm học mới.</p>
               </div>
+              <CaptchaWidget ref={captchaRef} onVerify={setCaptchaToken} className="flex justify-center" />
               <Button type="submit" disabled={loading} className="w-full">
                 Gửi OTP đăng ký <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
