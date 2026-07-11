@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import MiniQuizSection from './MiniQuizSection';
+import VideoSection from './VideoSection';
 import { formatChemistryHtml } from '../../../utils/chemistryFormatting';
 
 const LessonContent = ({ lessonDetail, previousLesson, nextLesson, onNavigateLesson }) => {
@@ -32,6 +33,8 @@ const LessonContent = ({ lessonDetail, previousLesson, nextLesson, onNavigateLes
 
       <div className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto w-full space-y-8 flex-1">
         <div className="tiptap-content prose max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: formattedContent }} />
+
+        <VideoSection videoUrl={lessonDetail.videoUrl} />
 
         <MiniQuizSection lessonId={lessonDetail.id} questions={lessonDetail.miniQuizQuestions || []} />
 
