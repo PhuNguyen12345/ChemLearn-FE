@@ -12,14 +12,12 @@ import {
   GraduationCap,
   Loader2,
   ShieldCheck,
-  XCircle,
 } from 'lucide-react';
 import {
   getPackages,
   createPaymentLink,
   getPaymentStatus,
-  getMyEntitlements,
-  cancelMyEntitlement
+  getMyEntitlements
 } from '../../lib/api';
 import useAuthStore from '../../stores/useAuthStore';
 
@@ -39,7 +37,7 @@ const Payments = () => {
   const [loadingEntitlements, setLoadingEntitlements] = useState(false);
   const [processingOrder, setProcessingOrder] = useState(null);
   const [statusMessage, setStatusMessage] = useState(null);
-  const [cancellingId, setCancellingId] = useState(null);
+  const [selectedPackage, setSelectedPackage] = useState(null);
   const auth = useAuthStore();
   const [searchParams, setSearchParams] = useSearchParams();
   const returnedOrderCode = searchParams.get('orderCode') || sessionStorage.getItem(PENDING_PAYMENT_ORDER_KEY);
@@ -149,14 +147,23 @@ const Payments = () => {
     };
   };
 
-  const handleBuy = async (pkg) => {
+  const handleBuyClick = (pkg) => {
+    setSelectedPackage(pkg);
+  };
+
+  const handleConfirmBuy = async () => {
+    if (!selectedPackage) return;
+    const pkg = selectedPackage;
+    
     if (!auth?.isAuthenticated) {
       setStatusMessage('Vui lòng đăng nhập trước khi thanh toán.');
+      setSelectedPackage(null);
       return;
     }
 
     if (entitlementsByPackage[pkg.packageCode]) {
       setStatusMessage('Tài khoản của bạn đã có gói học này.');
+      setSelectedPackage(null);
       return;
     }
 
@@ -180,12 +187,10 @@ const Payments = () => {
         if (res?.orderCode) {
           sessionStorage.setItem(PENDING_PAYMENT_ORDER_KEY, String(res.orderCode));
         }
-        // open in same tab to let PayOS redirect back
         window.location.href = res.checkoutUrl;
         return;
       }
 
-      // if only qrCode provided, show it and poll
       if (res?.orderCode) {
         pollStatus(res.orderCode);
       }
@@ -194,24 +199,7 @@ const Payments = () => {
       setStatusMessage('Tạo yêu cầu thanh toán thất bại.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleCancel = async (entitlement) => {
-    if (!entitlement?.id) return;
-    const confirmed = window.confirm('Hủy gia hạn gói học này? Bạn vẫn dùng được gói đến ngày hết hạn.');
-    if (!confirmed) return;
-
-    try {
-      setCancellingId(entitlement.id);
-      await cancelMyEntitlement(entitlement.id);
-      setStatusMessage('Đã hủy gói học. Bạn vẫn có quyền truy cập đến ngày hết hạn.');
-      await loadEntitlements();
-    } catch (err) {
-      console.error(err);
-      setStatusMessage('Không thể hủy gói học lúc này.');
-    } finally {
-      setCancellingId(null);
+      setSelectedPackage(null);
     }
   };
 
@@ -368,6 +356,46 @@ const Payments = () => {
         </div>
       )}
 
+      {processingOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+          <div className="flex flex-col items-center rounded-2xl bg-white p-8 shadow-2xl">
+            <Loader2 className="mb-4 h-12 w-12 animate-spin text-blue-600" />
+            <div className="text-lg font-black text-slate-800">Đang xử lý thanh toán</div>
+            <div className="mt-2 text-sm text-slate-500">Vui lòng đợi trong giây lát...</div>
+          </div>
+        </div>
+      )}
+
+      {selectedPackage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl relative">
+            <div className="flex items-center gap-3 text-amber-500 mb-4">
+              <AlertCircle className="w-6 h-6" />
+              <h3 className="text-xl font-black text-slate-800">Xác nhận mua gói</h3>
+            </div>
+            <p className="text-slate-600 text-sm mb-6">
+              Bạn có chắc chắn muốn mua gói <strong className="text-slate-900">{selectedPackage.packageName}</strong> với giá <strong className="text-slate-900">{formatCurrency(selectedPackage.basePrice)}</strong> không? Hệ thống sẽ chuyển hướng bạn sang cổng thanh toán.
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setSelectedPackage(null)}
+                className="flex-1 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
+              >
+                Hủy bỏ
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmBuy}
+                className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 transition"
+              >
+                Đồng ý mua
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         {visiblePackages.map((p) => {
           const entitlement = entitlementsByPackage[p.packageCode];
@@ -469,28 +497,13 @@ const Payments = () => {
                         {cancelled ? <Clock3 className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
                         {cancelled ? 'Còn hiệu lực' : 'Đã kích hoạt'}
                       </div>
-                      {!cancelled && (
-                        <button
-                          type="button"
-                          className="inline-flex items-center justify-center gap-2 rounded-md border border-rose-200 bg-white px-3 py-2 text-sm font-black text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
-                          disabled={cancellingId === entitlement.id || loadingEntitlements}
-                          onClick={() => handleCancel(entitlement)}
-                        >
-                          {cancellingId === entitlement.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <XCircle className="h-4 w-4" />
-                          )}
-                          {cancellingId === entitlement.id ? 'Đang hủy' : 'Hủy gói'}
-                        </button>
-                      )}
                     </div>
                   ) : (
                     <button
                       type="button"
                       className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-slate-900 px-4 py-2.5 text-sm font-black text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-                      disabled={loading || loadingEntitlements || isProcessingThisPackage}
-                      onClick={() => handleBuy(p)}
+                      disabled={loading || processingOrder !== null}
+                      onClick={() => handleBuyClick(p)}
                     >
                       {loading && isProcessingThisPackage ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
