@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import CaptchaWidget from '@/components/shared/CaptchaWidget';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
@@ -137,6 +138,8 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [copiedText, setCopiedText] = useState('');
+  const [captchaToken, setCaptchaToken] = useState(null);
+  const captchaRef = useRef(null);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -238,12 +241,19 @@ export default function LoginPage() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (import.meta.env.VITE_TURNSTILE_SITE_KEY && !captchaToken) {
+      setError('Vui lòng xác minh bạn không phải là robot.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       const response = await api.post('/api/auth/login', {
         username,
         password,
+        captchaToken: captchaToken || undefined,
       });
 
       const authData = response.data;
@@ -277,6 +287,7 @@ export default function LoginPage() {
         err?.response?.data ||
         'Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản.';
       setError(String(backendMessage));
+      captchaRef.current?.reset();
     } finally {
       setIsLoading(false);
     }
@@ -465,6 +476,8 @@ export default function LoginPage() {
                       </button>
                     </div>
                   </div>
+
+                  <CaptchaWidget ref={captchaRef} onVerify={setCaptchaToken} className="flex justify-center" />
 
                   <Button
                     type="submit"

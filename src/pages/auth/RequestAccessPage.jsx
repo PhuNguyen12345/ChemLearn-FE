@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import CaptchaWidget from '@/components/shared/CaptchaWidget';
 import { Link } from 'react-router-dom';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
@@ -148,6 +149,8 @@ export default function RequestAccessPage() {
     username: '',
     fullName: '',
   });
+  const [captchaToken, setCaptchaToken] = useState(null);
+  const captchaRef = useRef(null);
 
   const handleFieldChange = (field, value) => {
     if (field === 'username') {
@@ -223,6 +226,7 @@ export default function RequestAccessPage() {
         degree: role === 'ROLE_TEACHER' ? degree : undefined,
         specialization: role === 'ROLE_TEACHER' ? specialization : undefined,
         jobTitle: role === 'ROLE_PARENT' ? jobTitle : undefined,
+        captchaToken: captchaToken || undefined,
       });
 
       setSuccess('Account request submitted. Your account is pending admin approval.');
@@ -236,12 +240,14 @@ export default function RequestAccessPage() {
       setDegree('');
       setSpecialization('');
       setJobTitle('');
+      captchaRef.current?.reset();
     } catch (err) {
       const backendMessage =
         err?.response?.data?.message ||
         err?.response?.data ||
         'Gửi yêu cầu thất bại.';
       setError(String(backendMessage));
+      captchaRef.current?.reset();
     } finally {
       setIsLoading(false);
     }
@@ -650,6 +656,8 @@ export default function RequestAccessPage() {
                       </motion.div>
                     )}
                   </AnimatePresence>
+
+                  <CaptchaWidget ref={captchaRef} onVerify={setCaptchaToken} className="flex justify-center" />
 
                   <Button
                     type="submit"

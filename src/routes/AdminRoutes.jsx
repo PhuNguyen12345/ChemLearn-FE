@@ -6,6 +6,8 @@ import AdminDashboard from "../pages/admin/AdminDashboard";
 import AdminUserManagement from "../pages/admin/AdminUserManagement";
 import AdminStudyZone from "../pages/admin/AdminStudyZone";
 import AdminStudyEditPage from "../pages/admin/AdminStudyEditPage";
+import AdminChapterDetailPage from "../pages/admin/AdminChapterDetailPage";
+import AdminLessonCreatePage from "../pages/admin/AdminLessonCreatePage";
 import AdminAccountRequests from "../pages/admin/AdminAccountRequests";
 import AdminPetManagement from "../pages/admin/AdminPetManagement";
 import AdminMailNotifications from "../pages/admin/AdminMailNotifications";
@@ -18,6 +20,8 @@ export default function AdminRoutes() {
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="study" element={<AdminStudyZone />} />
+        <Route path="study/chapter/:chapterId" element={<AdminChapterDetailPage />} />
+        <Route path="study/chapter/:chapterId/lesson/new" element={<AdminLessonCreatePage />} />
         <Route path="study/:entityType/:entityId/edit" element={<AdminStudyEditPage />} />
         <Route path="subscriptions" element={<AdminSubscriptionManagement />} />
         <Route path="account-requests" element={<AdminAccountRequests />} />

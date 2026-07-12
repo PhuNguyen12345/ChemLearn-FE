@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { addMiniQuizQuestion, createAdminLesson, updateAdminLesson, deleteMiniQuizQuestion } from '../../../lib/api';
 import LessonWritingBlock from '../../shared/LessonWritingBlock';
 
@@ -7,12 +7,32 @@ const getInitialMiniQuizQuestions = (existing) => {
   return Array.isArray(questions) ? questions : [];
 };
 
+/**
+ * Extracts YouTube video ID from various URL formats.
+ */
+const extractYouTubeId = (url) => {
+  if (!url || typeof url !== 'string') return null;
+  const trimmed = url.trim();
+  if (!trimmed) return null;
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.hostname.includes('youtube.com') && parsed.searchParams.has('v')) return parsed.searchParams.get('v');
+    if (parsed.hostname === 'youtu.be') return parsed.pathname.slice(1).split('/')[0] || null;
+    const embedMatch = parsed.pathname.match(/\/(embed|v)\/([a-zA-Z0-9_-]{11})/);
+    if (embedMatch) return embedMatch[2];
+  } catch { /* not a valid URL */ }
+  return null;
+};
+
 const AdminLessonEditor = ({ chapterId, existing = null, onSaved }) => {
   const [title, setTitle] = useState(existing?.title || '');
   const [content, setContent] = useState(existing?.content || '');
   const [durationMinutes, setDurationMinutes] = useState(existing?.durationMinutes || 15);
   const [orderIndex, setOrderIndex] = useState(existing?.orderIndex || 0);
   const [published, setPublished] = useState(existing?.published ?? true);
+  const [videoUrl, setVideoUrl] = useState(existing?.videoUrl || '');
+  const parsedVideoId = useMemo(() => extractYouTubeId(videoUrl), [videoUrl]);
   const [miniQuizDrafts, setMiniQuizDrafts] = useState(() => getInitialMiniQuizQuestions(existing));
   const [quizPrompt, setQuizPrompt] = useState('');
   const [quizOptionA, setQuizOptionA] = useState('');
@@ -99,7 +119,8 @@ const AdminLessonEditor = ({ chapterId, existing = null, onSaved }) => {
         chapterId,
         durationMinutes,
         orderIndex,
-        published
+        published,
+        videoUrl: videoUrl.trim() || null
       };
 
       let persistedLesson;
@@ -187,6 +208,43 @@ const AdminLessonEditor = ({ chapterId, existing = null, onSaved }) => {
         publishedLabel="Published in Study Zone"
         contentPlaceholder="Write a styled lesson like a document page..."
       />
+
+      <div className="rounded-md border border-slate-200 p-3 space-y-3">
+        <h4 className="text-sm font-black text-slate-700">YouTube Video</h4>
+        <div className="space-y-2">
+          <input
+            type="url"
+            value={videoUrl}
+            onChange={(e) => setVideoUrl(e.target.value)}
+            placeholder="Paste YouTube URL (e.g. https://www.youtube.com/watch?v=...)"
+            className="w-full rounded-md border px-3 py-2 text-sm"
+          />
+          {videoUrl.trim() && (
+            parsedVideoId ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs font-semibold text-emerald-600">
+                  <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
+                  Valid YouTube video detected: <code className="rounded bg-slate-100 px-1.5 py-0.5 text-slate-700">{parsedVideoId}</code>
+                </div>
+                <div className="overflow-hidden rounded-lg border border-slate-200 bg-black" style={{ aspectRatio: '16/9', maxWidth: 420 }}>
+                  <iframe
+                    src={`https://www.youtube.com/embed/${parsedVideoId}?rel=0&modestbranding=1`}
+                    title="Video preview"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="h-full w-full border-0"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-xs font-semibold text-amber-600">
+                <span className="inline-block h-2 w-2 rounded-full bg-amber-500" />
+                Could not detect a YouTube video ID from this URL
+              </div>
+            )
+          )}
+        </div>
+      </div>
 
       <div className="rounded-md border border-slate-200 p-3 space-y-3">
         <h4 className="text-sm font-black text-slate-700">Lesson-end mini quiz</h4>
